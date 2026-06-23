@@ -11,7 +11,7 @@ export const listLeases = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const getLease = async (req: AuthenticatedRequest, res: Response) => {
-  const { leaseId } = req.params;
+  const leaseId = req.params.leaseId as string;
   const lease = await prisma.lease.findFirst({
     where: { id: leaseId, unit: { property: { organizationId: req.user!.organizationId } } },
     include: { unit: true, tenant: true, payments: true },
@@ -55,7 +55,7 @@ export const createLease = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const updateLease = async (req: AuthenticatedRequest, res: Response) => {
-  const { leaseId } = req.params;
+  const leaseId = req.params.leaseId as string;
   const { startDate, endDate, monthlyRent } = req.body;
 
   const lease = await prisma.lease.findFirst({
@@ -66,7 +66,7 @@ export const updateLease = async (req: AuthenticatedRequest, res: Response) => {
   }
 
   const updated = await prisma.lease.update({
-    where: { id: leaseId },
+    where: { id: leaseId as string },
     data: {
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
@@ -78,7 +78,7 @@ export const updateLease = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const deleteLease = async (req: AuthenticatedRequest, res: Response) => {
-  const { leaseId } = req.params;
+  const leaseId = req.params.leaseId as string;
 
   const deleted = await prisma.lease.deleteMany({
     where: { id: leaseId, unit: { property: { organizationId: req.user!.organizationId } } },

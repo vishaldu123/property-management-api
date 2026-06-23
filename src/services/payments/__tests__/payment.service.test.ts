@@ -1,6 +1,6 @@
-import { createPaymentWithProvider, getProviderAdapter } from '../../services/payments/payment.service';
-import RazorpayAdapter from '../../services/payments/razorpayAdapter';
-import CashfreeAdapter from '../../services/payments/cashfreeAdapter';
+import { createPaymentWithProvider, getProviderAdapter } from '../payment.service';
+import RazorpayAdapter from '../razorpayAdapter';
+import CashfreeAdapter from '../cashfreeAdapter';
 
 describe('Payment Service', () => {
   describe('getProviderAdapter', () => {

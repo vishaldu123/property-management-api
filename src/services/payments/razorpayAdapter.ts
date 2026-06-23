@@ -6,11 +6,20 @@ import prisma from '../../config/prisma';
 const KEY_ID = process.env.RAZORPAY_KEY_ID || '';
 const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || '';
 
-const razor = new Razorpay({ key_id: KEY_ID, key_secret: KEY_SECRET });
+let razor: any = null;
+
+const getRazorpayInstance = () => {
+  if (!razor && KEY_ID) {
+    razor = new Razorpay({ key_id: KEY_ID, key_secret: KEY_SECRET });
+  }
+  return razor;
+};
 
 const RazorpayAdapter: PaymentProvider = {
   name: 'razorpay',
   async createPayment(opts: CreatePaymentOptions) {
+    const razor = getRazorpayInstance();
+    if (!razor) throw new Error('Razorpay credentials not configured');
     const order = await razor.orders.create({
       amount: opts.amount,
       currency: opts.currency || 'INR',
