@@ -37,9 +37,13 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/property_management_test
         run: npm ci
 
       - name: Generate Prisma client
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/property_management_test
         run: npx prisma generate
 
       - name: Lint (TypeScript)
@@ -76,9 +80,13 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/property_management_test
         run: npm ci
 
       - name: Generate Prisma client
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/property_management_test
         run: npx prisma generate
 
       - name: Build
