@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../config/prisma';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { createPaymentWithProvider } from '../services/payments/payment.service';
 
 export const listPayments = async (req: AuthenticatedRequest, res: Response) => {
   const payments = await prisma.payment.findMany({
@@ -45,6 +46,58 @@ export const createPayment = async (req: AuthenticatedRequest, res: Response) =>
   });
 
   res.status(201).json(payment);
+};
+
+export const initiatePayment = async (req: AuthenticatedRequest, res: Response) => {
+  const { leaseId, amount, provider, metadata } = req.body; // provider: 'razorpay' | 'cashfree'
+
+  if (!['razorpay', 'cashfree'].includes(provider)) {
+    return res.status(400).json({ message: 'Unsupported provider' });
+  }
+
+  const lease = await prisma.lease.findFirst({
+    where: { id: leaseId, unit: { property: { organizationId: req.user!.organizationId } } },
+  });
+
+  if (!lease) {
+    return res.status(404).json({ message: 'Lease not found' });
+  }
+
+  // Create a local payment record with PENDING status
+  const payment = await prisma.payment.create({
+    data: {
+      leaseId,
+      amount,
+      paymentDate: new Date(),
+      status: 'PENDING',
+      provider: provider,
+    },
+  });
+
+  try {
+    const providerResponse = await createPaymentWithProvider(provider, {
+      amount: Number(amount) * 100, // convert to paise
+      currency: 'INR',
+      receipt: payment.id,
+      metadata: { ...metadata, leaseId, paymentId: payment.id },
+    });
+
+    const providerPaymentId = providerResponse?.id || providerResponse?.order_id || providerResponse?.data?.order_id || providerResponse?.order?.id;
+
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        providerPaymentId: providerPaymentId || undefined,
+        providerResponse: providerResponse,
+      },
+    });
+
+    res.status(201).json({ paymentId: payment.id, providerResponse });
+  } catch (err: any) {
+    console.error('initiatePayment error', err);
+    await prisma.payment.update({ where: { id: payment.id }, data: { status: 'FAILED', providerResponse: { error: String(err?.message || err) } as any } });
+    res.status(500).json({ message: 'Failed to initiate payment', error: err?.message || err });
+  }
 };
 
 export const updatePayment = async (req: AuthenticatedRequest, res: Response) => {
