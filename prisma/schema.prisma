@@ -104,6 +104,10 @@ model Payment {
   paymentDate DateTime
   status      String
   leaseId     String
+  provider    String?
+  providerPaymentId String? @unique
+  providerStatus String?
+  providerResponse Json?
   createdAt   DateTime @default(now())
 
   lease Lease @relation(fields: [leaseId], references: [id], onDelete: Cascade)
