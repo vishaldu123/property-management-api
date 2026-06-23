@@ -44,7 +44,7 @@ jobs:
       - name: Generate Prisma client
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/property_management_test
-        run: npx prisma generate
+        run: npm run generate
 
       - name: Lint (TypeScript)
         run: npm run lint
@@ -87,7 +87,7 @@ jobs:
       - name: Generate Prisma client
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/property_management_test
-        run: npx prisma generate
+        run: npm run generate
 
       - name: Build
         run: npm run build
