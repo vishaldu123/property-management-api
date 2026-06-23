@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { Prisma, OrganizationUser, Organization } from '@prisma/client';
 import prisma from '../config/prisma';
 
 const registerSchema = z.object({
@@ -38,7 +39,7 @@ export const register = async (req: Request, res: Response) => {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const user = await tx.user.create({
       data: {
         name,
@@ -104,7 +105,7 @@ export const login = async (req: Request, res: Response) => {
   }
 
   const membership = organizationId
-    ? user.memberships.find((m) => m.organizationId === organizationId)
+    ? user.memberships.find((m: OrganizationUser & { organization: Organization }) => m.organizationId === organizationId)
     : user.memberships[0];
 
   if (!membership) {
