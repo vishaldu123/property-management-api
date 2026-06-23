@@ -13,7 +13,7 @@ export const listUnits = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const getUnit = async (req: AuthenticatedRequest, res: Response) => {
-  const { unitId } = req.params;
+  const unitId = req.params.unitId as string;
   const unit = await prisma.unit.findFirst({
     where: {
       id: unitId,
@@ -51,7 +51,7 @@ export const createUnit = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const updateUnit = async (req: AuthenticatedRequest, res: Response) => {
-  const { unitId } = req.params;
+  const unitId = req.params.unitId as string;
   const { unitNumber, rentAmount } = req.body;
 
   const unit = await prisma.unit.findFirst({
@@ -77,7 +77,7 @@ export const updateUnit = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const deleteUnit = async (req: AuthenticatedRequest, res: Response) => {
-  const { unitId } = req.params;
+  const unitId = req.params.unitId as string;
 
   const deleted = await prisma.unit.deleteMany({
     where: {

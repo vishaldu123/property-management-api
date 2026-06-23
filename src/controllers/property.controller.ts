@@ -11,7 +11,7 @@ export const listProperties = async (req: AuthenticatedRequest, res: Response) =
 };
 
 export const getProperty = async (req: AuthenticatedRequest, res: Response) => {
-  const { propertyId } = req.params;
+  const propertyId = req.params.propertyId as string;
   const property = await prisma.property.findFirst({
     where: { id: propertyId, organizationId: req.user!.organizationId },
     include: { units: true },
@@ -40,7 +40,7 @@ export const createProperty = async (req: AuthenticatedRequest, res: Response) =
 };
 
 export const updateProperty = async (req: AuthenticatedRequest, res: Response) => {
-  const { propertyId } = req.params;
+  const propertyId = req.params.propertyId as string;
   const { name, address, city, state } = req.body;
 
   const property = await prisma.property.updateMany({
@@ -52,12 +52,12 @@ export const updateProperty = async (req: AuthenticatedRequest, res: Response) =
     return res.status(404).json({ message: 'Property not found' });
   }
 
-  const updated = await prisma.property.findUnique({ where: { id: propertyId } });
+  const updated = await prisma.property.findUnique({ where: { id: propertyId as string } });
   res.json(updated);
 };
 
 export const deleteProperty = async (req: AuthenticatedRequest, res: Response) => {
-  const { propertyId } = req.params;
+  const propertyId = req.params.propertyId as string;
 
   const property = await prisma.property.deleteMany({
     where: { id: propertyId, organizationId: req.user!.organizationId },

@@ -11,7 +11,7 @@ export const listPayments = async (req: AuthenticatedRequest, res: Response) => 
 };
 
 export const getPayment = async (req: AuthenticatedRequest, res: Response) => {
-  const { paymentId } = req.params;
+  const paymentId = req.params.paymentId as string;
   const payment = await prisma.payment.findFirst({
     where: { id: paymentId, lease: { unit: { property: { organizationId: req.user!.organizationId } } } },
     include: { lease: true },
@@ -48,7 +48,7 @@ export const createPayment = async (req: AuthenticatedRequest, res: Response) =>
 };
 
 export const updatePayment = async (req: AuthenticatedRequest, res: Response) => {
-  const { paymentId } = req.params;
+  const paymentId = req.params.paymentId as string;
   const { amount, paymentDate, status } = req.body;
 
   const payment = await prisma.payment.findFirst({
@@ -60,7 +60,7 @@ export const updatePayment = async (req: AuthenticatedRequest, res: Response) =>
   }
 
   const updated = await prisma.payment.update({
-    where: { id: paymentId },
+    where: { id: paymentId as string },
     data: {
       amount: amount !== undefined ? amount : undefined,
       paymentDate: paymentDate ? new Date(paymentDate) : undefined,
@@ -72,7 +72,7 @@ export const updatePayment = async (req: AuthenticatedRequest, res: Response) =>
 };
 
 export const deletePayment = async (req: AuthenticatedRequest, res: Response) => {
-  const { paymentId } = req.params;
+  const paymentId = req.params.paymentId as string;
 
   const deleted = await prisma.payment.deleteMany({
     where: { id: paymentId, lease: { unit: { property: { organizationId: req.user!.organizationId } } } },
