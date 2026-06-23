@@ -7,22 +7,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum OrganizationRole {
-  OWNER
-  ADMIN
-  MANAGER
-  MEMBER
-}
-
 model Organization {
-  id        String             @id @default(uuid())
-  name      String
-  slug      String             @unique
-  createdAt DateTime           @default(now())
-
+  id         String             @id @default(uuid())
+  name       String
+  slug       String             @unique
+  createdAt  DateTime           @default(now())
   users      OrganizationUser[]
   properties Property[]
   tenants    Tenant[]
+}
+
+model User {
+  id          String             @id @default(uuid())
+  name        String
+  email       String             @unique
+  password    String
+  createdAt   DateTime           @default(now())
+  memberships OrganizationUser[]
 }
 
 model OrganizationUser {
@@ -31,21 +32,10 @@ model OrganizationUser {
   userId         String
   role           OrganizationRole @default(MEMBER)
   createdAt      DateTime         @default(now())
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
-}
-
-model User {
-  id           String             @id @default(uuid())
-  name         String
-  email        String             @unique
-  password     String
-  createdAt    DateTime           @default(now())
-
-  memberships OrganizationUser[]
 }
 
 model Tenant {
@@ -53,11 +43,10 @@ model Tenant {
   name           String
   email          String?
   phone          String
-  organizationId String
   createdAt      DateTime     @default(now())
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  leases       Lease[]
+  organizationId String
+  leases         Lease[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Property {
@@ -66,49 +55,52 @@ model Property {
   address        String
   city           String
   state          String
-  organizationId String
   createdAt      DateTime     @default(now())
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  units        Unit[]
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  units          Unit[]
 }
 
 model Unit {
-  id          String   @id @default(uuid())
-  unitNumber  String
-  rentAmount  Decimal
-  propertyId  String
-  createdAt   DateTime @default(now())
-
-  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  leases   Lease[]
+  id         String   @id @default(uuid())
+  unitNumber String
+  rentAmount Decimal
+  propertyId String
+  createdAt  DateTime @default(now())
+  leases     Lease[]
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
 model Lease {
-  id            String   @id @default(uuid())
-  startDate     DateTime
-  endDate       DateTime
-  monthlyRent   Decimal
-  unitId        String
-  tenantId      String
-  createdAt     DateTime @default(now())
-
-  unit    Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  tenant  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  payments Payment[]
+  id          String    @id @default(uuid())
+  startDate   DateTime
+  endDate     DateTime
+  monthlyRent Decimal
+  unitId      String
+  createdAt   DateTime  @default(now())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unit        Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  payments    Payment[]
 }
 
 model Payment {
-  id          String   @id @default(uuid())
-  amount      Decimal
-  paymentDate DateTime
-  status      String
-  leaseId     String
-  provider    String?
-  providerPaymentId String? @unique
-  providerStatus String?
-  providerResponse Json?
-  createdAt   DateTime @default(now())
+  id                String   @id @default(uuid())
+  amount            Decimal
+  paymentDate       DateTime
+  status            String
+  leaseId           String
+  createdAt         DateTime @default(now())
+  provider          String?
+  providerPaymentId String?  @unique
+  providerResponse  Json?
+  providerStatus    String?
+  lease             Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+}
 
-  lease Lease @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
 }
