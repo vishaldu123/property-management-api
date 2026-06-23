@@ -2,8 +2,16 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { Prisma, OrganizationUser, Organization } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
+
+type UserWithMemberships = Prisma.UserGetPayload<{
+  include: {
+    memberships: {
+      include: { organization: true };
+    };
+  };
+}>;
 
 const registerSchema = z.object({
   name: z.string().min(1),
@@ -105,7 +113,7 @@ export const login = async (req: Request, res: Response) => {
   }
 
   const membership = organizationId
-    ? user.memberships.find((m: OrganizationUser & { organization: Organization }) => m.organizationId === organizationId)
+    ? user.memberships.find((m) => m.organizationId === organizationId)
     : user.memberships[0];
 
   if (!membership) {
