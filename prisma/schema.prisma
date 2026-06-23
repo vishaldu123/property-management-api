@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+model Organization {
+  id        String             @id @default(uuid())
+  name      String
+  slug      String             @unique
+  createdAt DateTime           @default(now())
+
+  users      OrganizationUser[]
+  properties Property[]
+  tenants    Tenant[]
+}
+
+model OrganizationUser {
+  id             String           @id @default(uuid())
+  organizationId String
+  userId         String
+  role           OrganizationRole @default(MEMBER)
+  createdAt      DateTime         @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model User {
+  id           String             @id @default(uuid())
+  name         String
+  email        String             @unique
+  password     String
+  createdAt    DateTime           @default(now())
+
+  memberships OrganizationUser[]
+}
+
+model Tenant {
+  id             String       @id @default(uuid())
+  name           String
+  email          String?
+  phone          String
+  organizationId String
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leases       Lease[]
+}
+
+model Property {
+  id             String       @id @default(uuid())
+  name           String
+  address        String
+  city           String
+  state          String
+  organizationId String
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  units        Unit[]
+}
+
+model Unit {
+  id          String   @id @default(uuid())
+  unitNumber  String
+  rentAmount  Decimal
+  propertyId  String
+  createdAt   DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  leases   Lease[]
+}
+
+model Lease {
+  id            String   @id @default(uuid())
+  startDate     DateTime
+  endDate       DateTime
+  monthlyRent   Decimal
+  unitId        String
+  tenantId      String
+  createdAt     DateTime @default(now())
+
+  unit    Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  tenant  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payments Payment[]
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  amount      Decimal
+  paymentDate DateTime
+  status      String
+  leaseId     String
+  createdAt   DateTime @default(now())
+
+  lease Lease @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+}
