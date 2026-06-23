@@ -5,13 +5,22 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
 
-type UserWithMemberships = Prisma.UserGetPayload<{
-  include: {
-    memberships: {
-      include: { organization: true };
-    };
+interface MembershipWithOrganization {
+  organizationId: string;
+  role: string;
+  organization: {
+    id: string;
+    name: string;
+    slug: string;
   };
-}>;
+}
+
+interface UserWithMemberships {
+  id: string;
+  email: string;
+  password: string;
+  memberships: MembershipWithOrganization[];
+}
 
 const registerSchema = z.object({
   name: z.string().min(1),
@@ -101,7 +110,7 @@ export const login = async (req: Request, res: Response) => {
         include: { organization: true },
       },
     },
-  });
+  }) as UserWithMemberships | null;
 
   if (!user) {
     return res.status(401).json({ message: 'Invalid credentials' });
@@ -113,7 +122,7 @@ export const login = async (req: Request, res: Response) => {
   }
 
   const membership = organizationId
-    ? user.memberships.find((m) => m.organizationId === organizationId)
+    ? user.memberships.find((m: MembershipWithOrganization) => m.organizationId === organizationId)
     : user.memberships[0];
 
   if (!membership) {
