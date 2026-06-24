@@ -9,10 +9,7 @@ import paymentRoutes from './routes/payment.routes';
 import paymentWebhooks from './routes/payment.webhooks';
 import swaggerUi from 'swagger-ui-express';
 import { openApiDoc } from './openapi';
->>>>>>> origin/main
 import { globalErrorHandler } from './middleware/errorHandler';
-=======
->>>>>>> origin/main
 import { seedDefaultRolePermissions } from './services/rbac.service';
 
 dotenv.config();
@@ -39,12 +36,9 @@ app.get('/', (req, res) => {
   res.json({ success: true, message: 'Property Management API Running' });
 });
 
->>>>>>> origin/main
 // Global error handler must be registered after all routes
 app.use(globalErrorHandler);
 
-=======
->>>>>>> origin/main
 export const bootstrapIfNeeded = async () => {
   if (process.env.NODE_ENV !== 'test') {
     await seedDefaultRolePermissions();
