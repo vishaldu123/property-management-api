@@ -8,31 +8,59 @@ datasource db {
 }
 
 model Organization {
-  id         String             @id @default(uuid())
-  name       String
-  slug       String             @unique
-  createdAt  DateTime           @default(now())
-  users      OrganizationUser[]
-  properties Property[]
-  tenants    Tenant[]
+  id                 String               @id @default(uuid())
+  name               String
+  slug               String               @unique
+  createdAt          DateTime             @default(now())
+  defaultCurrency    String               @default("INR")
+  description        String?
+  timezone           String               @default("UTC")
+  updatedAt          DateTime             @default(now())
+  AuditLog           AuditLog[]
+  Expense            Expense[]
+  Invoice            Invoice[]
+  Lease              Lease[]
+  LedgerAccount      LedgerAccount[]
+  LedgerEntry        LedgerEntry[]
+  MaintenanceRequest MaintenanceRequest[]
+  users              OrganizationUser[]
+  Payment            Payment[]
+  Permission         Permission[]
+  properties         Property[]
+  Role               Role[]
+  tenants            Tenant[]
 }
 
 model User {
-  id          String             @id @default(uuid())
-  name        String
-  email       String             @unique
-  password    String
-  createdAt   DateTime           @default(now())
-  memberships OrganizationUser[]
+  id                                                             String                  @id @default(uuid())
+  name                                                           String
+  email                                                          String                  @unique
+  password                                                       String
+  createdAt                                                      DateTime                @default(now())
+  isActive                                                       Boolean                 @default(true)
+  phone                                                          String?
+  updatedAt                                                      DateTime                @default(now())
+  AuditLog                                                       AuditLog[]
+  Expense                                                        Expense[]
+  Invoice                                                        Invoice[]
+  MaintenanceAssignment_MaintenanceAssignment_assignedByIdToUser MaintenanceAssignment[] @relation("MaintenanceAssignment_assignedByIdToUser")
+  MaintenanceAssignment_MaintenanceAssignment_assignedToIdToUser MaintenanceAssignment[] @relation("MaintenanceAssignment_assignedToIdToUser")
+  MaintenanceRequest                                             MaintenanceRequest[]
+  memberships                                                    OrganizationUser[]
 }
 
 model RolePermission {
-  id         String           @id @default(uuid())
-  role       OrganizationRole
-  permission Permission
-  createdAt  DateTime         @default(now())
+  id           String          @id @default(uuid())
+  roleId       String
+  permissionId String
+  scope        PermissionScope @default(READ)
+  createdAt    DateTime        @default(now())
+  Permission   Permission      @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  Role         Role            @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
-  @@unique([role, permission])
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+  @@index([roleId])
 }
 
 model OrganizationUser {
@@ -40,8 +68,12 @@ model OrganizationUser {
   organizationId String
   userId         String
   role           OrganizationRole @default(MEMBER)
-  createdAt      DateTime         @default(now())
+  joinedAt       DateTime         @default(now())
+  roleId         String?
+  status         MembershipStatus @default(ACTIVE)
+  updatedAt      DateTime         @default(now())
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  Role           Role?            @relation(fields: [roleId], references: [id], onDelete: Cascade)
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
@@ -50,81 +82,286 @@ model OrganizationUser {
 }
 
 model Tenant {
-  id             String       @id @default(uuid())
-  name           String
-  email          String?
-  phone          String
-  createdAt      DateTime     @default(now())
-  organizationId String
-  leases         Lease[]
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([email])
+  id                 String               @id @default(uuid())
+  name               String
+  email              String?
+  phone              String
+  createdAt          DateTime             @default(now())
+  organizationId     String
+  address            String?
+  updatedAt          DateTime             @default(now())
+  Invoice            Invoice[]
+  leases             Lease[]
+  MaintenanceRequest MaintenanceRequest[]
+  Payment            Payment[]
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Property {
-  id             String       @id @default(uuid())
-  name           String
-  address        String
-  city           String
-  state          String
-  createdAt      DateTime     @default(now())
+  id                 String               @id @default(uuid())
+  name               String
+  address            String
+  city               String
+  state              String
+  createdAt          DateTime             @default(now())
+  organizationId     String
+  country            String               @default("India")
+  postalCode         String?
+  updatedAt          DateTime             @default(now())
+  MaintenanceRequest MaintenanceRequest[]
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  units              Unit[]
+}
+
+model Unit {
+  id                 String               @id @default(uuid())
+  unitNumber         String
+  rentAmount         Decimal
+  propertyId         String
+  createdAt          DateTime             @default(now())
+  areaSqFt           Decimal?
+  bathrooms          Int                  @default(0)
+  bedrooms           Int                  @default(0)
+  updatedAt          DateTime             @default(now())
+  leases             Lease[]
+  MaintenanceRequest MaintenanceRequest[]
+  property           Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model Lease {
+  id              String       @id @default(uuid())
+  startDate       DateTime
+  endDate         DateTime
+  monthlyRent     Decimal
+  unitId          String
+  createdAt       DateTime     @default(now())
+  tenantId        String
+  depositPaid     Boolean      @default(false)
+  organizationId  String
+  securityDeposit Decimal?
+  status          String       @default("ACTIVE")
+  updatedAt       DateTime     @default(now())
+  Invoice         Invoice[]
+  Organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unit            Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  payments        Payment[]
+}
+
+model Payment {
+  id                String            @id @default(uuid())
+  amount            Decimal
+  paymentDate       DateTime
+  leaseId           String
+  createdAt         DateTime          @default(now())
+  provider          String?
+  providerPaymentId String?           @unique
+  providerResponse  Json?
+  providerStatus    String?
+  invoiceId         String?
+  method            PaymentMethod     @default(BANK_TRANSFER)
+  organizationId    String?
+  reference         String?           @unique
+  tenantId          String?
+  updatedAt         DateTime          @default(now())
+  status            TransactionStatus
+  Invoice           Invoice?          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  lease             Lease             @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  Organization      Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  Tenant            Tenant?           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id             String        @id
+  organizationId String?
+  actorId        String?
+  resourceType   String
+  resourceId     String?
+  action         String
+  event          String
+  before         Json?
+  after          Json?
+  metadata       Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime      @default(now())
+  User           User?         @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  Organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Expense {
+  id             String         @id
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  units          Unit[]
+  category       String
+  amount         Decimal
+  status         ExpenseStatus  @default(PENDING)
+  expenseDate    DateTime       @default(now())
+  vendor         String?
+  reference      String?
+  notes          String?
+  paymentMethod  PaymentMethod  @default(BANK_TRANSFER)
+  accountId      String?
+  createdById    String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime
+  LedgerAccount  LedgerAccount? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  User           User?          @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  Organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id              String            @id
+  organizationId  String
+  tenantId        String
+  leaseId         String?
+  invoiceNumber   String
+  issueDate       DateTime          @default(now())
+  dueDate         DateTime
+  currency        String            @default("INR")
+  subTotal        Decimal
+  taxAmount       Decimal           @default(0)
+  totalAmount     Decimal
+  status          InvoiceStatus     @default(DRAFT)
+  notes           String?
+  createdById     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  User            User?             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  Lease           Lease?            @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  Organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  Tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  InvoiceLineItem InvoiceLineItem[]
+  Payment         Payment[]
+
+  @@unique([organizationId, invoiceNumber])
+  @@index([leaseId])
+  @@index([organizationId])
+  @@index([tenantId])
+}
+
+model InvoiceLineItem {
+  id          String   @id
+  invoiceId   String
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Decimal
+  total       Decimal
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model LedgerAccount {
+  id             String            @id
+  organizationId String
+  name           String
+  type           LedgerAccountType
+  accountNumber  String?
+  currency       String            @default("INR")
+  balance        Decimal           @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime
+  Expense        Expense[]
+  Organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  LedgerEntry    LedgerEntry[]
 
   @@index([organizationId])
 }
 
-model Unit {
-  id         String   @id @default(uuid())
-  unitNumber String
-  rentAmount Decimal
-  propertyId String
-  createdAt  DateTime @default(now())
-  leases     Lease[]
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+model LedgerEntry {
+  id              String                @id
+  organizationId  String
+  ledgerAccountId String
+  transactionType LedgerTransactionType
+  amount          Decimal
+  description     String
+  reference       String?
+  entryDate       DateTime              @default(now())
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime
+  LedgerAccount   LedgerAccount         @relation(fields: [ledgerAccountId], references: [id], onDelete: Cascade)
+  Organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@index([propertyId])
+  @@index([ledgerAccountId])
+  @@index([organizationId])
 }
 
-model Lease {
-  id          String    @id @default(uuid())
-  startDate   DateTime
-  endDate     DateTime
-  monthlyRent Decimal
-  unitId      String
-  createdAt   DateTime  @default(now())
-  tenantId    String
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  unit        Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  payments    Payment[]
-
-  @@index([unitId])
-  @@index([tenantId])
+model MaintenanceAssignment {
+  id                                            String             @id
+  requestId                                     String
+  assignedToId                                  String
+  assignedById                                  String
+  comment                                       String?
+  status                                        MaintenanceStatus  @default(SCHEDULED)
+  assignedAt                                    DateTime           @default(now())
+  completedAt                                   DateTime?
+  createdAt                                     DateTime           @default(now())
+  updatedAt                                     DateTime
+  User_MaintenanceAssignment_assignedByIdToUser User               @relation("MaintenanceAssignment_assignedByIdToUser", fields: [assignedById], references: [id], onDelete: Cascade)
+  User_MaintenanceAssignment_assignedToIdToUser User               @relation("MaintenanceAssignment_assignedToIdToUser", fields: [assignedToId], references: [id], onDelete: Cascade)
+  MaintenanceRequest                            MaintenanceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 }
 
-model Payment {
-  id                String   @id @default(uuid())
-  amount            Decimal
-  paymentDate       DateTime
-  status            String
-  leaseId           String
-  createdAt         DateTime @default(now())
-  provider          String?
-  providerPaymentId String?  @unique
-  providerResponse  Json?
-  providerStatus    String?
-  lease             Lease    @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+model MaintenanceRequest {
+  id                    String                  @id
+  organizationId        String
+  propertyId            String
+  unitId                String?
+  tenantId              String?
+  requestorId           String
+  title                 String
+  description           String?
+  status                MaintenanceStatus       @default(REQUESTED)
+  priority              MaintenancePriority     @default(MEDIUM)
+  requestedAt           DateTime                @default(now())
+  scheduledAt           DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime
+  MaintenanceAssignment MaintenanceAssignment[]
+  Organization          Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  Property              Property                @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  User                  User                    @relation(fields: [requestorId], references: [id], onDelete: Cascade)
+  Tenant                Tenant?                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  Unit                  Unit?                   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+}
+
+model Permission {
+  id             String           @id
+  organizationId String
+  key            String
+  name           String
+  description    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  Organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  RolePermission RolePermission[]
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
+
+model Role {
+  id               String             @id
+  organizationId   String
+  name             String
+  key              String
+  description      String?
+  isDefault        Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime
+  OrganizationUser OrganizationUser[]
+  Organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  RolePermission   RolePermission[]
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
 }
 
 enum OrganizationRole {
   OWNER
   ADMIN
   MANAGER
-  STAFF
-  ACCOUNTANT
   MEMBER
 }
 
@@ -148,4 +385,79 @@ enum Permission {
   PAYMENT_INITIATE
   PAYMENT_UPDATE
   PAYMENT_DELETE
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum LedgerAccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum LedgerTransactionType {
+  DEBIT
+  CREDIT
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum MaintenanceStatus {
+  REQUESTED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CREDIT_CARD
+  DEBIT_CARD
+  UPI
+  WALLET
+  CASH
+  OTHER
+}
+
+enum PermissionScope {
+  READ
+  WRITE
+  MANAGE
+  ADMINISTER
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
