@@ -10,6 +10,9 @@ jest.mock('../../config/prisma', () => ({
     organizationUser: {
         findUnique: jest.fn(),
     },
+    rolePermission: {
+        findFirst: jest.fn(),
+    },
 }));
 const mockedPrisma = prisma_1.default;
 const createMockRequest = (token) => ({
@@ -76,19 +79,26 @@ describe('auth.middleware', () => {
             expect(res.json).toHaveBeenCalledWith({ message: 'Authorization header missing or invalid' });
             expect(next).not.toHaveBeenCalled();
         });
-        it('returns 403 when permission is not in role map', async () => {
+        it('returns 403 when permission is not granted', async () => {
             const middleware = (0, auth_middleware_1.authorize)('PROPERTY_CREATE');
             const req = { user: { role: 'STAFF' } };
             const res = createMockResponse();
+            mockedPrisma.rolePermission.findFirst.mockResolvedValue(null);
             await middleware(req, res, next);
             expect(res.status).toHaveBeenCalledWith(403);
             expect(res.json).toHaveBeenCalledWith({ message: 'Insufficient permissions' });
             expect(next).not.toHaveBeenCalled();
         });
-        it('calls next when permission is in role map', async () => {
+        it('calls next when permission is granted', async () => {
             const middleware = (0, auth_middleware_1.authorize)('PROPERTY_READ');
             const req = { user: { role: 'STAFF' } };
             const res = createMockResponse();
+            mockedPrisma.rolePermission.findFirst.mockResolvedValue({
+                id: 'perm-1',
+                role: 'STAFF',
+                permission: 'PROPERTY_READ',
+                createdAt: new Date(),
+            });
             await middleware(req, res, next);
             expect(next).toHaveBeenCalled();
         });

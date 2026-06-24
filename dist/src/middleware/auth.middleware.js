@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authorize = exports.requireRole = exports.requireAuth = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
-const rbac_service_1 = require("../services/rbac.service");
 const JWT_SECRET = (() => {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
@@ -71,9 +70,15 @@ const authorize = (permission) => {
         if (!req.user) {
             return res.status(401).json({ message: 'Authorization header missing or invalid' });
         }
-        const allowedPermissions = (0, rbac_service_1.getRolePermissions)(req.user.role);
-        const hasPermission = requiredPermissions.some((p) => allowedPermissions.includes(p));
-        if (!hasPermission) {
+        const rolePermission = await prisma_1.default.rolePermission.findFirst({
+            where: {
+                role: req.user.role,
+                permission: {
+                    in: requiredPermissions,
+                },
+            },
+        });
+        if (!rolePermission) {
             return res.status(403).json({ message: 'Insufficient permissions' });
         }
         next();

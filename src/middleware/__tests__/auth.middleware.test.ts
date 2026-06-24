@@ -1,3 +1,5 @@
+process.env.JWT_SECRET = 'test_jwt_secret';
+
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../../config/prisma';
