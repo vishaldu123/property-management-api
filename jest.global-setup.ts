@@ -4,18 +4,23 @@ import fs from 'fs';
 
 process.env.NODE_ENV = 'test';
 
-// Load test env if present into this process
-dotenv.config({ path: '.env.test' });
+// Only load .env.test if DATABASE_URL is not already set (e.g., CI provides it via service containers)
+if (!process.env.DATABASE_URL) {
+  dotenv.config({ path: '.env.test' });
+}
 
-// Read .env.test explicitly and extract DATABASE_URL so child processes use it
-let testDatabaseUrl = process.env.DATABASE_URL;
-try {
-  if (fs.existsSync('.env.test')) {
-    const parsed = dotenv.parse(fs.readFileSync('.env.test'));
-    if (parsed.DATABASE_URL) testDatabaseUrl = parsed.DATABASE_URL;
+// Resolve the final DATABASE_URL to use
+let testDatabaseUrl = process.env.DATABASE_URL || '';
+// Fallback: try reading from .env.test directly if no env var is set
+if (!testDatabaseUrl) {
+  try {
+    if (fs.existsSync('.env.test')) {
+      const parsed = dotenv.parse(fs.readFileSync('.env.test'));
+      if (parsed.DATABASE_URL) testDatabaseUrl = parsed.DATABASE_URL;
+    }
+  } catch (err) {
+    console.warn('Could not read .env.test directly:', err);
   }
-} catch (err) {
-  console.warn('Could not read .env.test directly:', err);
 }
 
 console.log('Jest global setup: running prisma migrate reset for test DB');
