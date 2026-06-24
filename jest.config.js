@@ -10,6 +10,8 @@ module.exports = {
     '!src/server.ts',
     '!src/config/**',
   ],
+  globalSetup: '<rootDir>/jest.global-setup.ts',
+  globalTeardown: '<rootDir>/jest.global-teardown.ts',
   coverageThreshold: {
     global: {
       branches: 0,
