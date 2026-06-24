@@ -9,7 +9,7 @@ The backend is built with Express, Prisma ORM, PostgreSQL, and supports multi-te
 ### Core domain and multi-tenancy
 - `Organization` and `OrganizationUser` models for multi-tenant membership
 - `User` authentication and JWT-based login/register flows
-- Role-based access structure via `Role`, `Permission`, `RolePermission`
+- Enterprise-grade RBAC middleware using Prisma `RolePermission`
 - Core property management models:
   - `Property`
   - `Unit`
@@ -120,6 +120,10 @@ npm run lint
 - Create a new organization through the register flow
 - Verify `OrganizationUser` membership records are created
 
+### Role-based access control
+- Verify Owner, Manager, Staff, and Accountant permissions using valid JWT roles
+- Confirm authorized roles can access routes and unauthorized roles receive `403 Forbidden`
+
 ### Property management
 - Create property and unit records
 - Create tenant records
@@ -146,15 +150,35 @@ npm run lint
 - Controllers are present but not fully covered by tests
 - Payment adapter integration tests are partially implemented
 - Webhook endpoint tests are missing
-- RBAC enforcement is present in the schema but not fully implemented in middleware/routes
+- RBAC enforcement is implemented but role/permission coverage can be expanded in tests
 
 ### Additional recommended work
 - Add end-to-end tests for critical flows (`auth`, `payments`, `leases`, `maintenance`)
 - Harden validation and error handling in controllers
-- Add admin/role permission enforcement to routes
+- Expand RBAC route tests and role-permission coverage across Owner, Manager, Staff, and Accountant roles
 - Add API documentation (Swagger / OpenAPI)
 - Enable production-safe deployment steps in CI (Docker/ECS/Heroku)
 - Restore stricter Jest coverage thresholds after expanding test coverage
+
+## Creating Staff and Accountant Users
+
+To test RBAC roles, create users and membership records with `STAFF` or `ACCOUNTANT` roles in the same organization:
+
+1. Register an owner user via `POST /api/auth/register`.
+2. Create the second user manually in the database or using Prisma Studio.
+3. Add an `OrganizationUser` membership row for that user with the same `organizationId` and set `role` to `STAFF` or `ACCOUNTANT`.
+
+Example SQL:
+
+```sql
+INSERT INTO "User" (id, name, email, password, "createdAt")
+VALUES ('<uuid>', 'Staff User', 'staff@example.com', '<hashed-password>', NOW());
+
+INSERT INTO "OrganizationUser" (id, "organizationId", "userId", role, "createdAt")
+VALUES ('<uuid>', '<organization-id>', '<user-id>', 'STAFF', NOW());
+```
+
+> Note: The password must be bcrypt-hashed if created manually. It is easier to create a regular user through the app and then update their role in the `OrganizationUser` record.
 
 ## Notes for Developers
 

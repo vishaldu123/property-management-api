@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { requireAuth, requireRole } from '../middleware/auth.middleware';
+import { requireAuth, authorize } from '../middleware/auth.middleware';
 import { createTenant, listTenants } from '../controllers/tenant.controller';
 
 const router = Router();
 
 router.use(requireAuth);
-router.get('/', listTenants);
-router.post('/', requireRole(['MANAGER', 'ADMIN', 'OWNER']), createTenant);
+router.get('/', authorize('TENANT_READ'), listTenants);
+router.post('/', authorize('TENANT_CREATE'), createTenant);
 
 export default router;

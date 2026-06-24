@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireRole } from '../middleware/auth.middleware';
+import { requireAuth, authorize } from '../middleware/auth.middleware';
 import {
   createUnit,
   deleteUnit,
@@ -11,10 +11,10 @@ import {
 const router = Router();
 
 router.use(requireAuth);
-router.get('/', listUnits);
-router.get('/:unitId', getUnit);
-router.post('/', requireRole(['MANAGER', 'ADMIN', 'OWNER']), createUnit);
-router.put('/:unitId', requireRole(['MANAGER', 'ADMIN', 'OWNER']), updateUnit);
-router.delete('/:unitId', requireRole(['ADMIN', 'OWNER']), deleteUnit);
+router.get('/', authorize('UNIT_READ'), listUnits);
+router.get('/:unitId', authorize('UNIT_READ'), getUnit);
+router.post('/', authorize('UNIT_CREATE'), createUnit);
+router.put('/:unitId', authorize('UNIT_UPDATE'), updateUnit);
+router.delete('/:unitId', authorize('UNIT_DELETE'), deleteUnit);
 
 export default router;
