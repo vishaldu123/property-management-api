@@ -48,6 +48,7 @@ model OrganizationUser {
 }
 
 model Tenant {
+<<<<<<< Updated upstream
   id             String       @id @default(uuid())
   name           String
   email          String?
@@ -91,6 +92,83 @@ model Lease {
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   unit        Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
   payments    Payment[]
+=======
+  id                 String               @id @default(uuid())
+  name               String
+  email              String?
+  phone              String
+  createdAt          DateTime             @default(now())
+  organizationId     String
+  address            String?
+  updatedAt          DateTime             @default(now())
+  Invoice            Invoice[]
+  leases             Lease[]
+  MaintenanceRequest MaintenanceRequest[]
+  Payment            Payment[]
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+model Property {
+  id                 String               @id @default(uuid())
+  name               String
+  address            String
+  city               String
+  state              String
+  createdAt          DateTime             @default(now())
+  organizationId     String
+  country            String               @default("India")
+  postalCode         String?
+  updatedAt          DateTime             @default(now())
+  MaintenanceRequest MaintenanceRequest[]
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  units              Unit[]
+
+  @@index([organizationId])
+}
+
+model Unit {
+  id                 String               @id @default(uuid())
+  unitNumber         String
+  rentAmount         Decimal
+  propertyId         String
+  createdAt          DateTime             @default(now())
+  areaSqFt           Decimal?
+  bathrooms          Int                  @default(0)
+  bedrooms           Int                  @default(0)
+  updatedAt          DateTime             @default(now())
+  leases             Lease[]
+  MaintenanceRequest MaintenanceRequest[]
+  property           Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+model Lease {
+  id              String       @id @default(uuid())
+  startDate       DateTime
+  endDate         DateTime
+  monthlyRent     Decimal
+  unitId          String
+  createdAt       DateTime     @default(now())
+  tenantId        String
+  depositPaid     Boolean      @default(false)
+  organizationId  String
+  securityDeposit Decimal?
+  status          String       @default("ACTIVE")
+  updatedAt       DateTime     @default(now())
+  Invoice         Invoice[]
+  Organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant          Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unit            Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  payments        Payment[]
+
+  @@index([organizationId])
+  @@index([unitId])
+  @@index([tenantId])
+>>>>>>> Stashed changes
 }
 
 model Payment {

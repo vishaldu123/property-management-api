@@ -19,7 +19,13 @@ const loginSchema = zod_1.z.object({
     password: zod_1.z.string().min(1),
     organizationId: zod_1.z.string().uuid().optional(),
 });
-const JWT_SECRET = process.env.JWT_SECRET || 'replace_this_secret';
+const JWT_SECRET = (() => {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error('JWT_SECRET environment variable is not set');
+    }
+    return secret;
+})();
 const createToken = (payload) => {
     return jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: '8h' });
 };
