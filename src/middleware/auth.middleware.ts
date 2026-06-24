@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
+import { getRolePermissions } from '../services/rbac.service';
 
 export type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'STAFF' | 'ACCOUNTANT' | 'MEMBER';
 
@@ -114,20 +115,10 @@ export const authorize = (permission: Permission | Permission[]) => {
       return res.status(401).json({ message: 'Authorization header missing or invalid' });
     }
 
-    const rolePermission = await prisma.rolePermission.findFirst({
-      where: {
-        Role: {
-          key: req.user.role,
-        },
-        Permission: {
-          key: {
-            in: requiredPermissions,
-          },
-        },
-      },
-    });
+    const allowedPermissions = getRolePermissions(req.user.role);
+    const hasPermission = requiredPermissions.some((p) => allowedPermissions.includes(p));
 
-    if (!rolePermission) {
+    if (!hasPermission) {
       return res.status(403).json({ message: 'Insufficient permissions' });
     }
 
