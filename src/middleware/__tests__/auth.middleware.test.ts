@@ -7,17 +7,11 @@ jest.mock('../../config/prisma', () => ({
   organizationUser: {
     findUnique: jest.fn(),
   },
-  rolePermission: {
-    findFirst: jest.fn(),
-  },
 }));
 
 const mockedPrisma = prisma as unknown as {
   organizationUser: {
     findUnique: jest.Mock;
-  };
-  rolePermission: {
-    findFirst: jest.Mock;
   };
 };
 
@@ -103,11 +97,10 @@ describe('auth.middleware', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('returns 403 when permission is not granted', async () => {
+    it('returns 403 when permission is not in role map', async () => {
       const middleware = authorize('PROPERTY_CREATE');
       const req = { user: { role: 'STAFF' } } as any;
       const res = createMockResponse();
-      mockedPrisma.rolePermission.findFirst.mockResolvedValue(null);
 
       await middleware(req, res, next);
 
@@ -116,16 +109,10 @@ describe('auth.middleware', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('calls next when permission is granted', async () => {
+    it('calls next when permission is in role map', async () => {
       const middleware = authorize('PROPERTY_READ');
       const req = { user: { role: 'STAFF' } } as any;
       const res = createMockResponse();
-      mockedPrisma.rolePermission.findFirst.mockResolvedValue({
-        id: 'perm-1',
-        role: 'STAFF',
-        permission: 'PROPERTY_READ',
-        createdAt: new Date(),
-      } as any);
 
       await middleware(req, res, next);
 

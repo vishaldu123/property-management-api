@@ -98,15 +98,15 @@ export const seedDefaultRolePermissions = async () => {
   for (const item of allPermissions) {
     await prisma.rolePermission.upsert({
       where: {
-        role_permission: {
-          role: item.role,
-          permission: item.permission,
+        roleId_permissionId: {
+          roleId: item.role,
+          permissionId: item.permission,
         },
       },
       update: {},
       create: {
-        role: item.role,
-        permission: item.permission,
+        roleId: item.role,
+        permissionId: item.permission,
       },
     });
   }
