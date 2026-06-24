@@ -89,6 +89,16 @@ npm run dev
 npx prisma studio
 ```
 
+### OpenAPI / Swagger UI
+
+After starting the server, visit:
+
+```bash
+http://localhost:5000/api/docs
+```
+
+This page shows the generated OpenAPI 3.1 documentation for auth, property, unit, tenant, lease, and payment routes.
+
 ## Test and Validation
 
 ### Run tests
@@ -159,6 +169,12 @@ npm run lint
 - Add API documentation (Swagger / OpenAPI)
 - Enable production-safe deployment steps in CI (Docker/ECS/Heroku)
 - Restore stricter Jest coverage thresholds after expanding test coverage
+ - Add end-to-end tests for critical flows (`auth`, `payments`, `leases`, `maintenance`)
+ - Harden validation and error handling in controllers
+ - Expand RBAC route tests and role-permission coverage across Owner, Manager, Staff, and Accountant roles
+ - API documentation (Swagger / OpenAPI) implemented and available at `/api/docs`
+ - Enable production-safe deployment steps in CI (Docker/ECS/Heroku)
+ - Restore stricter Jest coverage thresholds after expanding test coverage
 
 ## Creating Staff and Accountant Users
 
@@ -203,4 +219,6 @@ npm run test:coverage
 npm run lint
 ```
 
-If you want, I can also add a separate `HUMAN_TESTING.md` file with step-by-step test cases and expected results.
+See `HUMAN_TESTING.md` for step-by-step manual test cases and expected results.
+
+Postman collection: `Property Management API.postman_collection.json` is included for manual testing.
