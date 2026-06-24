@@ -26,6 +26,15 @@ model User {
   memberships OrganizationUser[]
 }
 
+model RolePermission {
+  id         String           @id @default(uuid())
+  role       OrganizationRole
+  permission Permission
+  createdAt  DateTime         @default(now())
+
+  @@unique([role, permission])
+}
+
 model OrganizationUser {
   id             String           @id @default(uuid())
   organizationId String
@@ -102,5 +111,29 @@ enum OrganizationRole {
   OWNER
   ADMIN
   MANAGER
+  STAFF
+  ACCOUNTANT
   MEMBER
+}
+
+enum Permission {
+  PROPERTY_CREATE
+  PROPERTY_READ
+  PROPERTY_UPDATE
+  PROPERTY_DELETE
+  UNIT_CREATE
+  UNIT_READ
+  UNIT_UPDATE
+  UNIT_DELETE
+  TENANT_CREATE
+  TENANT_READ
+  LEASE_CREATE
+  LEASE_READ
+  LEASE_UPDATE
+  LEASE_DELETE
+  PAYMENT_CREATE
+  PAYMENT_READ
+  PAYMENT_INITIATE
+  PAYMENT_UPDATE
+  PAYMENT_DELETE
 }

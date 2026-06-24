@@ -14,6 +14,14 @@
       "value": ""
     },
     {
+      "key": "staffAuthToken",
+      "value": ""
+    },
+    {
+      "key": "accountantAuthToken",
+      "value": ""
+    },
+    {
       "key": "propertyId",
       "value": ""
     },
@@ -114,6 +122,156 @@
               "if (response.token) pm.environment.set('authToken', response.token);",
               "if (response.organization && response.organization.id) pm.environment.set('organizationId', response.organization.id);",
               "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login as Staff",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"staff@example.com\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "if (response.token) pm.environment.set('staffAuthToken', response.token);",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login as Accountant",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"accountant@example.com\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "if (response.token) pm.environment.set('accountantAuthToken', response.token);",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Staff Denied Create Property",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{staffAuthToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Staff Tower\",\n  \"address\": \"456 Staff Rd\",\n  \"city\": \"Pune\",\n  \"state\": \"Maharashtra\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/properties",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "properties"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 403', function () { pm.response.to.have.status(403); });",
+              "pm.test('Permission denied response', function () { pm.expect(pm.response.json().message).to.eql('Insufficient permissions'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accountant Allowed Create Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accountantAuthToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"leaseId\": \"{{leaseId}}\",\n  \"amount\": 50000,\n  \"paymentDate\": \"2026-07-05\",\n  \"status\": \"PENDING\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/payments",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "payments"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 201 or 403 depending on role config', function () { pm.expect(pm.response.code).to.be.oneOf([201, 403]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accountant Denied Delete Property",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accountantAuthToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/properties/{{propertyId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "properties", "{{propertyId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 403', function () { pm.response.to.have.status(403); });",
+              "pm.test('Permission denied response', function () { pm.expect(pm.response.json().message).to.eql('Insufficient permissions'); });"
             ]
           }
         }

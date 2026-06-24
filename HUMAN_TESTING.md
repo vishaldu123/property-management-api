@@ -314,6 +314,30 @@ This document provides numbered manual test cases for the Property Management AP
    - `403 Forbidden`
    - JSON body contains `{ "message": "Insufficient permissions" }`
 
+## 32. Owner Permissions
+
+1. Use a valid JWT for a user with role `OWNER`.
+2. Confirm the user can create, update, and delete properties, units, leases, and payments.
+3. Expected result:
+   - Success responses for all allowed routes
+   - No `403 Forbidden` responses for valid owner actions
+
+## 33. Staff Permission Denial
+
+1. Use a valid JWT for a user with role `STAFF`.
+2. Attempt `POST /api/properties` and `PUT /api/units/{unitId}`.
+3. Expected result:
+   - `403 Forbidden` for actions not allowed to staff
+   - `200 OK` for read-only endpoints such as `GET /api/properties`
+
+## 34. Accountant Payment Permissions
+
+1. Use a valid JWT for a user with role `ACCOUNTANT`.
+2. Attempt `POST /api/payments` and `POST /api/payments/initiate`.
+3. Expected result:
+   - Allowed payment creation/initiation if permitted by RBAC
+   - `403 Forbidden` for unrelated write actions such as `DELETE /api/properties/{propertyId}`
+
 ## Notes
 - Use a single organization and user session for most tests.
 - If tests manipulate or delete resources, recreate linked entities as needed.

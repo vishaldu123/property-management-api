@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireRole } from '../middleware/auth.middleware';
+import { requireAuth, authorize } from '../middleware/auth.middleware';
 import {
   createProperty,
   deleteProperty,
@@ -11,10 +11,10 @@ import {
 const router = Router();
 
 router.use(requireAuth);
-router.get('/', listProperties);
-router.get('/:propertyId', getProperty);
-router.post('/', requireRole(['MANAGER', 'ADMIN', 'OWNER']), createProperty);
-router.put('/:propertyId', requireRole(['MANAGER', 'ADMIN', 'OWNER']), updateProperty);
-router.delete('/:propertyId', requireRole(['ADMIN', 'OWNER']), deleteProperty);
+router.get('/', authorize('PROPERTY_READ'), listProperties);
+router.get('/:propertyId', authorize('PROPERTY_READ'), getProperty);
+router.post('/', authorize('PROPERTY_CREATE'), createProperty);
+router.put('/:propertyId', authorize('PROPERTY_UPDATE'), updateProperty);
+router.delete('/:propertyId', authorize('PROPERTY_DELETE'), deleteProperty);
 
 export default router;

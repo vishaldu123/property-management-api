@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireRole } from '../middleware/auth.middleware';
+import { requireAuth, authorize } from '../middleware/auth.middleware';
 import {
   createLease,
   deleteLease,
@@ -11,10 +11,10 @@ import {
 const router = Router();
 
 router.use(requireAuth);
-router.get('/', listLeases);
-router.get('/:leaseId', getLease);
-router.post('/', requireRole(['MANAGER', 'ADMIN', 'OWNER']), createLease);
-router.put('/:leaseId', requireRole(['MANAGER', 'ADMIN', 'OWNER']), updateLease);
-router.delete('/:leaseId', requireRole(['ADMIN', 'OWNER']), deleteLease);
+router.get('/', authorize('LEASE_READ'), listLeases);
+router.get('/:leaseId', authorize('LEASE_READ'), getLease);
+router.post('/', authorize('LEASE_CREATE'), createLease);
+router.put('/:leaseId', authorize('LEASE_UPDATE'), updateLease);
+router.delete('/:leaseId', authorize('LEASE_DELETE'), deleteLease);
 
 export default router;

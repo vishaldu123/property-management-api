@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireRole } from '../middleware/auth.middleware';
+import { requireAuth, authorize } from '../middleware/auth.middleware';
 import {
   createPayment,
   deletePayment,
@@ -12,11 +12,11 @@ import {
 const router = Router();
 
 router.use(requireAuth);
-router.get('/', listPayments);
-router.get('/:paymentId', getPayment);
-router.post('/', requireRole(['MANAGER', 'ADMIN', 'OWNER']), createPayment);
-router.post('/initiate', requireRole(['MANAGER', 'ADMIN', 'OWNER']), initiatePayment);
-router.put('/:paymentId', requireRole(['MANAGER', 'ADMIN', 'OWNER']), updatePayment);
-router.delete('/:paymentId', requireRole(['ADMIN', 'OWNER']), deletePayment);
+router.get('/', authorize('PAYMENT_READ'), listPayments);
+router.get('/:paymentId', authorize('PAYMENT_READ'), getPayment);
+router.post('/', authorize('PAYMENT_CREATE'), createPayment);
+router.post('/initiate', authorize('PAYMENT_INITIATE'), initiatePayment);
+router.put('/:paymentId', authorize('PAYMENT_UPDATE'), updatePayment);
+router.delete('/:paymentId', authorize('PAYMENT_DELETE'), deletePayment);
 
 export default router;
