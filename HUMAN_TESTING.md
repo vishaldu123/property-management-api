@@ -343,3 +343,10 @@ This document provides numbered manual test cases for the Property Management AP
 - If tests manipulate or delete resources, recreate linked entities as needed.
 - Webhook testing can be performed with a simulated signature flow, but the key check is invalid signature handling.
 - For manual verification of successful webhooks, use valid adapter signature logic if secrets are configured.
+
+## Verify OpenAPI / Swagger UI
+
+1. Start the server (`npm run dev`).
+2. Visit `http://localhost:5000/api/docs` in a browser.
+3. Confirm the UI loads and endpoints for `auth`, `properties`, `units`, `tenants`, `leases`, and `payments` are listed.
+4. Optionally use the Swagger UI to try the `POST /api/auth/login` and other endpoints (provide bearer token when required).

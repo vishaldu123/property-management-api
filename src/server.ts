@@ -8,6 +8,8 @@ import leaseRoutes from './routes/lease.routes';
 import paymentRoutes from './routes/payment.routes';
 import paymentWebhooks from './routes/payment.webhooks';
 import { seedDefaultRolePermissions } from './services/rbac.service';
+import swaggerUi from 'swagger-ui-express';
+import { openApiDoc } from './openapi';
 
 dotenv.config();
 
@@ -16,6 +18,8 @@ app.use(express.json());
 
 const bootstrap = async () => {
   await seedDefaultRolePermissions();
+
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDoc));
 
   // Webhook endpoints need raw body for signature verification; mount raw routers below
   app.use('/api/auth', authRoutes);
