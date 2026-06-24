@@ -116,9 +116,13 @@ export const authorize = (permission: Permission | Permission[]) => {
 
     const rolePermission = await prisma.rolePermission.findFirst({
       where: {
-        role: req.user.role,
-        permission: {
-          in: requiredPermissions,
+        Role: {
+          key: req.user.role,
+        },
+        Permission: {
+          key: {
+            in: requiredPermissions,
+          },
         },
       },
     });
