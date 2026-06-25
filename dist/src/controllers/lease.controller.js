@@ -41,8 +41,9 @@ const createLease = async (req, res) => {
     }
     const lease = await prisma_1.default.lease.create({
         data: {
-            unitId,
-            tenantId,
+            unit: { connect: { id: unitId } },
+            tenant: { connect: { id: tenantId } },
+            Organization: { connect: { id: req.user.organizationId } },
             startDate: new Date(startDate),
             endDate: new Date(endDate),
             monthlyRent,

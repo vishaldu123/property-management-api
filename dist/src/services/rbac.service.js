@@ -1,10 +1,15 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+/**
+ * RBAC Service
+ * Role-based access control definitions and utilities
+ * Note: Actual RBAC implementation (seeding, checking permissions) is deferred to Phase 2
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.seedDefaultRolePermissions = exports.getRolePermissions = exports.rolePermissionMap = void 0;
-const prisma_1 = __importDefault(require("../config/prisma"));
+exports.getRolePermissions = exports.rolePermissionMap = void 0;
+/**
+ * Default role-permission mapping
+ * Used for reference during Phase 2 RBAC implementation
+ */
 exports.rolePermissionMap = {
     OWNER: [
         'PROPERTY_CREATE',
@@ -91,24 +96,14 @@ exports.rolePermissionMap = {
         'PAYMENT_READ',
     ],
 };
-const getRolePermissions = (role) => exports.rolePermissionMap[role] || [];
-exports.getRolePermissions = getRolePermissions;
-const seedDefaultRolePermissions = async () => {
-    const allPermissions = Object.entries(exports.rolePermissionMap).flatMap(([role, permissions]) => permissions.map((permission) => ({ role: role, permission })));
-    for (const item of allPermissions) {
-        await prisma_1.default.rolePermission.upsert({
-            where: {
-                role_permission: {
-                    role: item.role,
-                    permission: item.permission,
-                },
-            },
-            update: {},
-            create: {
-                role: item.role,
-                permission: item.permission,
-            },
-        });
-    }
+/**
+ * Get permissions for a given role
+ * @param role User role
+ * @returns Array of permissions for the role
+ */
+const getRolePermissions = (role) => {
+    return exports.rolePermissionMap[role] || [];
 };
-exports.seedDefaultRolePermissions = seedDefaultRolePermissions;
+exports.getRolePermissions = getRolePermissions;
+// TODO: Phase 2 - Implement RBAC seeding with proper database persistence
+// export const seedDefaultRolePermissions = async () => { ... }

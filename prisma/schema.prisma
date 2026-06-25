@@ -31,6 +31,8 @@ model User {
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   memberships     OrganizationUser[]
+  refreshTokens   RefreshToken[]
+  passwordResets  PasswordResetToken[]
 }
 
 model OrganizationUser {
@@ -96,4 +98,32 @@ model RolePermission {
   @@unique([roleId, permissionId])
   @@index([permissionId])
   @@index([roleId])
+}
+
+// Authentication Token Models (for refresh token rotation and password reset)
+
+model RefreshToken {
+  id              String             @id @default(uuid())
+  userId          String
+  token           String             @unique
+  expiresAt       DateTime
+  isRevoked       Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id              String             @id @default(uuid())
+  userId          String
+  token           String             @unique
+  expiresAt       DateTime
+  usedAt          DateTime?
+  createdAt       DateTime           @default(now())
+  
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
 }

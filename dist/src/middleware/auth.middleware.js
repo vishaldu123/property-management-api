@@ -1,86 +1,64 @@
 "use strict";
+/**
+ * Authentication Middleware
+ * JWT validation and user context injection
+ */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authorize = exports.requireRole = exports.requireAuth = void 0;
+exports.authorize = exports.requireAuth = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const prisma_1 = __importDefault(require("../config/prisma"));
-const JWT_SECRET = (() => {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-        throw new Error('JWT_SECRET environment variable is not set');
-    }
-    return secret;
-})();
-const isUserRole = (role) => typeof role === 'string' &&
-    ['OWNER', 'ADMIN', 'MANAGER', 'STAFF', 'ACCOUNTANT', 'MEMBER'].includes(role);
-const requireAuth = async (req, res, next) => {
+const environment_1 = require("../config/environment");
+const errors_1 = require("../utils/errors");
+const logger_1 = __importDefault(require("../utils/logger"));
+/**
+ * Middleware to validate JWT and inject user context
+ */
+const requireAuth = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ message: 'Authorization header missing or invalid' });
+            logger_1.default.warn('Missing or invalid authorization header');
+            throw new errors_1.UnauthorizedError('Authorization header missing or invalid');
         }
-        const token = authHeader.split(' ')[1];
-        const payload = jsonwebtoken_1.default.verify(token, JWT_SECRET);
-        if (!payload || typeof payload !== 'object') {
-            throw new Error('Invalid token payload');
-        }
-        const { userId, organizationId, role, email } = payload;
-        if (!userId || !organizationId || !email || !isUserRole(role)) {
-            throw new Error('Invalid token payload');
-        }
-        const membership = await prisma_1.default.organizationUser.findUnique({
-            where: {
-                organizationId_userId: {
-                    organizationId,
-                    userId,
-                },
-            },
-        });
-        if (!membership) {
-            return res.status(403).json({ message: 'User membership not found for this organization' });
+        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        const payload = jsonwebtoken_1.default.verify(token, environment_1.config.jwtSecret);
+        if (!payload.userId || !payload.organizationId) {
+            logger_1.default.warn('Invalid token payload');
+            throw new errors_1.UnauthorizedError('Invalid token payload');
         }
         req.user = {
-            userId,
-            organizationId,
-            role,
-            email,
+            userId: payload.userId,
+            organizationId: payload.organizationId,
         };
         next();
     }
     catch (error) {
-        return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger_1.default.warn('Authentication failed', { error: errorMessage });
+        if (error instanceof errors_1.UnauthorizedError) {
+            res.status(401).json({ message: error.message });
+        }
+        else if (error instanceof jsonwebtoken_1.default.JsonWebTokenError) {
+            res.status(401).json({ message: 'Invalid token' });
+        }
+        else if (error instanceof jsonwebtoken_1.default.TokenExpiredError) {
+            res.status(401).json({ message: 'Token expired' });
+        }
+        else {
+            res.status(401).json({ message: 'Unauthorized' });
+        }
     }
 };
 exports.requireAuth = requireAuth;
-const requireRole = (allowedRoles) => {
-    return (req, res, next) => {
-        const role = req.user?.role;
-        if (!role || !allowedRoles.includes(role)) {
-            return res.status(403).json({ message: 'Insufficient permissions' });
-        }
-        next();
-    };
-};
-exports.requireRole = requireRole;
-const authorize = (permission) => {
-    const requiredPermissions = Array.isArray(permission) ? permission : [permission];
-    return async (req, res, next) => {
-        if (!req.user) {
-            return res.status(401).json({ message: 'Authorization header missing or invalid' });
-        }
-        const rolePermission = await prisma_1.default.rolePermission.findFirst({
-            where: {
-                role: req.user.role,
-                permission: {
-                    in: requiredPermissions,
-                },
-            },
-        });
-        if (!rolePermission) {
-            return res.status(403).json({ message: 'Insufficient permissions' });
-        }
+/**
+ * Stub for authorization checking (implemented in Phase 2)
+ * TODO: Implement permission checking in Phase 2 RBAC
+ */
+const authorize = (_permissions) => {
+    return (_req, _res, next) => {
+        // Phase 2: Implement actual permission checking
         next();
     };
 };
