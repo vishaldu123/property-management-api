@@ -1,6 +1,11 @@
 import dotenv from 'dotenv';
 import express, { Request, Response, NextFunction } from 'express';
 import authRoutes from './routes/auth.routes';
+import propertyRoutes from './routes/property.routes';
+import unitRoutes from './routes/unit.routes';
+import tenantRoutes from './routes/tenant.routes';
+import leaseRoutes from './routes/lease.routes';
+import paymentRoutes from './routes/payment.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
 
 const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
@@ -18,6 +23,11 @@ app.get('/', (req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/properties', propertyRoutes);
+app.use('/api/units', unitRoutes);
+app.use('/api/tenants', tenantRoutes);
+app.use('/api/leases', leaseRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
