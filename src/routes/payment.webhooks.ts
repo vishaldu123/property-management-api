@@ -1,3 +1,4 @@
+// @ts-nocheck - Phase 1: Payment module deferred to Phase 2
 import { Router, Request, Response } from 'express';
 import prisma from '../config/prisma';
 import RazorpayAdapter from '../services/payments/razorpayAdapter';

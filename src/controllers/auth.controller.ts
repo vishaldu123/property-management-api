@@ -1,146 +1,87 @@
+/**
+ * Authentication Controller
+ * Handles user registration and login endpoints
+ */
+
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { z } from 'zod';
-import { Prisma } from '@prisma/client';
-import prisma from '../config/prisma';
-import { getJwtSecret } from '../utils/jwt';
+import { authService } from '../services/auth.service';
+import logger from '../utils/logger';
+import { AppError } from '../utils/errors';
 
-interface MembershipWithOrganization {
-  organizationId: string;
-  role: string;
-  organization: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-}
+/**
+ * Register a new user and organization
+ * POST /api/auth/register
+ */
+export const register = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, email, password, organizationName } = req.body;
 
-interface UserWithMemberships {
-  id: string;
-  email: string;
-  password: string;
-  memberships: MembershipWithOrganization[];
-}
+    // Validate required fields
+    if (!name || !email || !password || !organizationName) {
+      res.status(400).json({
+        message: 'Validation failed',
+        errors: {
+          name: !name ? ['Name is required'] : [],
+          email: !email ? ['Email is required'] : [],
+          password: !password ? ['Password is required'] : [],
+          organizationName: !organizationName ? ['Organization name is required'] : [],
+        },
+      });
+      return;
+    }
 
-const registerSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(8),
-  organizationName: z.string().min(1),
-});
+    const result = await authService.register({
+      name,
+      email,
+      password,
+      organizationName,
+    });
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-  organizationId: z.string().uuid().optional(),
-});
+    res.status(201).json(result);
+  } catch (error) {
+    logger.error('Register endpoint error', error as Error);
 
-const createToken = (payload: { userId: string; organizationId: string; role: string; email: string }) => {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: '8h' });
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
 };
 
-export const register = async (req: Request, res: Response) => {
-  const { name, email, password, organizationName } = registerSchema.parse(req.body);
+/**
+ * Login a user
+ * POST /api/auth/login
+ */
+export const login = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password } = req.body;
 
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) {
-    return res.status(400).json({ message: 'Email already exists' });
-  }
+    // Validate required fields
+    if (!email || !password) {
+      res.status(400).json({
+        message: 'Validation failed',
+        errors: {
+          email: !email ? ['Email is required'] : [],
+          password: !password ? ['Password is required'] : [],
+        },
+      });
+      return;
+    }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const organizationSlug = organizationName
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    const user = await tx.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
+    const result = await authService.login({
+      email,
+      password,
     });
 
-    const organization = await tx.organization.create({
-      data: {
-        name: organizationName,
-        slug: organizationSlug || `org-${Date.now()}`,
-      },
-    });
+    res.status(200).json(result);
+  } catch (error) {
+    logger.error('Login endpoint error', error as Error);
 
-    const membership = await tx.organizationUser.create({
-      data: {
-        organizationId: organization.id,
-        userId: user.id,
-        role: 'OWNER',
-      },
-    });
-
-    return { user, organization, membership };
-  });
-
-  const token = createToken({
-    userId: result.user.id,
-    organizationId: result.organization.id,
-    role: result.membership.role,
-    email: result.user.email,
-  });
-
-  return res.status(201).json({
-    token,
-    organization: {
-      id: result.organization.id,
-      name: result.organization.name,
-      slug: result.organization.slug,
-    },
-  });
-};
-
-export const login = async (req: Request, res: Response) => {
-  const { email, password, organizationId } = loginSchema.parse(req.body);
-
-  const user = await prisma.user.findUnique({
-    where: { email },
-    include: {
-      memberships: {
-        include: { organization: true },
-      },
-    },
-  }) as UserWithMemberships | null;
-
-  if (!user) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
-
-  const passwordMatches = await bcrypt.compare(password, user.password);
-  if (!passwordMatches) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
-
-  const membership = organizationId
-    ? user.memberships.find((m: MembershipWithOrganization) => m.organizationId === organizationId)
-    : user.memberships[0];
-
-  if (!membership) {
-    return res.status(403).json({ message: 'User is not associated with the requested organization' });
-  }
-
-  const token = createToken({
-    userId: user.id,
-    organizationId: membership.organizationId,
-    role: membership.role,
-    email: user.email,
-  });
-
-  return res.json({
-    token,
-    organization: {
-      id: membership.organization.id,
-      name: membership.organization.name,
-      slug: membership.organization.slug,
-    },
-  });
 };
