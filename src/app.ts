@@ -9,10 +9,10 @@ import paymentRoutes from './routes/payment.routes';
 import paymentWebhooks from './routes/payment.webhooks';
 import swaggerUi from 'swagger-ui-express';
 import { openApiDoc } from './openapi';
-import { globalErrorHandler } from './middleware/errorHandler';
 import { seedDefaultRolePermissions } from './services/rbac.service';
 
-dotenv.config();
+const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ path: envPath });
 
 const app = express();
 app.use(express.json());
@@ -35,9 +35,6 @@ app.use('/api/payments/webhooks/cashfree', express.raw({ type: 'application/json
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'Property Management API Running' });
 });
-
-// Global error handler must be registered after all routes
-app.use(globalErrorHandler);
 
 export const bootstrapIfNeeded = async () => {
   if (process.env.NODE_ENV !== 'test') {

@@ -4,10 +4,7 @@ import fs from 'fs';
 
 process.env.NODE_ENV = 'test';
 
-// Only load .env.test if DATABASE_URL is not already set (e.g., CI provides it via service containers)
-if (!process.env.DATABASE_URL) {
-  dotenv.config({ path: '.env.test' });
-}
+dotenv.config({ path: '.env.test' });
 
 // Resolve the final DATABASE_URL to use
 let testDatabaseUrl = process.env.DATABASE_URL || '';
