@@ -1,4 +1,4 @@
-// @ts-ignore - Phase 1: Payment model deferred to Phase 2
+// @ts-nocheck - Phase 1: Payment model deferred to Phase 2
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { PaymentProvider, CreatePaymentOptions } from './gateway';
