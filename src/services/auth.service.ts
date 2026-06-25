@@ -66,7 +66,7 @@ export class AuthService {
 
     try {
       // Use transaction to ensure atomicity
-      const result = await prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx: any) => {
         // Create user
         const user = await tx.user.create({
           data: {

@@ -3,10 +3,12 @@
  * Data access layer for Organization model
  */
 
-import { Organization } from '@prisma/client';
 import { BaseRepository } from './base.repository';
 import prisma from '../config/prisma';
 import logger from '../utils/logger';
+
+// Type definition for Organization model
+type Organization = any;
 
 export class OrganizationRepository extends BaseRepository<Organization> {
   protected model = prisma.organization;

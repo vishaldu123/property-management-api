@@ -3,10 +3,12 @@
  * Data access layer for User model
  */
 
-import { User } from '@prisma/client';
 import { BaseRepository } from './base.repository';
 import prisma from '../config/prisma';
 import logger from '../utils/logger';
+
+// Type definition for User model
+type User = any;
 
 export class UserRepository extends BaseRepository<User> {
   protected model = prisma.user;
