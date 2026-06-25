@@ -35,7 +35,13 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'replace_this_secret';
+const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not set');
+  }
+  return secret;
+})();
 
 const isUserRole = (role: unknown): role is UserRole =>
   typeof role === 'string' &&

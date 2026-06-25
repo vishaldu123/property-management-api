@@ -3,10 +3,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireRole = exports.requireAuth = void 0;
+exports.authorize = exports.requireRole = exports.requireAuth = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
-const JWT_SECRET = process.env.JWT_SECRET || 'replace_this_secret';
+const JWT_SECRET = (() => {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error('JWT_SECRET environment variable is not set');
+    }
+    return secret;
+})();
+const isUserRole = (role) => typeof role === 'string' &&
+    ['OWNER', 'ADMIN', 'MANAGER', 'STAFF', 'ACCOUNTANT', 'MEMBER'].includes(role);
 const requireAuth = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
@@ -15,11 +23,18 @@ const requireAuth = async (req, res, next) => {
         }
         const token = authHeader.split(' ')[1];
         const payload = jsonwebtoken_1.default.verify(token, JWT_SECRET);
+        if (!payload || typeof payload !== 'object') {
+            throw new Error('Invalid token payload');
+        }
+        const { userId, organizationId, role, email } = payload;
+        if (!userId || !organizationId || !email || !isUserRole(role)) {
+            throw new Error('Invalid token payload');
+        }
         const membership = await prisma_1.default.organizationUser.findUnique({
             where: {
                 organizationId_userId: {
-                    organizationId: payload.organizationId,
-                    userId: payload.userId,
+                    organizationId,
+                    userId,
                 },
             },
         });
@@ -27,10 +42,10 @@ const requireAuth = async (req, res, next) => {
             return res.status(403).json({ message: 'User membership not found for this organization' });
         }
         req.user = {
-            userId: payload.userId,
-            organizationId: payload.organizationId,
-            role: payload.role,
-            email: payload.email,
+            userId,
+            organizationId,
+            role,
+            email,
         };
         next();
     }
@@ -49,3 +64,24 @@ const requireRole = (allowedRoles) => {
     };
 };
 exports.requireRole = requireRole;
+const authorize = (permission) => {
+    const requiredPermissions = Array.isArray(permission) ? permission : [permission];
+    return async (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ message: 'Authorization header missing or invalid' });
+        }
+        const rolePermission = await prisma_1.default.rolePermission.findFirst({
+            where: {
+                role: req.user.role,
+                permission: {
+                    in: requiredPermissions,
+                },
+            },
+        });
+        if (!rolePermission) {
+            return res.status(403).json({ message: 'Insufficient permissions' });
+        }
+        next();
+    };
+};
+exports.authorize = authorize;

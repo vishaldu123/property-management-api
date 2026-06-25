@@ -11,7 +11,8 @@ import swaggerUi from 'swagger-ui-express';
 import { openApiDoc } from './openapi';
 import { seedDefaultRolePermissions } from './services/rbac.service';
 
-dotenv.config();
+const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ path: envPath });
 
 const app = express();
 app.use(express.json());
