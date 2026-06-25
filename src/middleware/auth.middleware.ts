@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
 import { getRolePermissions } from '../services/rbac.service';
+import { getJwtSecret } from '../utils/jwt';
 
 export type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'STAFF' | 'ACCOUNTANT' | 'MEMBER';
 
@@ -35,14 +36,6 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-const JWT_SECRET = (() => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET environment variable is not set');
-  }
-  return secret;
-})();
-
 const isUserRole = (role: unknown): role is UserRole =>
   typeof role === 'string' &&
   ['OWNER', 'ADMIN', 'MANAGER', 'STAFF', 'ACCOUNTANT', 'MEMBER'].includes(role);
@@ -59,7 +52,7 @@ export const requireAuth = async (
     }
 
     const token = authHeader.split(' ')[1];
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(token, getJwtSecret());
 
     if (!payload || typeof payload !== 'object') {
       throw new Error('Invalid token payload');

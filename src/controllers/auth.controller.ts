@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
+import { getJwtSecret } from '../utils/jwt';
 
 interface MembershipWithOrganization {
   organizationId: string;
@@ -35,16 +36,8 @@ const loginSchema = z.object({
   organizationId: z.string().uuid().optional(),
 });
 
-const JWT_SECRET = (() => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET environment variable is not set');
-  }
-  return secret;
-})();
-
 const createToken = (payload: { userId: string; organizationId: string; role: string; email: string }) => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '8h' });
 };
 
 export const register = async (req: Request, res: Response) => {
