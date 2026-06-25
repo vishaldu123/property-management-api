@@ -53,7 +53,8 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
 
     next();
   } catch (error) {
-    logger.warn('Authentication failed', error as Error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.warn('Authentication failed', { error: errorMessage });
 
     if (error instanceof UnauthorizedError) {
       res.status(401).json({ message: error.message });
@@ -65,4 +66,15 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
       res.status(401).json({ message: 'Unauthorized' });
     }
   }
+};
+
+/**
+ * Stub for authorization checking (implemented in Phase 2)
+ * TODO: Implement permission checking in Phase 2 RBAC
+ */
+export const authorize = (_permissions?: string | string[]) => {
+  return (_req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
+    // Phase 2: Implement actual permission checking
+    next();
+  };
 };

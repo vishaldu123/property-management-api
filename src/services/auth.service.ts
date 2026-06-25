@@ -170,9 +170,13 @@ export class AuthService {
   }
 
   private generateToken(payload: { userId: string; organizationId: string }): string {
-    return jwt.sign(payload, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn,
-    });
+    return jwt.sign(
+      payload,
+      config.jwtSecret,
+      {
+        expiresIn: config.jwtExpiresIn,
+      } as any
+    );
   }
 
   private generateSlug(text: string): string {
