@@ -4,6 +4,11 @@ import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/auth.routes';
 import organizationRoutes from './routes/organization.routes';
 import healthRoutes from './routes/health.routes';
+import propertyRoutes from './routes/property.routes';
+import unitRoutes from './routes/unit.routes';
+import tenantRoutes from './routes/tenant.routes';
+import leaseRoutes from './routes/lease.routes';
+import paymentRoutes from './routes/payment.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
 import { createHelmetMiddleware } from './middleware/helmet.middleware';
 import { createCorsMiddleware } from './middleware/cors.middleware';
@@ -75,6 +80,13 @@ apiV1Router.use('/auth', checkBruteForceLockout, createAuthRateLimiter(), authRo
 
 // Organization routes with authorization
 apiV1Router.use('/organizations', organizationRoutes);
+
+// Property management routes
+apiV1Router.use('/properties', propertyRoutes);
+apiV1Router.use('/units', unitRoutes);
+apiV1Router.use('/tenants', tenantRoutes);
+apiV1Router.use('/leases', leaseRoutes);
+apiV1Router.use('/payments', paymentRoutes);
 
 // Mount versioned routes
 app.use('/api/v1', apiV1Router);

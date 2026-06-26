@@ -9,6 +9,11 @@ const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const organization_routes_1 = __importDefault(require("./routes/organization.routes"));
 const health_routes_1 = __importDefault(require("./routes/health.routes"));
+const property_routes_1 = __importDefault(require("./routes/property.routes"));
+const unit_routes_1 = __importDefault(require("./routes/unit.routes"));
+const tenant_routes_1 = __importDefault(require("./routes/tenant.routes"));
+const lease_routes_1 = __importDefault(require("./routes/lease.routes"));
+const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const helmet_middleware_1 = require("./middleware/helmet.middleware");
 const cors_middleware_1 = require("./middleware/cors.middleware");
@@ -58,6 +63,12 @@ const apiV1Router = express_1.default.Router();
 apiV1Router.use('/auth', brute_force_middleware_1.checkBruteForceLockout, (0, rate_limit_middleware_1.createAuthRateLimiter)(), auth_routes_1.default);
 // Organization routes with authorization
 apiV1Router.use('/organizations', organization_routes_1.default);
+// Property management routes
+apiV1Router.use('/properties', property_routes_1.default);
+apiV1Router.use('/units', unit_routes_1.default);
+apiV1Router.use('/tenants', tenant_routes_1.default);
+apiV1Router.use('/leases', lease_routes_1.default);
+apiV1Router.use('/payments', payment_routes_1.default);
 // Mount versioned routes
 app.use('/api/v1', apiV1Router);
 // 404 handler
