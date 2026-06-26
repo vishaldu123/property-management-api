@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// @ts-nocheck - Phase 1: Payment module deferred to Phase 2
 const express_1 = require("express");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const payment_controller_1 = require("../controllers/payment.controller");

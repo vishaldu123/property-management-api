@@ -27,6 +27,9 @@ export const config = {
   // CORS
   corsOrigin: getEnv('CORS_ORIGIN', '*'),
 
+  // Frontend
+  frontendUrl: getEnv('FRONTEND_URL', 'http://localhost:3000'),
+
   // App Info
   appName: getEnv('APP_NAME', 'Property Management API'),
   appVersion: getEnv('APP_VERSION', '1.0.0'),

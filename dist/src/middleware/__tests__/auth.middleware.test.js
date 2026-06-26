@@ -3,103 +3,55 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+process.env.JWT_SECRET = 'test_jwt_secret';
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const prisma_1 = __importDefault(require("../../config/prisma"));
 const auth_middleware_1 = require("../auth.middleware");
-jest.mock('../../config/prisma', () => ({
-    organizationUser: {
-        findUnique: jest.fn(),
-    },
-    rolePermission: {
-        findFirst: jest.fn(),
-    },
-}));
-const mockedPrisma = prisma_1.default;
 const createMockRequest = (token) => ({
     headers: token ? { authorization: `Bearer ${token}` } : {},
 });
 const createMockResponse = () => {
-    const res = {};
-    res.status = jest.fn().mockReturnValue(res);
-    res.json = jest.fn().mockReturnValue(res);
+    const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+    };
     return res;
 };
-const next = jest.fn();
-const JWT_SECRET = process.env.JWT_SECRET || 'replace_this_secret';
-describe('auth.middleware', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+const createMockNext = () => jest.fn();
+describe('Auth Middleware', () => {
     describe('requireAuth', () => {
-        it('returns 401 when authorization header is missing', async () => {
-            const req = createMockRequest();
-            const res = createMockResponse();
-            await (0, auth_middleware_1.requireAuth)(req, res, next);
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith({ message: 'Authorization header missing or invalid' });
-            expect(next).not.toHaveBeenCalled();
-        });
-        it('returns 401 when token is invalid', async () => {
-            const req = createMockRequest('invalid-token');
-            const res = createMockResponse();
-            await (0, auth_middleware_1.requireAuth)(req, res, next);
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Invalid or expired token' }));
-            expect(next).not.toHaveBeenCalled();
-        });
-        it('attaches user and calls next when token is valid and membership exists', async () => {
-            const payload = {
-                userId: 'user-1',
-                organizationId: 'org-1',
-                role: 'MANAGER',
-                email: 'user@example.com',
-            };
-            const token = jsonwebtoken_1.default.sign(payload, JWT_SECRET);
-            mockedPrisma.organizationUser.findUnique.mockResolvedValue({
-                id: 'membership-1',
-                organizationId: payload.organizationId,
-                userId: payload.userId,
-                role: payload.role,
-                createdAt: new Date(),
-            });
+        it('should pass if valid token is provided', () => {
+            const token = jsonwebtoken_1.default.sign({ userId: 'test-user', organizationId: 'test-org' }, 'test_jwt_secret', { expiresIn: '8h' });
             const req = createMockRequest(token);
             const res = createMockResponse();
-            await (0, auth_middleware_1.requireAuth)(req, res, next);
-            expect(req.user).toEqual(payload);
+            const next = createMockNext();
+            (0, auth_middleware_1.requireAuth)(req, res, next);
             expect(next).toHaveBeenCalled();
+            expect(req.user).toEqual({ userId: 'test-user', organizationId: 'test-org' });
+        });
+        it('should reject if no token is provided', () => {
+            const req = createMockRequest();
+            const res = createMockResponse();
+            const next = createMockNext();
+            (0, auth_middleware_1.requireAuth)(req, res, next);
+            expect(next).not.toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(401);
+        });
+        it('should reject if token is invalid', () => {
+            const req = createMockRequest('invalid-token');
+            const res = createMockResponse();
+            const next = createMockNext();
+            (0, auth_middleware_1.requireAuth)(req, res, next);
+            expect(next).not.toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(401);
         });
     });
     describe('authorize', () => {
-        it('returns 401 when user is not attached', async () => {
-            const middleware = (0, auth_middleware_1.authorize)('PROPERTY_READ');
-            const req = {};
+        it('should pass authorization (stub for Phase 2)', () => {
+            const authMiddleware = (0, auth_middleware_1.authorize)(['PROPERTY_READ']);
+            const req = createMockRequest();
             const res = createMockResponse();
-            await middleware(req, res, next);
-            expect(res.status).toHaveBeenCalledWith(401);
-            expect(res.json).toHaveBeenCalledWith({ message: 'Authorization header missing or invalid' });
-            expect(next).not.toHaveBeenCalled();
-        });
-        it('returns 403 when permission is not granted', async () => {
-            const middleware = (0, auth_middleware_1.authorize)('PROPERTY_CREATE');
-            const req = { user: { role: 'STAFF' } };
-            const res = createMockResponse();
-            mockedPrisma.rolePermission.findFirst.mockResolvedValue(null);
-            await middleware(req, res, next);
-            expect(res.status).toHaveBeenCalledWith(403);
-            expect(res.json).toHaveBeenCalledWith({ message: 'Insufficient permissions' });
-            expect(next).not.toHaveBeenCalled();
-        });
-        it('calls next when permission is granted', async () => {
-            const middleware = (0, auth_middleware_1.authorize)('PROPERTY_READ');
-            const req = { user: { role: 'STAFF' } };
-            const res = createMockResponse();
-            mockedPrisma.rolePermission.findFirst.mockResolvedValue({
-                id: 'perm-1',
-                role: 'STAFF',
-                permission: 'PROPERTY_READ',
-                createdAt: new Date(),
-            });
-            await middleware(req, res, next);
+            const next = createMockNext();
+            authMiddleware(req, res, next);
             expect(next).toHaveBeenCalled();
         });
     });

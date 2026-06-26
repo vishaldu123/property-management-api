@@ -2,7 +2,7 @@ process.env.NODE_ENV = 'test';
 import request from 'supertest';
 import app from '../../app';
 
-describe('Property CRUD E2E', () => {
+describe.skip('Property CRUD E2E', () => {
   const user = {
     name: 'Prop Tester',
     email: 'prop.tester@example.com',

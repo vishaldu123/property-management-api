@@ -287,6 +287,274 @@ exports.openApiDoc = {
                 },
             },
         },
+        '/api/auth/refresh-token': {
+            post: {
+                summary: 'Refresh access token using refresh token',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['refreshToken'],
+                                properties: {
+                                    refreshToken: { type: 'string', description: 'Refresh token' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'New tokens generated successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        token: { type: 'string', description: 'New access token' },
+                                        refreshToken: { type: 'string', description: 'New refresh token' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Invalid or expired refresh token',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/logout': {
+            post: {
+                summary: 'Logout user and invalidate refresh token',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['refreshToken'],
+                                properties: {
+                                    refreshToken: { type: 'string' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Logged out successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Unauthorized',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/forgot-password': {
+            post: {
+                summary: 'Request password reset email',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['email'],
+                                properties: {
+                                    email: { type: 'string', format: 'email' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Password reset email sent (if account exists)',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        description: 'Bad request',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/reset-password': {
+            post: {
+                summary: 'Reset password with reset token',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['token', 'password'],
+                                properties: {
+                                    token: { type: 'string', description: 'Password reset token' },
+                                    password: { type: 'string', format: 'password', description: 'New password' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Password reset successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Invalid or expired reset token',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/change-password': {
+            post: {
+                summary: 'Change password for authenticated user',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['currentPassword', 'newPassword', 'confirmPassword'],
+                                properties: {
+                                    currentPassword: { type: 'string', format: 'password' },
+                                    newPassword: { type: 'string', format: 'password' },
+                                    confirmPassword: { type: 'string', format: 'password' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Password changed successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        description: 'Validation failed',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Unauthorized or invalid current password',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/me': {
+            get: {
+                summary: 'Get current authenticated user',
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    '200': {
+                        description: 'Current user info',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        user: {
+                                            type: 'object',
+                                            properties: {
+                                                id: { type: 'string', format: 'uuid' },
+                                                name: { type: 'string' },
+                                                email: { type: 'string', format: 'email' },
+                                            },
+                                        },
+                                        organization: {
+                                            type: 'object',
+                                            properties: {
+                                                id: { type: 'string', format: 'uuid' },
+                                                name: { type: 'string' },
+                                                slug: { type: 'string' },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Unauthorized',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
         '/api/properties': {
             get: {
                 summary: 'List all properties for the current organization',
