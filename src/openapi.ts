@@ -214,6 +214,76 @@ export const openApiDoc = {
           status: { type: 'string' },
         },
       },
+      Organization: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          name: { type: 'string' },
+          slug: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          phone: { type: 'string', nullable: true },
+          website: { type: 'string', nullable: true },
+          logo: { type: 'string', nullable: true },
+          address: { type: 'string', nullable: true },
+          city: { type: 'string', nullable: true },
+          state: { type: 'string', nullable: true },
+          country: { type: 'string', nullable: true },
+          postalCode: { type: 'string', nullable: true },
+          timezone: { type: 'string', nullable: true },
+          currency: { type: 'string', nullable: true },
+          subscriptionPlan: { type: 'string' },
+          subscriptionStatus: { type: 'string' },
+          isActive: { type: 'boolean' },
+          createdBy: { type: 'string', nullable: true },
+          updatedBy: { type: 'string', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+          deletedAt: { type: 'string', format: 'date-time', nullable: true },
+        },
+      },
+      OrganizationCreateRequest: {
+        type: 'object',
+        required: ['name', 'email'],
+        properties: {
+          name: { type: 'string' },
+          slug: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          phone: { type: 'string' },
+          website: { type: 'string', format: 'uri' },
+          logo: { type: 'string', format: 'uri' },
+          address: { type: 'string' },
+          city: { type: 'string' },
+          state: { type: 'string' },
+          country: { type: 'string' },
+          postalCode: { type: 'string' },
+          timezone: { type: 'string' },
+          currency: { type: 'string' },
+          subscriptionPlan: { type: 'string' },
+          subscriptionStatus: { type: 'string' },
+          isActive: { type: 'boolean' },
+        },
+      },
+      OrganizationUpdateRequest: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          slug: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          phone: { type: 'string' },
+          website: { type: 'string', format: 'uri' },
+          logo: { type: 'string', format: 'uri' },
+          address: { type: 'string' },
+          city: { type: 'string' },
+          state: { type: 'string' },
+          country: { type: 'string' },
+          postalCode: { type: 'string' },
+          timezone: { type: 'string' },
+          currency: { type: 'string' },
+          subscriptionPlan: { type: 'string' },
+          subscriptionStatus: { type: 'string' },
+          isActive: { type: 'boolean' },
+        },
+      },
     },
   },
   security: [
@@ -1118,6 +1188,189 @@ export const openApiDoc = {
           },
           '404': {
             description: 'Payment not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/organizations': {
+      post: {
+        summary: 'Create organization',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/OrganizationCreateRequest' },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Organization created',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Organization' },
+              },
+            },
+          },
+          '409': {
+            description: 'Slug or email already exists',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+      get: {
+        summary: 'List organizations (scoped to current organization)',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'page', in: 'query', schema: { type: 'integer', minimum: 1 } },
+          { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100 } },
+          { name: 'search', in: 'query', schema: { type: 'string' } },
+          { name: 'sort', in: 'query', schema: { type: 'string' } },
+          { name: 'order', in: 'query', schema: { type: 'string', enum: ['asc', 'desc'] } },
+          { name: 'filters', in: 'query', schema: { type: 'string' } },
+          { name: 'includeDeleted', in: 'query', schema: { type: 'boolean' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Organization list',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' },
+                    data: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/Organization' },
+                    },
+                    meta: {
+                      type: 'object',
+                      properties: {
+                        page: { type: 'integer' },
+                        limit: { type: 'integer' },
+                        total: { type: 'integer' },
+                        totalPages: { type: 'integer' },
+                        hasNextPage: { type: 'boolean' },
+                        hasPreviousPage: { type: 'boolean' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/organizations/{organizationId}': {
+      parameters: [
+        {
+          name: 'organizationId',
+          in: 'path',
+          required: true,
+          schema: { type: 'string', format: 'uuid' },
+        },
+      ],
+      get: {
+        summary: 'Get organization by ID',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Organization details',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Organization' },
+              },
+            },
+          },
+          '403': {
+            description: 'Forbidden for cross-organization access',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+          '404': {
+            description: 'Organization not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        summary: 'Update organization',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/OrganizationUpdateRequest' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Organization updated',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Organization' },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        summary: 'Soft delete organization',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Organization soft deleted',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Organization' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/organizations/{organizationId}/restore': {
+      parameters: [
+        {
+          name: 'organizationId',
+          in: 'path',
+          required: true,
+          schema: { type: 'string', format: 'uuid' },
+        },
+      ],
+      post: {
+        summary: 'Restore soft deleted organization',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Organization restored',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Organization' },
+              },
+            },
+          },
+          '404': {
+            description: 'Organization not found',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' },

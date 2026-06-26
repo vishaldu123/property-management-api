@@ -1,17 +1,18 @@
-import { v4 as uuidv4, v5 as uuidv5, validate as uuidValidate } from 'uuid';
+import crypto from 'crypto';
 
 /**
  * UUID Generation Utilities
  */
 
 export class UUIDGenerator {
-  private static readonly NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+  private static readonly UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   /**
    * Generate a random UUID (v4)
    */
   static generate(): string {
-    return uuidv4();
+    return crypto.randomUUID();
   }
 
   /**
@@ -19,7 +20,7 @@ export class UUIDGenerator {
    * @param name - The name to generate UUID from
    */
   static generateNamespaced(name: string): string {
-    return uuidv5(name, this.NAMESPACE);
+    return this.generateWithNamespace(name, 'default-namespace');
   }
 
   /**
@@ -28,14 +29,17 @@ export class UUIDGenerator {
    * @param namespace - The namespace UUID
    */
   static generateWithNamespace(name: string, namespace: string): string {
-    return uuidv5(name, namespace);
+    const hash = crypto.createHash('sha1').update(`${namespace}:${name}`).digest('hex');
+    const base = hash.slice(0, 32);
+
+    return `${base.slice(0, 8)}-${base.slice(8, 12)}-5${base.slice(13, 16)}-a${base.slice(17, 20)}-${base.slice(20, 32)}`;
   }
 
   /**
    * Validate if a string is a valid UUID
    */
   static validate(uuid: string): boolean {
-    return uuidValidate(uuid);
+    return this.UUID_REGEX.test(uuid);
   }
 
   /**

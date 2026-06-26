@@ -65,11 +65,12 @@ class BaseRepository {
     async create(data) {
         const model = this.prisma[this.modelName];
         const userId = context_1.RequestContextManager.getUserId();
+        const auditUser = userId ?? data.createdBy ?? null;
         return model.create({
             data: {
                 ...data,
-                createdBy: userId,
-                updatedBy: userId,
+                createdBy: auditUser,
+                updatedBy: auditUser,
             },
         });
     }
@@ -88,11 +89,12 @@ class BaseRepository {
     async update(id, data) {
         const model = this.prisma[this.modelName];
         const userId = context_1.RequestContextManager.getUserId();
+        const auditUser = userId ?? data.updatedBy ?? null;
         return model.update({
             where: { id },
             data: {
                 ...data,
-                updatedBy: userId,
+                updatedBy: auditUser,
             },
         });
     }
@@ -126,7 +128,7 @@ class BaseRepository {
             where: { id },
             data: {
                 deletedAt: new Date(),
-                updatedBy: userId,
+                updatedBy: userId ?? null,
             },
         });
     }
@@ -140,7 +142,7 @@ class BaseRepository {
             where: { id },
             data: {
                 deletedAt: null,
-                updatedBy: userId,
+                updatedBy: userId ?? null,
             },
         });
     }
@@ -191,16 +193,18 @@ class BaseRepository {
     async upsert(where, create, update) {
         const model = this.prisma[this.modelName];
         const userId = context_1.RequestContextManager.getUserId();
+        const createAuditUser = userId ?? create.createdBy ?? null;
+        const updateAuditUser = userId ?? update.updatedBy ?? null;
         return model.upsert({
             where,
             create: {
                 ...create,
-                createdBy: userId,
-                updatedBy: userId,
+                createdBy: createAuditUser,
+                updatedBy: createAuditUser,
             },
             update: {
                 ...update,
-                updatedBy: userId,
+                updatedBy: updateAuditUser,
             },
         });
     }

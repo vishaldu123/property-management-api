@@ -1,51 +1,42 @@
 "use strict";
-/**
- * Organization Repository
- * Data access layer for Organization model
- */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.organizationRepository = exports.OrganizationRepository = void 0;
-const base_repository_1 = require("./base.repository");
 const prisma_1 = __importDefault(require("../config/prisma"));
-const logger_1 = __importDefault(require("../utils/logger"));
-class OrganizationRepository extends base_repository_1.BaseRepository {
-    model = prisma_1.default.organization;
+const repository_1 = require("../shared/core/repository");
+class OrganizationRepository extends repository_1.BaseRepository {
     constructor() {
-        super('Organization');
+        super(prisma_1.default, 'organization');
     }
     async findBySlug(slug) {
-        try {
-            logger_1.default.debug('Finding organization by slug', { slug });
-            return await this.model.findUnique({
-                where: { slug },
-            });
-        }
-        catch (error) {
-            logger_1.default.error('Failed to find organization by slug', error, { slug });
-            throw error;
-        }
+        return prisma_1.default.organization.findUnique({
+            where: { slug },
+        });
     }
-    async findWithUsers(id) {
-        try {
-            logger_1.default.debug('Finding organization with users', { id });
-            return await this.model.findUnique({
-                where: { id },
-                include: {
-                    users: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                },
-            });
+    async findByEmail(email) {
+        return prisma_1.default.organization.findUnique({
+            where: { email },
+        });
+    }
+    async findByIdAndOrganizationId(id, organizationId) {
+        if (id !== organizationId) {
+            return null;
         }
-        catch (error) {
-            logger_1.default.error('Failed to find organization with users', error, { id });
-            throw error;
-        }
+        return prisma_1.default.organization.findFirst({
+            where: {
+                id,
+                deletedAt: null,
+            },
+        });
+    }
+    async paginateScoped(pagination, organizationId, where) {
+        const scopedWhere = {
+            ...where,
+            id: organizationId,
+        };
+        return this.paginate(pagination, scopedWhere);
     }
 }
 exports.OrganizationRepository = OrganizationRepository;
