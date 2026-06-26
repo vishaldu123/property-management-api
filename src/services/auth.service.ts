@@ -391,6 +391,7 @@ export class AuthService {
   private generateAccessToken(payload: { userId: string; organizationId: string }): string {
     return jwt.sign(payload, config.jwtSecret, {
       expiresIn: this.jwtExpiry,
+      jwtid: crypto.randomUUID(),
     } as any);
   }
 
