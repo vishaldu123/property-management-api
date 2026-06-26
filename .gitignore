@@ -4,4 +4,19 @@ node_modules
 
 /generated/prisma
 
-/generated/prisma
+# Test and lint output files
+*.log
+test-output*.txt
+lint-output.txt
+coverage/
+.nyc_output/
+
+# IDE and OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+

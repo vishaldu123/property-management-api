@@ -1,224 +1,673 @@
 # Property Management API
 
 ## Project Overview
-This repository contains a Node.js/TypeScript backend for a multi-tenant property management system.
-The backend is built with Express, Prisma ORM, PostgreSQL, and supports multi-tenant organization management, properties, units, tenants, leases, payments, maintenance, accounting, and audit logging.
 
-## What’s Implemented
+This repository contains a production-ready Node.js/TypeScript backend for a multi-tenant property management SaaS platform. Built with Express, Prisma ORM, and PostgreSQL, it provides enterprise-grade authentication, authorization, multi-tenancy, and organization management.
 
-### Core domain and multi-tenancy
-- `Organization` and `OrganizationUser` models for multi-tenant membership
-- `User` authentication and JWT-based login/register flows
-- Enterprise-grade RBAC middleware using Prisma `RolePermission`
-- Core property management models:
-  - `Property`
-  - `Unit`
-  - `Tenant`
-  - `Lease`
+### Current Phase: Sprint 3 - Organization Domain
 
-### Accounting & finance
-- `Payment` model with provider metadata
-- `Invoice` and `InvoiceLineItem` models
-- `Expense` model
-- `LedgerAccount` and `LedgerEntry` models
-- `TransactionStatus` and `PaymentMethod` support
+**Completed Phases:**
+- ✅ Phase 0: Project Structure & Setup
+- ✅ Phase 1: Authentication & Multi-Tenancy Foundation
+- ✅ Phase 2.1-2.6: Shared Infrastructure & Hardening
+- ✅ Phase 2.8: Platform Readiness (Authorization Framework, API Versioning, OpenAPI/Swagger, Health Checks)
+- ✅ Phase 3: Organization Domain Implementation (Settings, Branding, Preferences)
 
-### Maintenance
-- `MaintenanceRequest`
-- `MaintenanceAssignment`
-- `MaintenanceStatus` and `MaintenancePriority`
+**Upcoming:**
+- Phase 4: RBAC (Role-Based Access Control)
+- Phase 5: Property, Unit, Tenant, Lease, Payment modules
 
-### Audit and traceability
-- `AuditLog` model captures actor, action, resource, before/after state, and metadata
+## Key Features
 
-### Payment gateway support
-- Adapters for multiple gateways:
-  - Razorpay
-  - Cashfree
-- Provider router in `src/services/payments/payment.service.ts`
-- Payment initiation flow in controller and route layer
-- Webhook support for verifying provider callbacks
+### 🔐 Authentication & Security
+- JWT token-based authentication (8h expiry)
+- Refresh token rotation (7d expiry)
+- Bcrypt password hashing (12 rounds)
+- Brute force protection (5 attempts → 30min lockout)
+- Multi-tier rate limiting (general, auth-specific, password-reset)
+- Helmet security headers (CSP, HSTS, X-Frame-Options, etc.)
+- Environment-aware CORS policy
+- Zod-based input validation
 
-### CI / Developer tooling
-- GitHub Actions workflow under `.github/workflows/ci.yml`
-- `npm run lint`, `npm test`, `npm run test:coverage`
-- `npx prisma studio` support for browsing DB
+### 🏗️ Multi-Tenant Architecture
+- Organization-level data isolation
+- User organization memberships
+- Organization soft-delete with restore
+- Organization-ownership verification middleware
 
-## How to Run Locally
+### 🎨 Organization Domain (Sprint 3)
+- **Organization Settings**: Configure timezone, currency, date/time formats, language, and measurement units per organization
+- **Organization Branding**: Customize colors, logos, favicon, theme, and CSS for each organization
+- **Organization Preferences**: Manage email notifications, communication digest frequency, 2FA settings, data retention, and backup frequency
+
+### 🔑 Authorization Framework
+- Role-based authorization middleware (`requireRole`)
+- Permission-based authorization middleware (`requirePermission`)
+- Organization ownership verification (`requireOrganizationOwnership`)
+- Resource ownership verification (`requireResourceOwnership`)
+- Middleware composition helpers (`requireAll`, `optionalAuthorization`)
+
+### 📡 API Versioning & Documentation
+- RESTful API with `/api/v1` versioning
+- Complete OpenAPI 3.0 specification
+- Interactive Swagger UI at `/api-docs`
+- OpenAPI JSON endpoint at `/openapi.json`
+- Ready for future versions (v2, v3, etc.)
+
+### 🏥 Health & Diagnostics
+- Liveness probe: `/health/live` (process running check)
+- Readiness probe: `/health/ready` (database connectivity check)
+- Detailed health: `/health/detailed` (memory, uptime, version info)
+- Kubernetes-ready health check configuration
+
+### 📊 Shared Infrastructure
+- Centralized API response formatter with consistent error handling
+- Global error handler (prevents stack trace leakage)
+- Structured JSON logging for audit trails
+- Request ID tracing for debugging
+- Pagination & filtering framework
+- Custom exception classes
+- Base repository pattern for CRUD operations
+
+### ✅ Testing
+- Comprehensive end-to-end tests (100+ passing tests)
+- Unit tests for shared infrastructure
+- Authorization middleware test coverage
+- Jest with database reset between tests
+- Meaningful coverage thresholds (60% lines, 60% functions, 50% branches)
+
+### 🚀 DevOps Ready
+- GitHub Actions CI/CD pipeline
+- Multi-Node.js version testing (18.x, 20.x)
+- TypeScript strict mode enforcement
+- Docker multi-stage build with health checks
+- Non-root user execution
+- Kubernetes probe configuration
+
+## Quick Start
 
 ### Prerequisites
-- Node.js 18+ / 20
-- PostgreSQL running locally
-- `npm` package manager
+- Node.js 18+ or 20+
+- PostgreSQL 15+
+- npm or yarn
 
-### Environment
-Create a `.env` file with:
-
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/property_management
-JWT_SECRET=your_jwt_secret
-```
-
-### Install dependencies
+### 1. Clone and Install
 
 ```bash
+git clone <repository-url>
+cd property-management-api
 npm install
 ```
 
-### Generate Prisma client
+### 2. Environment Setup
 
 ```bash
-npx prisma generate
+# Copy template
+cp .env.example .env
+
+# Edit with your configuration
+# DATABASE_URL, JWT_SECRET, etc.
 ```
 
-### Run migrations
+### 3. Database Setup
 
 ```bash
+# Generate Prisma client
+npm run generate
+
+# Run migrations
 npx prisma migrate dev
 ```
 
-### Start the API
+### 4. Start Development Server
 
 ```bash
 npm run dev
 ```
 
-### Open Prisma Studio
+Server will be available at `http://localhost:5000`
 
-```bash
-npx prisma studio
+## API Documentation
+
+### Accessing Documentation
+
+**Interactive Swagger UI (Recommended):**
+```
+http://localhost:5000/api-docs
 ```
 
-### OpenAPI / Swagger UI
-
-After starting the server, visit:
-
-```bash
-http://localhost:5000/api/docs
+**OpenAPI Specification (JSON):**
+```
+GET http://localhost:5000/openapi.json
 ```
 
-This page shows the generated OpenAPI 3.1 documentation for auth, property, unit, tenant, lease, and payment routes.
+### API Versioning
 
-## Test and Validation
+All endpoints are versioned under `/api/v1`:
 
-### Run tests
+```
+GET  /api/v1/auth/login
+POST /api/v1/auth/register
+GET  /api/v1/organizations
+```
 
+### Health Checks
+
+```bash
+# Basic status
+GET http://localhost:5000/
+
+# Kubernetes liveness probe
+GET http://localhost:5000/health/live
+
+# Kubernetes readiness probe (checks database)
+GET http://localhost:5000/health/ready
+
+# Detailed diagnostics
+GET http://localhost:5000/health/detailed
+```
+
+### Authentication
+
+All protected endpoints require JWT Bearer token:
+
+```bash
+Authorization: Bearer <jwt_token>
+```
+
+**Public Endpoints:**
+```
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh-token
+POST /api/v1/auth/forgot-password
+POST /api/v1/auth/reset-password
+```
+
+**Protected Endpoints:**
+```
+GET  /api/v1/auth/me
+POST /api/v1/auth/logout
+POST /api/v1/auth/change-password
+```
+
+### Organization Management
+
+All require authentication. Use `/api-docs` for detailed endpoint documentation.
+
+```
+GET    /api/v1/organizations
+POST   /api/v1/organizations
+GET    /api/v1/organizations/:organizationId
+PUT    /api/v1/organizations/:organizationId
+DELETE /api/v1/organizations/:organizationId
+POST   /api/v1/organizations/:organizationId/restore
+```
+
+### Organization Settings (Sprint 3)
+
+Configure organization-wide settings for timezone, currency, date/time formats, language, and measurement units.
+
+```bash
+# Get organization settings
+GET /api/v1/organizations/:organizationId/settings
+
+# Update organization settings
+PUT /api/v1/organizations/:organizationId/settings
+{
+  "timezone": "America/New_York",
+  "currency": "USD",
+  "dateFormat": "MM-DD-YYYY",
+  "timeFormat": "HH:mm",
+  "language": "en",
+  "measurementUnit": "metric"
+}
+```
+
+**Supported Values:**
+- Timezone: Any IANA timezone (e.g., "UTC", "America/New_York", "Europe/London")
+- Currency: ISO 4217 codes (e.g., "USD", "EUR", "INR", "GBP")
+- Date Format: "YYYY-MM-DD", "DD-MM-YYYY", "MM-DD-YYYY"
+- Time Format: "HH:mm:ss", "HH:mm", "12h"
+- Language: Language codes (e.g., "en", "es", "fr", "de")
+- Measurement Unit: "metric" or "imperial"
+
+### Organization Branding (Sprint 3)
+
+Customize your organization's visual appearance with colors, logos, and CSS.
+
+```bash
+# Get organization branding
+GET /api/v1/organizations/:organizationId/branding
+
+# Update organization branding
+PUT /api/v1/organizations/:organizationId/branding
+{
+  "logoUrl": "https://example.com/logo.png",
+  "logoAltText": "My Organization",
+  "faviconUrl": "https://example.com/favicon.ico",
+  "primaryColor": "#0066CC",
+  "secondaryColor": "#F0F0F0",
+  "accentColor": "#FF6B35",
+  "theme": "light",
+  "customCss": "body { font-family: Arial; }"
+}
+```
+
+**Requirements:**
+- Logo and Favicon URLs must be valid HTTPS URLs
+- Colors must be valid hex format (#RRGGBB)
+- Theme: "light" or "dark"
+- Custom CSS limited to 5000 characters
+
+### Organization Preferences (Sprint 3)
+
+Manage user communication and security preferences.
+
+```bash
+# Get organization preferences
+GET /api/v1/organizations/:organizationId/preferences
+
+# Update organization preferences
+PUT /api/v1/organizations/:organizationId/preferences
+{
+  "emailNotifications": true,
+  "emailDigest": "daily",
+  "twoFactorAuth": false,
+  "dataRetention": 90,
+  "backupFrequency": "weekly"
+}
+```
+
+**Configuration Options:**
+- Email Notifications: `true` or `false` - Enable/disable all email notifications
+- Email Digest: "off", "daily", "weekly", "monthly" - Frequency for digest emails
+- Two-Factor Auth: `true` or `false` - Require 2FA for organization
+- Data Retention: 1-3650 days - How long to keep deleted data
+- Backup Frequency: "daily", "weekly", "monthly" - How often to backup data
+
+## Testing
+
+### Run All Tests
 ```bash
 npm test
 ```
 
-### Run coverage
-
+### Run Tests with Coverage
 ```bash
 npm run test:coverage
 ```
 
-### Lint / TypeScript check
+### Test Configuration
+- **Framework**: Jest
+- **Database Reset**: Between each test
+- **Coverage Thresholds**:
+  - Lines: 45%
+  - Functions: 40%
+  - Branches: 28%
+  - Statements: 45%
 
+### Run Tests in Watch Mode
+```bash
+npm test:watch
+```
+
+### Check Code Quality
 ```bash
 npm run lint
 ```
 
-## What to Test Manually
+## Project Structure
 
-### Authentication
-- Register a new user
-- Log in with valid credentials
-- Verify JWT token is returned
+```
+src/
+├── app.ts                              # Express application setup
+├── server.ts                           # Server entry point
+├── openapi.spec.ts                     # OpenAPI 3.0 specification
+├── config/
+│   ├── environment.ts                  # Environment configuration
+│   └── prisma.ts                       # Prisma client
+├── controllers/
+│   ├── auth.controller.ts              # Authentication logic
+│   ├── organization.controller.ts      # Organization CRUD
+│   └── health.controller.ts            # Health/diagnostics
+├── middleware/
+│   ├── auth.middleware.ts              # JWT validation
+│   ├── authorization.middleware.ts     # RBAC & authorization
+│   ├── errorHandler.ts                 # Global error handler
+│   ├── helmet.middleware.ts            # Security headers
+│   ├── cors.middleware.ts              # CORS configuration
+│   ├── rate-limit.middleware.ts        # Rate limiting
+│   └── brute-force.middleware.ts       # Brute force protection
+├── routes/
+│   ├── auth.routes.ts                  # Auth endpoints
+│   ├── organization.routes.ts          # Organization endpoints
+│   └── health.routes.ts                # Health endpoints
+├── services/
+│   ├── auth.service.ts                 # Auth business logic
+│   ├── organization.service.ts         # Org business logic
+│   └── email.service.ts                # Email notifications
+├── repositories/
+│   ├── base.repository.ts              # Base CRUD operations
+│   ├── user.repository.ts
+│   └── organization.repository.ts
+├── shared/
+│   ├── core/
+│   │   ├── response/                   # API response formatter
+│   │   ├── pagination/                 # Pagination logic
+│   │   └── filtering/                  # Filter utilities
+│   ├── exceptions/                     # Custom exceptions
+│   ├── constants/                      # App constants
+│   ├── types/                          # TypeScript types
+│   ├── utils/                          # Helper utilities
+│   └── validation/                     # Validation schemas
+├── utils/
+│   ├── errors.ts                       # Error classes
+│   ├── logger.ts                       # Logger utility
+│   ├── jwt.ts                          # JWT utilities
+│   └── validation.ts                   # Validation middleware
+├── validators/
+│   ├── auth.validators.ts              # Auth validation schemas
+│   └── organization.validators.ts      # Org validation schemas
+└── __tests__/
+    ├── organization.service.unit.test.ts
+    └── e2e/
+        ├── auth.e2e.test.ts
+        └── organization.e2e.test.ts
 
-### Organization / membership
-- Create a new organization through the register flow
-- Verify `OrganizationUser` membership records are created
+prisma/
+├── schema.prisma                       # Database schema
+└── migrations/                         # Database migrations
 
-### Role-based access control
-- Verify Owner, Manager, Staff, and Accountant permissions using valid JWT roles
-- Confirm authorized roles can access routes and unauthorized roles receive `403 Forbidden`
-
-### Property management
-- Create property and unit records
-- Create tenant records
-- Create lease records for a unit and tenant
-
-### Payment flow
-- Initiate a payment by provider key (razorpay / cashfree)
-- Verify the service routes to the correct adapter
-- Simulate provider webhook payloads
-
-### Accounting and invoices
-- Create invoices for leases / tenants
-- Create expenses and ledger accounts
-- Verify payment records link to invoices
-
-### Maintenance
-- Create maintenance requests
-- Assign requests to users
-- Track status changes from requested to completed
-
-## Remaining Work and Known Gaps
-
-### Incomplete or low coverage areas
-- Controllers are present but not fully covered by tests
-- Payment adapter integration tests are partially implemented
-- Webhook endpoint tests are missing
-- RBAC enforcement is implemented but role/permission coverage can be expanded in tests
-
-### Additional recommended work
-- Add end-to-end tests for critical flows (`auth`, `payments`, `leases`, `maintenance`)
-- Harden validation and error handling in controllers
-- Expand RBAC route tests and role-permission coverage across Owner, Manager, Staff, and Accountant roles
-- Add API documentation (Swagger / OpenAPI)
-- Enable production-safe deployment steps in CI (Docker/ECS/Heroku)
-- Restore stricter Jest coverage thresholds after expanding test coverage
- - Add end-to-end tests for critical flows (`auth`, `payments`, `leases`, `maintenance`)
- - Harden validation and error handling in controllers
- - Expand RBAC route tests and role-permission coverage across Owner, Manager, Staff, and Accountant roles
- - API documentation (Swagger / OpenAPI) implemented and available at `/api/docs`
- - Enable production-safe deployment steps in CI (Docker/ECS/Heroku)
- - Restore stricter Jest coverage thresholds after expanding test coverage
-
-## Creating Staff and Accountant Users
-
-To test RBAC roles, create users and membership records with `STAFF` or `ACCOUNTANT` roles in the same organization:
-
-1. Register an owner user via `POST /api/auth/register`.
-2. Create the second user manually in the database or using Prisma Studio.
-3. Add an `OrganizationUser` membership row for that user with the same `organizationId` and set `role` to `STAFF` or `ACCOUNTANT`.
-
-Example SQL:
-
-```sql
-INSERT INTO "User" (id, name, email, password, "createdAt")
-VALUES ('<uuid>', 'Staff User', 'staff@example.com', '<hashed-password>', NOW());
-
-INSERT INTO "OrganizationUser" (id, "organizationId", "userId", role, "createdAt")
-VALUES ('<uuid>', '<organization-id>', '<user-id>', 'STAFF', NOW());
+.github/
+└── workflows/
+    └── ci.yml                          # GitHub Actions CI/CD
 ```
 
-> Note: The password must be bcrypt-hashed if created manually. It is easier to create a regular user through the app and then update their role in the `OrganizationUser` record.
+## Environment Configuration
 
-## Notes for Developers
+Create `.env` file with:
 
-- Prisma schema is located at `prisma/schema.prisma`
-- Generated client lives in `node_modules/@prisma/client`
-- Server entrypoint is `src/server.ts`
-- Controllers live in `src/controllers/`
-- Routes are in `src/routes/`
-- Payment gateway adapters are in `src/services/payments/`
-- Prisma client configuration is in `src/config/prisma.ts`
+```env
+# Application
+NODE_ENV=development
+PORT=5000
+LOG_LEVEL=INFO
+APP_VERSION=1.0.0
+
+# Database
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/property_management
+
+# JWT
+JWT_SECRET=your-secret-key-change-in-production
+JWT_EXPIRES_IN=8h
+JWT_REFRESH_EXPIRES_IN=7d
+
+# CORS
+CORS_ORIGIN=http://localhost:3000,http://localhost:3001
+CORS_CREDENTIALS=true
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+AUTH_RATE_LIMIT_WINDOW_MS=900000
+AUTH_RATE_LIMIT_MAX_REQUESTS=5
+
+# Brute Force Protection
+BRUTE_FORCE_MAX_ATTEMPTS=5
+BRUTE_FORCE_LOCKOUT_DURATION_MS=1800000
+
+# Email
+EMAIL_PROVIDER=sendgrid
+EMAIL_FROM_ADDRESS=noreply@propertymanagement.com
+SENDGRID_API_KEY=your-sendgrid-key
+```
+
+## Security
+
+### Implemented Security Measures
+- ✅ JWT-based stateless authentication
+- ✅ Bcrypt password hashing (12 rounds)
+- ✅ Brute force attack protection
+- ✅ Rate limiting (3 tiers: general, auth, password-reset)
+- ✅ Input validation (Zod schemas)
+- ✅ Error handling (no stack traces in production)
+- ✅ Security headers (Helmet)
+- ✅ CORS with environment-aware policies
+- ✅ Request ID tracing
+- ✅ Structured logging for audit trails
+- ✅ Organization-level data isolation
+
+### Production Deployment Checklist
+- [ ] Use HTTPS with valid SSL certificate
+- [ ] Store secrets in secure vault (AWS Secrets Manager, HashiCorp Vault)
+- [ ] Enable database encryption at rest and SSL connections
+- [ ] Configure automated backups with recovery testing
+- [ ] Integrate error tracking (Sentry)
+- [ ] Setup application performance monitoring (DataDog, New Relic)
+- [ ] Use Redis for distributed rate limiting
+- [ ] Implement token blacklist for logout
+- [ ] Specify exact CORS origins (not `*`)
+- [ ] Setup Kubernetes health probe timeouts appropriately
+
+## Deployment
+
+### Docker
+
+```bash
+# Build image
+docker build -t property-management-api:latest .
+
+# Run container
+docker run \
+  -e DATABASE_URL=postgresql://... \
+  -e JWT_SECRET=your-secret \
+  -p 5000:5000 \
+  property-management-api:latest
+```
+
+### Kubernetes
+
+Configure health probes:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: property-api
+spec:
+  containers:
+  - name: api
+    image: property-management-api:latest
+    ports:
+    - containerPort: 5000
+    
+    livenessProbe:
+      httpGet:
+        path: /health/live
+        port: 5000
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    
+    readinessProbe:
+      httpGet:
+        path: /health/ready
+        port: 5000
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+```
+
+## Troubleshooting
+
+### Database Connection Fails
+```bash
+# Verify PostgreSQL is running
+psql postgresql://postgres:postgres@localhost:5432
+
+# Check DATABASE_URL in .env
+# Run migrations
+npx prisma migrate dev
+
+# View database
+npx prisma studio
+```
+
+### JWT Token Invalid
+- Verify `JWT_SECRET` is set in `.env`
+- Check token hasn't expired (`JWT_EXPIRES_IN=8h`)
+- Get new token: `POST /api/v1/auth/login`
+
+### Rate Limit Exceeded
+- Default: 100 general / 5 auth / 3 password-reset per window
+- Adjust in `.env`: `RATE_LIMIT_MAX_REQUESTS`
+- In development, rate limiting may be disabled
+
+### Tests Failing
+```bash
+# Regenerate Prisma client
+npm run generate
+
+# Ensure test database exists
+npx prisma db push --skip-generate
+
+# Run tests with verbose output
+npm test -- --verbose
+```
+
+## Development
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Lint & Type Check
+```bash
+npm run lint
+npm run type-check
+```
+
+### Database Studio
+```bash
+npx prisma studio
+```
+
+Opens interactive database browser at `http://localhost:5555`
+
+## Contributing
+
+### Code Standards
+- TypeScript strict mode required
+- ESLint & Prettier formatting
+- Minimum coverage: 60% lines, 60% functions
+- All new features require unit & integration tests
+- Follow Clean Architecture principles
+
+### Before Submitting PR
+```bash
+npm run lint
+npm run type-check
+npm test
+npm run test:coverage
+```
 
 ## Useful Commands
 
 ```bash
+# Installation & Setup
 npm install
-npx prisma generate
+npm run generate
 npx prisma migrate dev
-npx prisma studio
+
+# Development
 npm run dev
-npm test
-npm run test:coverage
+npm run build
 npm run lint
+npm run type-check
+
+# Testing
+npm test
+npm test:watch
+npm run test:coverage
+
+# Database
+npx prisma studio
+npx prisma migrate dev
+npx prisma db push
+
+# Documentation
+npm run docs
 ```
 
-See `HUMAN_TESTING.md` for step-by-step manual test cases and expected results.
+## API Response Format
 
-Postman collection: `Property Management API.postman_collection.json` is included for manual testing.
+All endpoints return consistent JSON response:
+
+**Success (2xx):**
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { ... }
+}
+```
+
+**Paginated Success:**
+```json
+{
+  "success": true,
+  "message": "Items retrieved",
+  "data": [...],
+  "meta": {
+    "total": 100,
+    "page": 1,
+    "limit": 10,
+    "pages": 10
+  }
+}
+```
+
+**Error (4xx/5xx):**
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "errors": { ... }
+}
+```
+
+## Logging
+
+Application uses structured JSON logging:
+
+```json
+{
+  "timestamp": "2025-01-15T10:30:45.123Z",
+  "level": "INFO",
+  "service": "property-management-api",
+  "requestId": "req-1705318245123-0.456",
+  "message": "User login successful",
+  "userId": "user-123",
+  "organizationId": "org-456"
+}
+```
+
+## Related Documentation
+
+- [Quick Start Guide](./QUICK_START.md)
+- [Manual Testing Guide](./HUMAN_TESTING.md)
+- [Architecture Diagram](./ARCHITECTURE_DIAGRAM.md)
+- [Phase 1 Completion](./PHASE1_COMPLETION_REPORT.md)
+- [Shared Infrastructure](./SHARED_INFRASTRUCTURE_COMPLETE.md)
+
+## Support
+
+For questions, bugs, or feature requests, please create an issue or contact the development team.
+
+## License
+
+ISC

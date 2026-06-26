@@ -1308,6 +1308,180 @@
           ]
         }
       }
+    },
+    {
+      "name": "Get Organization Settings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/settings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "settings"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Organization Settings",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"timezone\": \"America/New_York\",\n  \"currency\": \"USD\",\n  \"dateFormat\": \"MM-DD-YYYY\",\n  \"timeFormat\": \"HH:mm\",\n  \"language\": \"en\",\n  \"measurementUnit\": \"imperial\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/settings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "settings"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Organization Branding",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/branding",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "branding"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Organization Branding",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"logoAltText\": \"My Organization\",\n  \"faviconUrl\": \"https://example.com/favicon.ico\",\n  \"primaryColor\": \"#0066CC\",\n  \"secondaryColor\": \"#FFFFFF\",\n  \"accentColor\": \"#FF6B35\",\n  \"theme\": \"light\",\n  \"customCss\": \"body { font-family: Arial; }\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/branding",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "branding"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Organization Preferences",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/preferences",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "preferences"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Organization Preferences",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"emailNotifications\": true,\n  \"emailDigest\": \"daily\",\n  \"twoFactorAuth\": false,\n  \"dataRetention\": 90,\n  \"backupFrequency\": \"weekly\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/preferences",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "preferences"
+          ]
+        }
+      }
     }
   ]
 }

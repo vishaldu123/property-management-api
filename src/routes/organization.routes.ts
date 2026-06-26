@@ -6,6 +6,9 @@ import {
   listOrganizationsQuerySchema,
   organizationParamsSchema,
   updateOrganizationSchema,
+  organizationSettingsSchema,
+  organizationBrandingSchema,
+  organizationPreferencesSchema,
 } from '../validators/organization.validators';
 import {
   createOrganization,
@@ -14,6 +17,12 @@ import {
   restoreOrganization,
   softDeleteOrganization,
   updateOrganization,
+  getOrganizationSettings,
+  updateOrganizationSettings,
+  getOrganizationBranding,
+  updateOrganizationBranding,
+  getOrganizationPreferences,
+  updateOrganizationPreferences,
 } from '../controllers/organization.controller';
 
 const router = Router();
@@ -31,5 +40,29 @@ router.put(
 );
 router.delete('/:organizationId', validate({ params: organizationParamsSchema }), softDeleteOrganization);
 router.post('/:organizationId/restore', validate({ params: organizationParamsSchema }), restoreOrganization);
+
+// Organization Settings Routes
+router.get('/:organizationId/settings', validate({ params: organizationParamsSchema }), getOrganizationSettings);
+router.put(
+  '/:organizationId/settings',
+  validate({ params: organizationParamsSchema, body: organizationSettingsSchema }),
+  updateOrganizationSettings
+);
+
+// Organization Branding Routes
+router.get('/:organizationId/branding', validate({ params: organizationParamsSchema }), getOrganizationBranding);
+router.put(
+  '/:organizationId/branding',
+  validate({ params: organizationParamsSchema, body: organizationBrandingSchema }),
+  updateOrganizationBranding
+);
+
+// Organization Preferences Routes
+router.get('/:organizationId/preferences', validate({ params: organizationParamsSchema }), getOrganizationPreferences);
+router.put(
+  '/:organizationId/preferences',
+  validate({ params: organizationParamsSchema, body: organizationPreferencesSchema }),
+  updateOrganizationPreferences
+);
 
 export default router;

@@ -6,7 +6,13 @@ import {
   CreateOrganizationInput,
   ListOrganizationsQuery,
   UpdateOrganizationInput,
+  OrganizationSettingsInput,
+  OrganizationBrandingInput,
+  OrganizationPreferencesInput,
   listOrganizationsQuerySchema,
+  organizationSettingsSchema,
+  organizationBrandingSchema,
+  organizationPreferencesSchema,
 } from '../validators/organization.validators';
 import { UnauthorizedError } from '../utils/errors';
 
@@ -124,6 +130,108 @@ export const listOrganizations = async (
     );
 
     ApiResponse.paginated(res, organizations.data, organizations.meta, 'Organizations retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Organization Settings Controllers
+export const getOrganizationSettings = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const context = getActorContext(req);
+    const organizationId = req.params.organizationId as string;
+    const settings = await organizationService.getOrganizationSettings(organizationId, context);
+
+    ApiResponse.success(res, settings, 'Organization settings retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateOrganizationSettings = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const context = getActorContext(req);
+    const organizationId = req.params.organizationId as string;
+    const payload = organizationSettingsSchema.parse(req.body) as OrganizationSettingsInput;
+    const settings = await organizationService.updateOrganizationSettings(organizationId, payload, context);
+
+    ApiResponse.success(res, settings, 'Organization settings updated successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Organization Branding Controllers
+export const getOrganizationBranding = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const context = getActorContext(req);
+    const organizationId = req.params.organizationId as string;
+    const branding = await organizationService.getOrganizationBranding(organizationId, context);
+
+    ApiResponse.success(res, branding, 'Organization branding retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateOrganizationBranding = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const context = getActorContext(req);
+    const organizationId = req.params.organizationId as string;
+    const payload = organizationBrandingSchema.parse(req.body) as OrganizationBrandingInput;
+    const branding = await organizationService.updateOrganizationBranding(organizationId, payload, context);
+
+    ApiResponse.success(res, branding, 'Organization branding updated successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Organization Preferences Controllers
+export const getOrganizationPreferences = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const context = getActorContext(req);
+    const organizationId = req.params.organizationId as string;
+    const preferences = await organizationService.getOrganizationPreferences(organizationId, context);
+
+    ApiResponse.success(res, preferences, 'Organization preferences retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateOrganizationPreferences = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const context = getActorContext(req);
+    const organizationId = req.params.organizationId as string;
+    const payload = organizationPreferencesSchema.parse(req.body) as OrganizationPreferencesInput;
+    const preferences = await organizationService.updateOrganizationPreferences(organizationId, payload, context);
+
+    ApiResponse.success(res, preferences, 'Organization preferences updated successfully');
   } catch (error) {
     next(error);
   }

@@ -36,10 +36,77 @@ model Organization {
   users           OrganizationUser[]
   roles           Role[]
   permissions     Permission[]
+  settings        OrganizationSettings?
+  branding        OrganizationBranding?
+  preferences     OrganizationPreferences?
 
   @@index([deletedAt])
   @@index([createdBy])
   @@index([isActive])
+}
+
+// Organization Settings (Sprint 3)
+
+model OrganizationSettings {
+  id              String             @id @default(uuid())
+  organizationId  String             @unique
+  timezone        String             @default("UTC")
+  currency        String             @default("USD")
+  dateFormat      String             @default("YYYY-MM-DD")
+  timeFormat      String             @default("HH:mm:ss")
+  language        String             @default("en")
+  measurementUnit String             @default("metric")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       String?
+  updatedBy       String?
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+// Organization Branding (Sprint 3)
+
+model OrganizationBranding {
+  id              String             @id @default(uuid())
+  organizationId  String             @unique
+  logoUrl         String?
+  logoAltText     String?
+  faviconUrl      String?
+  primaryColor    String             @default("#000000")
+  secondaryColor  String             @default("#FFFFFF")
+  accentColor     String             @default("#0066CC")
+  theme           String             @default("light")
+  customCss       String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       String?
+  updatedBy       String?
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+// Organization Preferences (Sprint 3)
+
+model OrganizationPreferences {
+  id              String             @id @default(uuid())
+  organizationId  String             @unique
+  emailNotifications Boolean          @default(true)
+  emailDigest     String             @default("daily")
+  twoFactorAuth   Boolean            @default(false)
+  dataRetention   Int                @default(90)
+  backupFrequency String             @default("weekly")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       String?
+  updatedBy       String?
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 model User {
