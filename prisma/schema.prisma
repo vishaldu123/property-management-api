@@ -16,9 +16,15 @@ model Organization {
   description     String?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   users           OrganizationUser[]
   roles           Role[]
   permissions     Permission[]
+
+  @@index([deletedAt])
+  @@index([createdBy])
 }
 
 model User {
@@ -30,9 +36,15 @@ model User {
   isActive        Boolean            @default(true)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   memberships     OrganizationUser[]
   refreshTokens   RefreshToken[]
   passwordResets  PasswordResetToken[]
+
+  @@index([deletedAt])
+  @@index([createdBy])
 }
 
 model OrganizationUser {
@@ -42,6 +54,9 @@ model OrganizationUser {
   role            String             @default("MEMBER") // Simple role string for Phase 1
   joinedAt        DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   
   organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -49,6 +64,7 @@ model OrganizationUser {
   @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([userId])
+  @@index([deletedAt])
 }
 
 // RBAC Models (prepared for Phase 2)
@@ -62,12 +78,16 @@ model Role {
   isDefault       Boolean            @default(false)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   
   organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   permissions     RolePermission[]
 
   @@unique([organizationId, key])
   @@index([organizationId])
+  @@index([deletedAt])
 }
 
 model Permission {
@@ -78,12 +98,16 @@ model Permission {
   description     String?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   
   organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   roles           RolePermission[]
 
   @@unique([organizationId, key])
   @@index([organizationId])
+  @@index([deletedAt])
 }
 
 model RolePermission {
