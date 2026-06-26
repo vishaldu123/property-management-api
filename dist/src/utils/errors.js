@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ForbiddenError = exports.UnauthorizedError = exports.NotFoundError = exports.ValidationError = exports.AppError = void 0;
+exports.ConflictError = exports.ForbiddenError = exports.UnauthorizedError = exports.NotFoundError = exports.ValidationError = exports.AppError = void 0;
 class AppError extends Error {
     statusCode;
     isOperational;
@@ -44,3 +44,10 @@ class ForbiddenError extends AppError {
     }
 }
 exports.ForbiddenError = ForbiddenError;
+class ConflictError extends AppError {
+    constructor(message = 'Conflict') {
+        super(message, 409, true);
+        Object.setPrototypeOf(this, new.target.prototype);
+    }
+}
+exports.ConflictError = ConflictError;

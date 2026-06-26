@@ -8,10 +8,7 @@ const child_process_1 = require("child_process");
 const dotenv_1 = __importDefault(require("dotenv"));
 const fs_1 = __importDefault(require("fs"));
 process.env.NODE_ENV = 'test';
-// Only load .env.test if DATABASE_URL is not already set (e.g., CI provides it via service containers)
-if (!process.env.DATABASE_URL) {
-    dotenv_1.default.config({ path: '.env.test' });
-}
+dotenv_1.default.config({ path: '.env.test' });
 // Resolve the final DATABASE_URL to use
 let testDatabaseUrl = process.env.DATABASE_URL || '';
 // Fallback: try reading from .env.test directly if no env var is set

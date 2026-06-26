@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// @ts-nocheck - Phase 1: Payment module deferred to Phase 2
 const express_1 = require("express");
 const razorpayAdapter_1 = __importDefault(require("../services/payments/razorpayAdapter"));
 const cashfreeAdapter_1 = __importDefault(require("../services/payments/cashfreeAdapter"));

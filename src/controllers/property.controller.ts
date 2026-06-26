@@ -1,72 +1,102 @@
 // @ts-nocheck - Phase 1: Property model deferred to Phase 2
-import { Request, Response } from 'express';
+import { Response, NextFunction } from 'express';
 import prisma from '../config/prisma';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { ApiResponse } from '../shared/core/response';
+import logger from '../utils/logger';
 
-export const listProperties = async (req: AuthenticatedRequest, res: Response) => {
-  const properties = await prisma.property.findMany({
-    where: { organizationId: req.user!.organizationId },
-    include: { units: true },
-  });
-  res.json(properties);
-};
-
-export const getProperty = async (req: AuthenticatedRequest, res: Response) => {
-  const propertyId = req.params.propertyId as string;
-  const property = await prisma.property.findFirst({
-    where: { id: propertyId, organizationId: req.user!.organizationId },
-    include: { units: true },
-  });
-
-  if (!property) {
-    return res.status(404).json({ message: 'Property not found' });
+export const listProperties = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const properties = await prisma.property.findMany({
+      where: { organizationId: req.user!.organizationId },
+      include: { units: true },
+    });
+    ApiResponse.success(res, properties, 'Properties retrieved successfully');
+  } catch (error) {
+    logger.error('listProperties error', error as Error);
+    next(error);
   }
-
-  res.json(property);
 };
 
-export const createProperty = async (req: AuthenticatedRequest, res: Response) => {
-  const { name, address, city, state } = req.body;
-  const property = await prisma.property.create({
-    data: {
-      name,
-      address,
-      city,
-      state,
-      organizationId: req.user!.organizationId,
-    },
-  });
+export const getProperty = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const propertyId = req.params.propertyId as string;
+    const property = await prisma.property.findFirst({
+      where: { id: propertyId, organizationId: req.user!.organizationId },
+      include: { units: true },
+    });
 
-  res.status(201).json(property);
-};
+    if (!property) {
+      ApiResponse.error(res, 'Property not found', 404);
+      return;
+    }
 
-export const updateProperty = async (req: AuthenticatedRequest, res: Response) => {
-  const propertyId = req.params.propertyId as string;
-  const { name, address, city, state } = req.body;
-
-  const property = await prisma.property.updateMany({
-    where: { id: propertyId, organizationId: req.user!.organizationId },
-    data: { name, address, city, state },
-  });
-
-  if (property.count === 0) {
-    return res.status(404).json({ message: 'Property not found' });
+    ApiResponse.success(res, property, 'Property retrieved successfully');
+  } catch (error) {
+    logger.error('getProperty error', error as Error);
+    next(error);
   }
-
-  const updated = await prisma.property.findUnique({ where: { id: propertyId as string } });
-  res.json(updated);
 };
 
-export const deleteProperty = async (req: AuthenticatedRequest, res: Response) => {
-  const propertyId = req.params.propertyId as string;
+export const createProperty = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const { name, address, city, state } = req.body;
+    const property = await prisma.property.create({
+      data: {
+        name,
+        address,
+        city,
+        state,
+        organizationId: req.user!.organizationId,
+      },
+    });
 
-  const property = await prisma.property.deleteMany({
-    where: { id: propertyId, organizationId: req.user!.organizationId },
-  });
-
-  if (property.count === 0) {
-    return res.status(404).json({ message: 'Property not found' });
+    ApiResponse.created(res, property, 'Property created successfully');
+  } catch (error) {
+    logger.error('createProperty error', error as Error);
+    next(error);
   }
+};
 
-  res.status(204).send();
+export const updateProperty = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const propertyId = req.params.propertyId as string;
+    const { name, address, city, state } = req.body;
+
+    const property = await prisma.property.updateMany({
+      where: { id: propertyId, organizationId: req.user!.organizationId },
+      data: { name, address, city, state },
+    });
+
+    if (property.count === 0) {
+      ApiResponse.error(res, 'Property not found', 404);
+      return;
+    }
+
+    const updated = await prisma.property.findUnique({ where: { id: propertyId as string } });
+    ApiResponse.success(res, updated, 'Property updated successfully');
+  } catch (error) {
+    logger.error('updateProperty error', error as Error);
+    next(error);
+  }
+};
+
+export const deleteProperty = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const propertyId = req.params.propertyId as string;
+
+    const property = await prisma.property.deleteMany({
+      where: { id: propertyId, organizationId: req.user!.organizationId },
+    });
+
+    if (property.count === 0) {
+      ApiResponse.error(res, 'Property not found', 404);
+      return;
+    }
+
+    ApiResponse.success(res, null, 'Property deleted successfully', 204);
+  } catch (error) {
+    logger.error('deleteProperty error', error as Error);
+    next(error);
+  }
 };

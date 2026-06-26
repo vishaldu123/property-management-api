@@ -217,6 +217,156 @@ exports.openApiDoc = {
                     status: { type: 'string' },
                 },
             },
+            Organization: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string', format: 'uuid' },
+                    name: { type: 'string' },
+                    slug: { type: 'string' },
+                    email: { type: 'string', format: 'email' },
+                    phone: { type: 'string', nullable: true },
+                    website: { type: 'string', nullable: true },
+                    logo: { type: 'string', nullable: true },
+                    address: { type: 'string', nullable: true },
+                    city: { type: 'string', nullable: true },
+                    state: { type: 'string', nullable: true },
+                    country: { type: 'string', nullable: true },
+                    postalCode: { type: 'string', nullable: true },
+                    timezone: { type: 'string', nullable: true },
+                    currency: { type: 'string', nullable: true },
+                    subscriptionPlan: { type: 'string' },
+                    subscriptionStatus: { type: 'string' },
+                    isActive: { type: 'boolean' },
+                    createdBy: { type: 'string', nullable: true },
+                    updatedBy: { type: 'string', nullable: true },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    updatedAt: { type: 'string', format: 'date-time' },
+                    deletedAt: { type: 'string', format: 'date-time', nullable: true },
+                },
+            },
+            OrganizationCreateRequest: {
+                type: 'object',
+                required: ['name', 'email'],
+                properties: {
+                    name: { type: 'string' },
+                    slug: { type: 'string' },
+                    email: { type: 'string', format: 'email' },
+                    phone: { type: 'string' },
+                    website: { type: 'string', format: 'uri' },
+                    logo: { type: 'string', format: 'uri' },
+                    address: { type: 'string' },
+                    city: { type: 'string' },
+                    state: { type: 'string' },
+                    country: { type: 'string' },
+                    postalCode: { type: 'string' },
+                    timezone: { type: 'string' },
+                    currency: { type: 'string' },
+                    subscriptionPlan: { type: 'string' },
+                    subscriptionStatus: { type: 'string' },
+                    isActive: { type: 'boolean' },
+                },
+            },
+            OrganizationUpdateRequest: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    slug: { type: 'string' },
+                    email: { type: 'string', format: 'email' },
+                    phone: { type: 'string' },
+                    website: { type: 'string', format: 'uri' },
+                    logo: { type: 'string', format: 'uri' },
+                    address: { type: 'string' },
+                    city: { type: 'string' },
+                    state: { type: 'string' },
+                    country: { type: 'string' },
+                    postalCode: { type: 'string' },
+                    timezone: { type: 'string' },
+                    currency: { type: 'string' },
+                    subscriptionPlan: { type: 'string' },
+                    subscriptionStatus: { type: 'string' },
+                    isActive: { type: 'boolean' },
+                },
+            },
+            OrganizationSettings: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string', format: 'uuid' },
+                    organizationId: { type: 'string', format: 'uuid' },
+                    timezone: { type: 'string', description: 'Timezone identifier (e.g., UTC, America/New_York)' },
+                    currency: { type: 'string', description: 'ISO 4217 currency code (e.g., USD, EUR, INR)' },
+                    dateFormat: { type: 'string', enum: ['YYYY-MM-DD', 'DD-MM-YYYY', 'MM-DD-YYYY'] },
+                    timeFormat: { type: 'string', enum: ['HH:mm:ss', 'HH:mm', '12h'] },
+                    language: { type: 'string', description: 'Language code (e.g., en, es, fr)' },
+                    measurementUnit: { type: 'string', enum: ['metric', 'imperial'] },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    updatedAt: { type: 'string', format: 'date-time' },
+                },
+            },
+            OrganizationSettingsInput: {
+                type: 'object',
+                properties: {
+                    timezone: { type: 'string', description: 'Timezone identifier' },
+                    currency: { type: 'string', description: 'ISO 4217 currency code' },
+                    dateFormat: { type: 'string', enum: ['YYYY-MM-DD', 'DD-MM-YYYY', 'MM-DD-YYYY'] },
+                    timeFormat: { type: 'string', enum: ['HH:mm:ss', 'HH:mm', '12h'] },
+                    language: { type: 'string', description: 'Language code' },
+                    measurementUnit: { type: 'string', enum: ['metric', 'imperial'] },
+                },
+            },
+            OrganizationBranding: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string', format: 'uuid' },
+                    organizationId: { type: 'string', format: 'uuid' },
+                    logoUrl: { type: 'string', format: 'uri', nullable: true, description: 'URL to the organization logo' },
+                    logoAltText: { type: 'string', nullable: true, description: 'Alt text for the logo' },
+                    faviconUrl: { type: 'string', format: 'uri', nullable: true, description: 'URL to the favicon' },
+                    primaryColor: { type: 'string', pattern: '^#[0-9A-F]{6}$', description: 'Primary brand color in hex format' },
+                    secondaryColor: { type: 'string', pattern: '^#[0-9A-F]{6}$', description: 'Secondary brand color' },
+                    accentColor: { type: 'string', pattern: '^#[0-9A-F]{6}$', description: 'Accent color' },
+                    theme: { type: 'string', enum: ['light', 'dark'], description: 'Theme preference' },
+                    customCss: { type: 'string', nullable: true, description: 'Custom CSS styles (max 5000 chars)' },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    updatedAt: { type: 'string', format: 'date-time' },
+                },
+            },
+            OrganizationBrandingInput: {
+                type: 'object',
+                properties: {
+                    logoUrl: { type: 'string', format: 'uri', nullable: true },
+                    logoAltText: { type: 'string', nullable: true },
+                    faviconUrl: { type: 'string', format: 'uri', nullable: true },
+                    primaryColor: { type: 'string', pattern: '^#[0-9A-F]{6}$' },
+                    secondaryColor: { type: 'string', pattern: '^#[0-9A-F]{6}$' },
+                    accentColor: { type: 'string', pattern: '^#[0-9A-F]{6}$' },
+                    theme: { type: 'string', enum: ['light', 'dark'] },
+                    customCss: { type: 'string', nullable: true },
+                },
+            },
+            OrganizationPreferences: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string', format: 'uuid' },
+                    organizationId: { type: 'string', format: 'uuid' },
+                    emailNotifications: { type: 'boolean', description: 'Enable/disable email notifications' },
+                    emailDigest: { type: 'string', enum: ['off', 'daily', 'weekly', 'monthly'], description: 'Email digest frequency' },
+                    twoFactorAuth: { type: 'boolean', description: 'Enable/disable two-factor authentication' },
+                    dataRetention: { type: 'integer', minimum: 1, maximum: 3650, description: 'Data retention period in days' },
+                    backupFrequency: { type: 'string', enum: ['daily', 'weekly', 'monthly'], description: 'Backup frequency' },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    updatedAt: { type: 'string', format: 'date-time' },
+                },
+            },
+            OrganizationPreferencesInput: {
+                type: 'object',
+                properties: {
+                    emailNotifications: { type: 'boolean' },
+                    emailDigest: { type: 'string', enum: ['off', 'daily', 'weekly', 'monthly'] },
+                    twoFactorAuth: { type: 'boolean' },
+                    dataRetention: { type: 'integer', minimum: 1, maximum: 3650 },
+                    backupFrequency: { type: 'string', enum: ['daily', 'weekly', 'monthly'] },
+                },
+            },
         },
     },
     security: [
@@ -278,6 +428,274 @@ exports.openApiDoc = {
                     },
                     '401': {
                         description: 'Invalid credentials',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/refresh-token': {
+            post: {
+                summary: 'Refresh access token using refresh token',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['refreshToken'],
+                                properties: {
+                                    refreshToken: { type: 'string', description: 'Refresh token' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'New tokens generated successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        token: { type: 'string', description: 'New access token' },
+                                        refreshToken: { type: 'string', description: 'New refresh token' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Invalid or expired refresh token',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/logout': {
+            post: {
+                summary: 'Logout user and invalidate refresh token',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['refreshToken'],
+                                properties: {
+                                    refreshToken: { type: 'string' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Logged out successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Unauthorized',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/forgot-password': {
+            post: {
+                summary: 'Request password reset email',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['email'],
+                                properties: {
+                                    email: { type: 'string', format: 'email' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Password reset email sent (if account exists)',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        description: 'Bad request',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/reset-password': {
+            post: {
+                summary: 'Reset password with reset token',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['token', 'password'],
+                                properties: {
+                                    token: { type: 'string', description: 'Password reset token' },
+                                    password: { type: 'string', format: 'password', description: 'New password' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Password reset successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Invalid or expired reset token',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/change-password': {
+            post: {
+                summary: 'Change password for authenticated user',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['currentPassword', 'newPassword', 'confirmPassword'],
+                                properties: {
+                                    currentPassword: { type: 'string', format: 'password' },
+                                    newPassword: { type: 'string', format: 'password' },
+                                    confirmPassword: { type: 'string', format: 'password' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Password changed successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        description: 'Validation failed',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Unauthorized or invalid current password',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/auth/me': {
+            get: {
+                summary: 'Get current authenticated user',
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    '200': {
+                        description: 'Current user info',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        user: {
+                                            type: 'object',
+                                            properties: {
+                                                id: { type: 'string', format: 'uuid' },
+                                                name: { type: 'string' },
+                                                email: { type: 'string', format: 'email' },
+                                            },
+                                        },
+                                        organization: {
+                                            type: 'object',
+                                            properties: {
+                                                id: { type: 'string', format: 'uuid' },
+                                                name: { type: 'string' },
+                                                slug: { type: 'string' },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        description: 'Unauthorized',
                         content: {
                             'application/json': {
                                 schema: { $ref: '#/components/schemas/ErrorResponse' },
@@ -853,6 +1271,375 @@ exports.openApiDoc = {
                     },
                     '404': {
                         description: 'Payment not found',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/organizations': {
+            post: {
+                summary: 'Create organization',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/OrganizationCreateRequest' },
+                        },
+                    },
+                },
+                responses: {
+                    '201': {
+                        description: 'Organization created',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/Organization' },
+                            },
+                        },
+                    },
+                    '409': {
+                        description: 'Slug or email already exists',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+            get: {
+                summary: 'List organizations (scoped to current organization)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'page', in: 'query', schema: { type: 'integer', minimum: 1 } },
+                    { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100 } },
+                    { name: 'search', in: 'query', schema: { type: 'string' } },
+                    { name: 'sort', in: 'query', schema: { type: 'string' } },
+                    { name: 'order', in: 'query', schema: { type: 'string', enum: ['asc', 'desc'] } },
+                    { name: 'filters', in: 'query', schema: { type: 'string' } },
+                    { name: 'includeDeleted', in: 'query', schema: { type: 'boolean' } },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Organization list',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: { type: 'boolean' },
+                                        message: { type: 'string' },
+                                        data: {
+                                            type: 'array',
+                                            items: { $ref: '#/components/schemas/Organization' },
+                                        },
+                                        meta: {
+                                            type: 'object',
+                                            properties: {
+                                                page: { type: 'integer' },
+                                                limit: { type: 'integer' },
+                                                total: { type: 'integer' },
+                                                totalPages: { type: 'integer' },
+                                                hasNextPage: { type: 'boolean' },
+                                                hasPreviousPage: { type: 'boolean' },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/organizations/{organizationId}': {
+            parameters: [
+                {
+                    name: 'organizationId',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string', format: 'uuid' },
+                },
+            ],
+            get: {
+                summary: 'Get organization by ID',
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    '200': {
+                        description: 'Organization details',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/Organization' },
+                            },
+                        },
+                    },
+                    '403': {
+                        description: 'Forbidden for cross-organization access',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                    '404': {
+                        description: 'Organization not found',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+            put: {
+                summary: 'Update organization',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/OrganizationUpdateRequest' },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Organization updated',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/Organization' },
+                            },
+                        },
+                    },
+                },
+            },
+            delete: {
+                summary: 'Soft delete organization',
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    '200': {
+                        description: 'Organization soft deleted',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/Organization' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/organizations/{organizationId}/restore': {
+            parameters: [
+                {
+                    name: 'organizationId',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string', format: 'uuid' },
+                },
+            ],
+            post: {
+                summary: 'Restore soft deleted organization',
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    '200': {
+                        description: 'Organization restored',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/Organization' },
+                            },
+                        },
+                    },
+                    '404': {
+                        description: 'Organization not found',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/organizations/{organizationId}/settings': {
+            parameters: [
+                {
+                    name: 'organizationId',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string', format: 'uuid' },
+                },
+            ],
+            get: {
+                summary: 'Get organization settings',
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    '200': {
+                        description: 'Organization settings retrieved',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/OrganizationSettings' },
+                            },
+                        },
+                    },
+                    '404': {
+                        description: 'Organization not found',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+            put: {
+                summary: 'Update organization settings',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/OrganizationSettingsInput' },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Organization settings updated',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/OrganizationSettings' },
+                            },
+                        },
+                    },
+                    '400': {
+                        description: 'Bad request',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/organizations/{organizationId}/branding': {
+            parameters: [
+                {
+                    name: 'organizationId',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string', format: 'uuid' },
+                },
+            ],
+            get: {
+                summary: 'Get organization branding',
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    '200': {
+                        description: 'Organization branding retrieved',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/OrganizationBranding' },
+                            },
+                        },
+                    },
+                    '404': {
+                        description: 'Organization not found',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+            put: {
+                summary: 'Update organization branding',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/OrganizationBrandingInput' },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Organization branding updated',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/OrganizationBranding' },
+                            },
+                        },
+                    },
+                    '400': {
+                        description: 'Bad request',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        '/api/organizations/{organizationId}/preferences': {
+            parameters: [
+                {
+                    name: 'organizationId',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string', format: 'uuid' },
+                },
+            ],
+            get: {
+                summary: 'Get organization preferences',
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    '200': {
+                        description: 'Organization preferences retrieved',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/OrganizationPreferences' },
+                            },
+                        },
+                    },
+                    '404': {
+                        description: 'Organization not found',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            },
+            put: {
+                summary: 'Update organization preferences',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/schemas/OrganizationPreferencesInput' },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Organization preferences updated',
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/OrganizationPreferences' },
+                            },
+                        },
+                    },
+                    '400': {
+                        description: 'Bad request',
                         content: {
                             'application/json': {
                                 schema: { $ref: '#/components/schemas/ErrorResponse' },

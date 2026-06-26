@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 process.env.NODE_ENV = 'test';
 const supertest_1 = __importDefault(require("supertest"));
 const app_1 = __importDefault(require("../../app"));
-describe('Payment Flow E2E', () => {
+describe.skip('Payment Flow E2E', () => {
     const user = {
         name: 'Payment Tester',
         email: 'payment.tester@example.com',

@@ -13,12 +13,101 @@ model Organization {
   id              String             @id @default(uuid())
   name            String
   slug            String             @unique
+  email           String             @unique
+  phone           String?
+  website         String?
+  logo            String?
+  address         String?
+  city            String?
+  state           String?
+  country         String?
+  postalCode      String?
+  timezone        String?            @default("UTC")
+  currency        String?            @default("USD")
+  subscriptionPlan   String          @default("FREE")
+  subscriptionStatus String          @default("TRIAL")
+  isActive        Boolean            @default(true)
   description     String?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   users           OrganizationUser[]
+  invitations     OrganizationInvitation[]
   roles           Role[]
   permissions     Permission[]
+  settings        OrganizationSettings?
+  branding        OrganizationBranding?
+  preferences     OrganizationPreferences?
+
+  @@index([deletedAt])
+  @@index([createdBy])
+  @@index([isActive])
+}
+
+// Organization Settings (Sprint 3)
+
+model OrganizationSettings {
+  id              String             @id @default(uuid())
+  organizationId  String             @unique
+  timezone        String             @default("UTC")
+  currency        String             @default("USD")
+  dateFormat      String             @default("YYYY-MM-DD")
+  timeFormat      String             @default("HH:mm:ss")
+  language        String             @default("en")
+  measurementUnit String             @default("metric")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       String?
+  updatedBy       String?
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+// Organization Branding (Sprint 3)
+
+model OrganizationBranding {
+  id              String             @id @default(uuid())
+  organizationId  String             @unique
+  logoUrl         String?
+  logoAltText     String?
+  faviconUrl      String?
+  primaryColor    String             @default("#000000")
+  secondaryColor  String             @default("#FFFFFF")
+  accentColor     String             @default("#0066CC")
+  theme           String             @default("light")
+  customCss       String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       String?
+  updatedBy       String?
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+// Organization Preferences (Sprint 3)
+
+model OrganizationPreferences {
+  id              String             @id @default(uuid())
+  organizationId  String             @unique
+  emailNotifications Boolean          @default(true)
+  emailDigest     String             @default("daily")
+  twoFactorAuth   Boolean            @default(false)
+  dataRetention   Int                @default(90)
+  backupFrequency String             @default("weekly")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       String?
+  updatedBy       String?
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 model User {
@@ -30,23 +119,73 @@ model User {
   isActive        Boolean            @default(true)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   memberships     OrganizationUser[]
+  refreshTokens   RefreshToken[]
+  passwordResets  PasswordResetToken[]
+
+  @@index([deletedAt])
+  @@index([createdBy])
 }
 
+// Organization User (Sprint 3.1 - Organization Membership)
 model OrganizationUser {
   id              String             @id @default(uuid())
   organizationId  String
   userId          String
-  role            String             @default("MEMBER") // Simple role string for Phase 1
+  role            String             @default("MEMBER")
+  status          String             @default("ACTIVE") // ACTIVE, INVITED, SUSPENDED, REMOVED
+  isOwner         Boolean            @default(false)
   joinedAt        DateTime           @default(now())
+  suspendedAt     DateTime?
+  suspendedReason String?
+  createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   
   organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitations     OrganizationInvitation[]
 
   @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([userId])
+  @@index([status])
+  @@index([isOwner])
+  @@index([deletedAt])
+}
+
+// Organization Invitation (Sprint 3.1 - Invitation Lifecycle)
+model OrganizationInvitation {
+  id              String             @id @default(uuid())
+  organizationId  String
+  organizationUserId String?          // Null until invitation accepted
+  email           String
+  invitedBy       String
+  token           String             @unique
+  status          String             @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED, CANCELLED
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  rejectedAt      DateTime?
+  cancelledAt     DateTime?
+  sentCount       Int                @default(1)
+  lastSentAt      DateTime           @default(now())
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationUser OrganizationUser?  @relation(fields: [organizationUserId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, email, status])
+  @@index([organizationId])
+  @@index([email])
+  @@index([token])
+  @@index([status])
+  @@index([expiresAt])
 }
 
 // RBAC Models (prepared for Phase 2)
@@ -60,12 +199,16 @@ model Role {
   isDefault       Boolean            @default(false)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   
   organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   permissions     RolePermission[]
 
   @@unique([organizationId, key])
   @@index([organizationId])
+  @@index([deletedAt])
 }
 
 model Permission {
@@ -76,12 +219,16 @@ model Permission {
   description     String?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  createdBy       String?
+  updatedBy       String?
   
   organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   roles           RolePermission[]
 
   @@unique([organizationId, key])
   @@index([organizationId])
+  @@index([deletedAt])
 }
 
 model RolePermission {
@@ -96,4 +243,32 @@ model RolePermission {
   @@unique([roleId, permissionId])
   @@index([permissionId])
   @@index([roleId])
+}
+
+// Authentication Token Models (for refresh token rotation and password reset)
+
+model RefreshToken {
+  id              String             @id @default(uuid())
+  userId          String
+  token           String             @unique
+  expiresAt       DateTime
+  isRevoked       Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id              String             @id @default(uuid())
+  userId          String
+  token           String             @unique
+  expiresAt       DateTime
+  usedAt          DateTime?
+  createdAt       DateTime           @default(now())
+  
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
 }

@@ -14,6 +14,14 @@
       "value": ""
     },
     {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    },
+    {
       "key": "staffAuthToken",
       "value": ""
     },
@@ -54,8 +62,12 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/",
-          "host": ["{{baseUrl}}"],
-          "path": [""]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ""
+          ]
         }
       }
     },
@@ -75,8 +87,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/auth/register",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "auth", "register"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
         }
       },
       "event": [
@@ -86,6 +104,7 @@
             "exec": [
               "const response = pm.response.json();",
               "if (response.token) pm.environment.set('authToken', response.token);",
+              "if (response.refreshToken) pm.environment.set('refreshToken', response.refreshToken);",
               "if (response.organization && response.organization.id) pm.environment.set('organizationId', response.organization.id);",
               "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });"
             ]
@@ -109,8 +128,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/auth/login",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "auth", "login"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
         }
       },
       "event": [
@@ -120,6 +145,247 @@
             "exec": [
               "const response = pm.response.json();",
               "if (response.token) pm.environment.set('authToken', response.token);",
+              "if (response.refreshToken) pm.environment.set('refreshToken', response.refreshToken);",
+              "if (response.organization && response.organization.id) pm.environment.set('organizationId', response.organization.id);",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/refresh-token",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "refresh-token"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "if (response.token) pm.environment.set('authToken', response.token);",
+              "if (response.refreshToken) pm.environment.set('refreshToken', response.refreshToken);",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "logout"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "if (response.message === 'Logged out successfully') { pm.environment.unset('authToken'); pm.environment.unset('refreshToken'); }",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Forgot Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"alice@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/forgot-password",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "forgot-password"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "if (response.resetToken) pm.environment.set('resetToken', response.resetToken);",
+              "if (!response.resetToken && response.token) pm.environment.set('resetToken', response.token);",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reset Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"NewPassword123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/reset-password",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "reset-password"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "if (response.message === 'Password has been reset successfully') pm.environment.unset('resetToken');",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Change Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentPassword\": \"Password123!\",\n  \"newPassword\": \"NewPassword123!\",\n  \"confirmPassword\": \"NewPassword123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/change-password",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "change-password"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Password changed successfully', function () { pm.expect(response.message).to.eql('Password has been changed successfully'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Current User",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const response = pm.response.json();",
               "if (response.organization && response.organization.id) pm.environment.set('organizationId', response.organization.id);",
               "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
             ]
@@ -143,8 +409,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/auth/login",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "auth", "login"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
         }
       },
       "event": [
@@ -176,8 +448,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/auth/login",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "auth", "login"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
         }
       },
       "event": [
@@ -198,8 +476,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{staffAuthToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{staffAuthToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -207,8 +491,13 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/properties",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "properties"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "properties"
+          ]
         }
       },
       "event": [
@@ -228,8 +517,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{accountantAuthToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accountantAuthToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -237,8 +532,13 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/payments",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "payments"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "payments"
+          ]
         }
       },
       "event": [
@@ -257,12 +557,21 @@
       "request": {
         "method": "DELETE",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{accountantAuthToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accountantAuthToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/properties/{{propertyId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "properties", "{{propertyId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "properties",
+            "{{propertyId}}"
+          ]
         }
       },
       "event": [
@@ -282,8 +591,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -291,8 +606,13 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/properties",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "properties"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "properties"
+          ]
         }
       },
       "event": [
@@ -313,12 +633,20 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/properties",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "properties"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "properties"
+          ]
         }
       }
     },
@@ -327,12 +655,21 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/properties/{{propertyId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "properties", "{{propertyId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "properties",
+            "{{propertyId}}"
+          ]
         }
       }
     },
@@ -341,8 +678,14 @@
       "request": {
         "method": "PUT",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -350,8 +693,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/properties/{{propertyId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "properties", "{{propertyId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "properties",
+            "{{propertyId}}"
+          ]
         }
       }
     },
@@ -360,12 +709,21 @@
       "request": {
         "method": "DELETE",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/properties/{{propertyId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "properties", "{{propertyId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "properties",
+            "{{propertyId}}"
+          ]
         }
       }
     },
@@ -374,8 +732,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -383,8 +747,13 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/units",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "units"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "units"
+          ]
         }
       },
       "event": [
@@ -405,12 +774,20 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/units",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "units"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "units"
+          ]
         }
       }
     },
@@ -419,12 +796,21 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/units/{{unitId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "units", "{{unitId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "units",
+            "{{unitId}}"
+          ]
         }
       }
     },
@@ -433,8 +819,14 @@
       "request": {
         "method": "PUT",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -442,8 +834,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/units/{{unitId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "units", "{{unitId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "units",
+            "{{unitId}}"
+          ]
         }
       }
     },
@@ -452,12 +850,21 @@
       "request": {
         "method": "DELETE",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/units/{{unitId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "units", "{{unitId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "units",
+            "{{unitId}}"
+          ]
         }
       }
     },
@@ -466,8 +873,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -475,8 +888,13 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/tenants",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tenants"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tenants"
+          ]
         }
       },
       "event": [
@@ -497,12 +915,20 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/tenants",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tenants"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "tenants"
+          ]
         }
       }
     },
@@ -511,8 +937,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -520,8 +952,13 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/leases",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "leases"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leases"
+          ]
         }
       },
       "event": [
@@ -542,12 +979,20 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/leases",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "leases"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leases"
+          ]
         }
       }
     },
@@ -556,12 +1001,21 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/leases/{{leaseId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "leases", "{{leaseId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leases",
+            "{{leaseId}}"
+          ]
         }
       }
     },
@@ -570,8 +1024,14 @@
       "request": {
         "method": "PUT",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -579,8 +1039,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/leases/{{leaseId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "leases", "{{leaseId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leases",
+            "{{leaseId}}"
+          ]
         }
       }
     },
@@ -589,12 +1055,21 @@
       "request": {
         "method": "DELETE",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/leases/{{leaseId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "leases", "{{leaseId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leases",
+            "{{leaseId}}"
+          ]
         }
       }
     },
@@ -603,8 +1078,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -612,8 +1093,13 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/payments",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "payments"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "payments"
+          ]
         }
       },
       "event": [
@@ -634,12 +1120,20 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/payments",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "payments"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "payments"
+          ]
         }
       }
     },
@@ -648,12 +1142,21 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/payments/{{paymentId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "{{paymentId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "payments",
+            "{{paymentId}}"
+          ]
         }
       }
     },
@@ -662,8 +1165,14 @@
       "request": {
         "method": "PUT",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -671,8 +1180,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/payments/{{paymentId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "{{paymentId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "payments",
+            "{{paymentId}}"
+          ]
         }
       }
     },
@@ -681,12 +1196,21 @@
       "request": {
         "method": "DELETE",
         "header": [
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/api/payments/{{paymentId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "{{paymentId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "payments",
+            "{{paymentId}}"
+          ]
         }
       }
     },
@@ -695,8 +1219,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -704,8 +1234,14 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/payments/initiate",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "initiate"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "payments",
+            "initiate"
+          ]
         }
       }
     },
@@ -714,8 +1250,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "x-razorpay-signature", "value": "invalid" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-razorpay-signature",
+            "value": "invalid"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -723,8 +1265,15 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/payments/webhooks/razorpay",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "webhooks", "razorpay"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "payments",
+            "webhooks",
+            "razorpay"
+          ]
         }
       }
     },
@@ -733,8 +1282,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "x-webhook-signature", "value": "invalid" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-webhook-signature",
+            "value": "invalid"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -742,8 +1297,189 @@
         },
         "url": {
           "raw": "{{baseUrl}}/api/payments/webhooks/cashfree",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "payments", "webhooks", "cashfree"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "payments",
+            "webhooks",
+            "cashfree"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Organization Settings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/settings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "settings"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Organization Settings",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"timezone\": \"America/New_York\",\n  \"currency\": \"USD\",\n  \"dateFormat\": \"MM-DD-YYYY\",\n  \"timeFormat\": \"HH:mm\",\n  \"language\": \"en\",\n  \"measurementUnit\": \"imperial\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/settings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "settings"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Organization Branding",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/branding",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "branding"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Organization Branding",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"logoAltText\": \"My Organization\",\n  \"faviconUrl\": \"https://example.com/favicon.ico\",\n  \"primaryColor\": \"#0066CC\",\n  \"secondaryColor\": \"#FFFFFF\",\n  \"accentColor\": \"#FF6B35\",\n  \"theme\": \"light\",\n  \"customCss\": \"body { font-family: Arial; }\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/branding",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "branding"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Organization Preferences",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/preferences",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "preferences"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Organization Preferences",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"emailNotifications\": true,\n  \"emailDigest\": \"daily\",\n  \"twoFactorAuth\": false,\n  \"dataRetention\": 90,\n  \"backupFrequency\": \"weekly\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/organizations/{{organizationId}}/preferences",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "organizations",
+            "{{organizationId}}",
+            "preferences"
+          ]
         }
       }
     }

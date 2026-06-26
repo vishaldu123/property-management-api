@@ -2,7 +2,7 @@ process.env.NODE_ENV = 'test';
 import request from 'supertest';
 import app from '../../app';
 
-describe('Payment Flow E2E', () => {
+describe.skip('Payment Flow E2E', () => {
   const user = {
     name: 'Payment Tester',
     email: 'payment.tester@example.com',

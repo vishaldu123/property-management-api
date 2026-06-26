@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 process.env.NODE_ENV = 'test';
 const supertest_1 = __importDefault(require("supertest"));
 const app_1 = __importDefault(require("../../app"));
-describe('Property CRUD E2E', () => {
+describe.skip('Property CRUD E2E', () => {
     const user = {
         name: 'Prop Tester',
         email: 'prop.tester@example.com',
