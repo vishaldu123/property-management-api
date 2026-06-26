@@ -302,10 +302,10 @@ npm run test:coverage
 - **Framework**: Jest
 - **Database Reset**: Between each test
 - **Coverage Thresholds**:
-  - Lines: 60%
-  - Functions: 60%
-  - Branches: 50%
-  - Statements: 60%
+  - Lines: 45%
+  - Functions: 40%
+  - Branches: 28%
+  - Statements: 45%
 
 ### Run Tests in Watch Mode
 ```bash
