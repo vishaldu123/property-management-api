@@ -10,7 +10,7 @@ import {
   UnauthorizedError,
 } from '../../utils/errors';
 
-var mockSendInvitationEmail = jest.fn();
+const mockSendInvitationEmail = jest.fn();
 
 jest.mock('../../repositories/membership.repository');
 jest.mock('../../repositories/organization.repository');
