@@ -4,18 +4,21 @@
 
 This repository contains a production-ready Node.js/TypeScript backend for a multi-tenant property management SaaS platform. Built with Express, Prisma ORM, and PostgreSQL, it provides enterprise-grade authentication, authorization, multi-tenancy, and organization management.
 
-### Current Phase: Sprint 4 - Enterprise RBAC
+### Current Phase: Sprint 4 - Enterprise RBAC + Sprint UI-1 - Frontend Foundation
 
-**Completed Phases:**
+**Completed Phases - Backend:**
 - ✅ Phase 0: Project Structure & Setup
 - ✅ Phase 1: Authentication & Multi-Tenancy Foundation
 - ✅ Phase 2.1-2.6: Shared Infrastructure & Hardening
 - ✅ Phase 2.8: Platform Readiness (Authorization Framework, API Versioning, OpenAPI/Swagger, Health Checks)
 - ✅ Phase 3: Organization Domain Implementation (Settings, Branding, Preferences)
-- ✅ Phase 4: Enterprise RBAC (Role-Based Access Control) - NEW!
+- ✅ Phase 4: Enterprise RBAC (Role-Based Access Control)
+
+**Completed Phases - Frontend:**
+- ✅ Sprint UI-1: Enterprise React Foundation (React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui)
 
 **Upcoming:**
-- Phase 5: Property, Unit, Tenant, Lease, Payment modules
+- Phase 5: Property, Unit, Tenant, Lease, Payment modules (backend & frontend)
 
 ## Key Features
 
@@ -178,6 +181,145 @@ npm run dev
 ```
 
 Server will be available at `http://localhost:5000`
+
+## Frontend Setup
+
+### React 19 Frontend (Sprint UI-1)
+
+A modern enterprise React frontend with TypeScript, Vite, and Tailwind CSS.
+
+**Frontend Location:** `./frontend`
+
+#### Prerequisites
+- Node.js 18+ or npm 9+
+- Backend API running on `http://localhost:3000`
+
+#### Quick Start
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Create .env file
+cp .env.example .env
+
+# Start development server
+npm run dev
+```
+
+Frontend will be available at `http://localhost:5173`
+
+#### Frontend Commands
+
+```bash
+# Development
+npm run dev              # Start dev server
+npm run preview         # Preview production build
+
+# Building & Quality
+npm run build           # Build for production
+npm run lint            # Run ESLint
+npm run lint:fix        # Fix ESLint issues
+npm run format          # Format code with Prettier
+npm run type-check      # Check TypeScript types
+
+# Testing
+npm run test            # Run tests once
+npm run test:watch      # Run tests in watch mode
+npm run test:coverage   # Generate coverage report
+
+# CI/CD
+npm run ci              # Run all checks (lint, format, type-check, test, build)
+```
+
+#### Frontend Features
+
+**✅ Authentication**
+- Login, Register, Logout
+- Forgot Password & Reset Password flows
+- Token refresh on expiry
+- Session persistence
+- Protected routes with role-aware navigation
+
+**✅ Layout Components**
+- Responsive Sidebar navigation
+- Top Navigation bar with theme switcher
+- User menu with profile and logout
+- Breadcrumb support
+- Organization switcher ready
+
+**✅ Design System**
+- 10+ reusable UI components (Button, Input, Card, Label, Alert, etc.)
+- Form components with React Hook Form integration
+- Loading states and Empty/Error states
+- Light/Dark theme support with CSS variables
+
+**✅ Pages Implemented**
+- Home (public landing page)
+- Login/Register (authentication)
+- Forgot Password/Reset Password (recovery flows)
+- Dashboard (protected, shows overview)
+- Profile (displays user information)
+- Settings (placeholder for user settings)
+- 404 Not Found & 403 Forbidden error pages
+
+**✅ State Management**
+- React Context for authentication
+- TanStack Query for server state
+- Local storage for session persistence
+
+**✅ Error Handling**
+- Global error boundary
+- API error handling with automatic token refresh
+- Form validation with Zod
+- User-friendly error messages
+
+**✅ Testing**
+- Vitest configuration
+- React Testing Library setup
+- Component test examples
+- Utility function tests
+
+#### Frontend Architecture
+
+```
+frontend/
+├── src/
+│   ├── app/                    # Application root
+│   │   ├── routes/            # Routing configuration
+│   │   ├── providers/         # Context providers
+│   │   └── error-boundary.tsx # Global error handler
+│   ├── shared/                # Shared code
+│   │   ├── components/        # Reusable components
+│   │   ├── hooks/             # Custom hooks
+│   │   └── services/          # API services
+│   ├── pages/                 # Page components
+│   ├── types/                 # TypeScript types
+│   ├── utils/                 # Utilities
+│   └── main.tsx              # Entry point
+├── package.json              # Dependencies
+├── vite.config.ts            # Vite configuration
+├── tsconfig.json             # TypeScript configuration
+├── tailwind.config.ts        # Tailwind CSS configuration
+└── README.md                 # Frontend documentation
+```
+
+#### Environment Configuration
+
+```env
+# API Configuration
+VITE_API_URL=http://localhost:3000
+VITE_API_BASE_PATH=/api/v1
+
+# App Configuration
+VITE_APP_NAME=Property Management
+VITE_APP_DESCRIPTION=Enterprise Property Management SaaS
+```
+
+See [Frontend README](./frontend/README.md) for detailed frontend documentation.
 
 ## API Documentation
 
@@ -710,6 +852,8 @@ Application uses structured JSON logging:
 
 ## Related Documentation
 
+- [Frontend Documentation](./frontend/README.md) - React 19 frontend setup and usage
+- [Sprint UI-1 Completion Report](./SPRINT_UI1_COMPLETION_REPORT.md) - Frontend implementation details
 - [Quick Start Guide](./QUICK_START.md)
 - [Manual Testing Guide](./HUMAN_TESTING.md)
 - [Architecture Diagram](./ARCHITECTURE_DIAGRAM.md)

@@ -1,10 +1,271 @@
-# Human Testing Guide - Sprint 4
+# Human Testing Guide - Sprint 4 + Sprint UI-1
 
-This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC). Each test includes request examples, expected responses, and validation notes.
+This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC) and Frontend (Sprint UI-1 - React Foundation). Each test includes request examples, expected responses, and validation notes.
 
-**API Base URL:** `http://localhost:5000`  
+**Backend API Base URL:** `http://localhost:3000`  
+**Backend API Version:** `/api/v1`  
+**Backend Documentation:** http://localhost:3000/api-docs (Swagger UI)  
+**Frontend URL:** `http://localhost:5173`
+
+---
+
+## Frontend Testing Guide
+
+### Frontend Setup
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173`
+
+### Section 0: Frontend General Tests
+
+#### Test 0.1: Home Page Load
+- **URL:** `http://localhost:5173/`
+- **Expected:** Home landing page loads with Property Management header and navigation links
+- **Validation:**
+  - ✓ Page title shows "Property Management - Enterprise SaaS"
+  - ✓ Navigation shows "Sign In" and "Get Started" buttons
+  - ✓ Hero section displays with features list
+  - ✓ All links are clickable
+
+#### Test 0.2: Navigation When Not Authenticated
+- **Expected:** Unauthenticated users see login/register options
+- **Validation:**
+  - ✓ Can access `/` (home)
+  - ✓ Can access `/login`
+  - ✓ Can access `/register`
+  - ✓ Can access `/forgot-password`
+  - ✓ Cannot access `/dashboard`, `/profile`, or `/settings`
+  - ✓ Attempting to access protected routes redirects to `/login`
+
+#### Test 0.3: Theme Switching
+- **Location:** Top navigation bar
+- **Expected:** Dark/Light theme toggle works
+- **Validation:**
+  - ✓ Click sun/moon icon to toggle theme
+  - ✓ Theme preference persists on page refresh
+  - ✓ All components properly styled in both themes
+
+#### Test 0.4: 404 Page
+- **URL:** `http://localhost:5173/nonexistent-page`
+- **Expected:** 404 page displays
+- **Validation:**
+  - ✓ Page shows "Page Not Found" message
+  - ✓ "Go to Home" button is clickable
+  - ✓ Button redirects to home page
+
+### Section 0.5: Authentication Flow Tests
+
+#### Test 0.5.1: User Registration
+- **URL:** `http://localhost:5173/register`
+- **Steps:**
+  1. Fill in all fields (first name, last name, email, password, confirm password)
+  2. Click "Create Account"
+- **Expected:** User is created and redirected to dashboard
+- **Validation:**
+  - ✓ Form validation prevents empty fields
+  - ✓ Password and confirm password must match
+  - ✓ Email format is validated
+  - ✓ Password must be at least 8 characters
+  - ✓ Success redirects to dashboard
+  - ✓ Error messages display for invalid submissions
+
+#### Test 0.5.2: User Login
+- **URL:** `http://localhost:5173/login`
+- **Steps:**
+  1. Enter registered email
+  2. Enter correct password
+  3. Click "Sign In"
+- **Expected:** User is logged in and redirected to dashboard
+- **Validation:**
+  - ✓ Form validation prevents empty fields
+  - ✓ Invalid credentials show error message
+  - ✓ Successful login stores tokens in localStorage
+  - ✓ User is redirected to dashboard
+  - ✓ Dashboard displays logged-in user's name
+
+#### Test 0.5.3: Forgot Password Flow
+- **URL:** `http://localhost:5173/forgot-password`
+- **Steps:**
+  1. Enter email address
+  2. Click "Send Reset Link"
+- **Expected:** Confirmation message appears
+- **Validation:**
+  - ✓ Form validates email format
+  - ✓ Success shows "Check Your Email" message
+  - ✓ Message indicates reset link has been sent
+
+#### Test 0.5.4: Reset Password (if backend implements it)
+- **URL:** `http://localhost:5173/reset-password?token=<token>`
+- **Steps:**
+  1. Enter new password
+  2. Confirm password
+  3. Click "Reset Password"
+- **Expected:** Password is reset and user can login with new password
+- **Validation:**
+  - ✓ Passwords must match
+  - ✓ Password must be 8+ characters
+  - ✓ Success message appears
+  - ✓ User can login with new password
+
+#### Test 0.5.5: Logout
+- **Location:** User menu (top right)
+- **Steps:**
+  1. Click user profile button
+  2. Click "Logout"
+- **Expected:** User is logged out and redirected to login
+- **Validation:**
+  - ✓ Tokens are cleared from localStorage
+  - ✓ User is redirected to login page
+  - ✓ Cannot access protected pages after logout
+
+### Section 0.6: Dashboard & Protected Pages
+
+#### Test 0.6.1: Dashboard Access
+- **URL:** `http://localhost:5173/dashboard` (when logged in)
+- **Expected:** Dashboard displays with user information and stats
+- **Validation:**
+  - ✓ Sidebar navigation is visible
+  - ✓ Top navigation shows theme switcher and user menu
+  - ✓ Welcome message displays user's first name
+  - ✓ Stats cards display (all show 0 initially)
+  - ✓ Quick start guide is visible
+
+#### Test 0.6.2: Sidebar Navigation
+- **Expected:** Sidebar shows all navigation items
+- **Validation:**
+  - ✓ Dashboard link is present and highlighted when on dashboard
+  - ✓ Profile link navigates to profile page
+  - ✓ Settings link navigates to settings page
+  - ✓ Logout button is present
+  - ✓ Links highlight current page
+  - ✓ Sidebar is responsive (collapses on mobile)
+
+#### Test 0.6.3: Profile Page
+- **URL:** `http://localhost:5173/profile` (when logged in)
+- **Expected:** Profile page displays user information
+- **Validation:**
+  - ✓ Personal information section shows user details
+  - ✓ First name, last name, email, display name all displayed
+  - ✓ User roles section shows assigned roles
+  - ✓ Organizations section shows organizations user belongs to
+  - ✓ Page is protected (redirects to login if not authenticated)
+
+#### Test 0.6.4: Settings Page
+- **URL:** `http://localhost:5173/settings` (when logged in)
+- **Expected:** Settings page displays options
+- **Validation:**
+  - ✓ Account settings section is present
+  - ✓ Privacy & Security section is present
+  - ✓ Notifications section is present
+  - ✓ Data & Privacy section is present
+  - ✓ Page is protected (redirects to login if not authenticated)
+
+### Section 0.7: Protected Routes & Access Control
+
+#### Test 0.7.1: Protected Route Redirect
+- **Steps:**
+  1. Logout or ensure not authenticated
+  2. Try to access `/dashboard`
+- **Expected:** User is redirected to login page
+- **Validation:**
+  - ✓ Cannot access protected pages without authentication
+  - ✓ Redirect happens automatically
+  - ✓ Can login and access protected pages
+
+#### Test 0.7.2: Forbidden Page
+- **URL:** `http://localhost:5173/forbidden` (after logout or as unauthorized user)
+- **Expected:** Forbidden page displays
+- **Validation:**
+  - ✓ Page shows "Access Denied" message
+  - ✓ Message explains lack of permission
+  - ✓ "Go to Home" button redirects to home
+
+### Section 0.8: Error Handling
+
+#### Test 0.8.1: Form Validation Errors
+- **URL:** `http://localhost:5173/login`
+- **Steps:**
+  1. Leave email empty and try to submit
+  2. Leave password empty and try to submit
+  3. Enter invalid email format
+- **Expected:** Error messages appear below invalid fields
+- **Validation:**
+  - ✓ Required field errors show when empty
+  - ✓ Email format error shows for invalid emails
+  - ✓ Password requirement errors show
+  - ✓ Error messages are clear and helpful
+
+#### Test 0.8.2: API Error Handling
+- **URL:** `http://localhost:5173/login`
+- **Steps:**
+  1. Enter invalid credentials
+  2. Submit login form
+- **Expected:** Error alert appears
+- **Validation:**
+  - ✓ Error message displays in alert
+  - ✓ Message is user-friendly
+  - ✓ Form remains filled (doesn't reset)
+  - ✓ User can retry
+
+#### Test 0.8.3: Network Error Handling
+- **Steps:**
+  1. Stop backend API (`Ctrl+C` from backend terminal)
+  2. Try to login or perform any API operation
+- **Expected:** Error state displays
+- **Validation:**
+  - ✓ Error message indicates connection issue
+  - ✓ Application doesn't crash
+  - ✓ User can still navigate
+  - ✓ When backend restarts, operations work again
+
+### Section 0.9: Responsive Design
+
+#### Test 0.9.1: Mobile Layout
+- **Device:** Mobile phone or browser window < 640px
+- **Steps:**
+  1. Resize browser to mobile width
+  2. Navigate through pages
+- **Expected:** Layout adjusts properly
+- **Validation:**
+  - ✓ Sidebar collapses on mobile
+  - ✓ Navigation remains accessible via hamburger menu
+  - ✓ All content is readable
+  - ✓ Buttons and inputs are touch-friendly
+  - ✓ Cards stack vertically
+
+#### Test 0.9.2: Tablet Layout
+- **Device:** Tablet or browser window 640px - 1024px
+- **Expected:** Intermediate layout displays
+- **Validation:**
+  - ✓ Layout is optimized for tablet size
+  - ✓ Content is well-distributed
+  - ✓ Navigation is accessible
+
+#### Test 0.9.3: Desktop Layout
+- **Device:** Desktop or browser window > 1024px
+- **Expected:** Full layout displays
+- **Validation:**
+  - ✓ Sidebar is always visible
+  - ✓ Full width is utilized
+  - ✓ All content is properly aligned
+
+---
+
+## Backend API Testing Guide
+
+**API Base URL:** `http://localhost:3000`  
 **API Version:** `/api/v1`  
-**Documentation:** http://localhost:5000/api-docs (Swagger UI)
+**Documentation:** http://localhost:3000/api-docs (Swagger UI)
 
 ---
 
@@ -16,7 +277,7 @@ This document provides step-by-step manual test cases for the Property Managemen
 **Expected:** `200 OK`
 
 ```bash
-curl http://localhost:5000/
+curl http://localhost:3000/
 ```
 
 Expected response:
