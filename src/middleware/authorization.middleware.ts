@@ -145,7 +145,12 @@ export const organizationScope = (orgIdParamName = 'organizationId') => {
         throw new ForbiddenError('User context not found');
       }
 
-      const requestedOrgId = req.params[orgIdParamName] || req.user.organizationId;
+      const requestedOrgId = req.params[orgIdParamName];
+
+      if (!requestedOrgId) {
+        throw new ForbiddenError(`Organization ID parameter '${orgIdParamName}' not found`);
+      }
+
       const userOrgId = req.user.organizationId;
 
       if (requestedOrgId !== userOrgId) {
