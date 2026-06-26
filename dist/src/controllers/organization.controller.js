@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listOrganizations = exports.getOrganization = exports.restoreOrganization = exports.softDeleteOrganization = exports.updateOrganization = exports.createOrganization = void 0;
+exports.updateOrganizationPreferences = exports.getOrganizationPreferences = exports.updateOrganizationBranding = exports.getOrganizationBranding = exports.updateOrganizationSettings = exports.getOrganizationSettings = exports.listOrganizations = exports.getOrganization = exports.restoreOrganization = exports.softDeleteOrganization = exports.updateOrganization = exports.createOrganization = void 0;
 const response_1 = require("../shared/core/response");
 const organization_service_1 = require("../services/organization.service");
 const organization_validators_1 = require("../validators/organization.validators");
@@ -85,3 +85,81 @@ const listOrganizations = async (req, res, next) => {
     }
 };
 exports.listOrganizations = listOrganizations;
+// Organization Settings Controllers
+const getOrganizationSettings = async (req, res, next) => {
+    try {
+        const context = getActorContext(req);
+        const organizationId = req.params.organizationId;
+        const settings = await organization_service_1.organizationService.getOrganizationSettings(organizationId, context);
+        response_1.ApiResponse.success(res, settings, 'Organization settings retrieved successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getOrganizationSettings = getOrganizationSettings;
+const updateOrganizationSettings = async (req, res, next) => {
+    try {
+        const context = getActorContext(req);
+        const organizationId = req.params.organizationId;
+        const payload = organization_validators_1.organizationSettingsSchema.parse(req.body);
+        const settings = await organization_service_1.organizationService.updateOrganizationSettings(organizationId, payload, context);
+        response_1.ApiResponse.success(res, settings, 'Organization settings updated successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.updateOrganizationSettings = updateOrganizationSettings;
+// Organization Branding Controllers
+const getOrganizationBranding = async (req, res, next) => {
+    try {
+        const context = getActorContext(req);
+        const organizationId = req.params.organizationId;
+        const branding = await organization_service_1.organizationService.getOrganizationBranding(organizationId, context);
+        response_1.ApiResponse.success(res, branding, 'Organization branding retrieved successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getOrganizationBranding = getOrganizationBranding;
+const updateOrganizationBranding = async (req, res, next) => {
+    try {
+        const context = getActorContext(req);
+        const organizationId = req.params.organizationId;
+        const payload = organization_validators_1.organizationBrandingSchema.parse(req.body);
+        const branding = await organization_service_1.organizationService.updateOrganizationBranding(organizationId, payload, context);
+        response_1.ApiResponse.success(res, branding, 'Organization branding updated successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.updateOrganizationBranding = updateOrganizationBranding;
+// Organization Preferences Controllers
+const getOrganizationPreferences = async (req, res, next) => {
+    try {
+        const context = getActorContext(req);
+        const organizationId = req.params.organizationId;
+        const preferences = await organization_service_1.organizationService.getOrganizationPreferences(organizationId, context);
+        response_1.ApiResponse.success(res, preferences, 'Organization preferences retrieved successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getOrganizationPreferences = getOrganizationPreferences;
+const updateOrganizationPreferences = async (req, res, next) => {
+    try {
+        const context = getActorContext(req);
+        const organizationId = req.params.organizationId;
+        const payload = organization_validators_1.organizationPreferencesSchema.parse(req.body);
+        const preferences = await organization_service_1.organizationService.updateOrganizationPreferences(organizationId, payload, context);
+        response_1.ApiResponse.success(res, preferences, 'Organization preferences updated successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.updateOrganizationPreferences = updateOrganizationPreferences;

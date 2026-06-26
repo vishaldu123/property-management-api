@@ -66,6 +66,60 @@ class OrganizationService {
         const where = this.buildWhereClause(query, context.organizationId);
         return organization_repository_1.organizationRepository.paginateScoped(pagination, context.organizationId, where);
     }
+    // Settings Methods
+    async getOrganizationSettings(organizationId, context) {
+        this.ensureOrganizationIsolation(organizationId, context.organizationId);
+        await this.ensureOrganizationExists(organizationId);
+        const settings = await organization_repository_1.organizationRepository.getOrCreateSettings(organizationId);
+        logger_1.default.info('Organization settings retrieved', { organizationId });
+        return settings;
+    }
+    async updateOrganizationSettings(organizationId, payload, context) {
+        this.ensureOrganizationIsolation(organizationId, context.organizationId);
+        await this.ensureOrganizationExists(organizationId);
+        const settings = await organization_repository_1.organizationRepository.updateSettings(organizationId, {
+            ...payload,
+            updatedBy: context.userId,
+        });
+        logger_1.default.info('Organization settings updated', { organizationId, actorUserId: context.userId });
+        return settings;
+    }
+    // Branding Methods
+    async getOrganizationBranding(organizationId, context) {
+        this.ensureOrganizationIsolation(organizationId, context.organizationId);
+        await this.ensureOrganizationExists(organizationId);
+        const branding = await organization_repository_1.organizationRepository.getOrCreateBranding(organizationId);
+        logger_1.default.info('Organization branding retrieved', { organizationId });
+        return branding;
+    }
+    async updateOrganizationBranding(organizationId, payload, context) {
+        this.ensureOrganizationIsolation(organizationId, context.organizationId);
+        await this.ensureOrganizationExists(organizationId);
+        const branding = await organization_repository_1.organizationRepository.updateBranding(organizationId, {
+            ...payload,
+            updatedBy: context.userId,
+        });
+        logger_1.default.info('Organization branding updated', { organizationId, actorUserId: context.userId });
+        return branding;
+    }
+    // Preferences Methods
+    async getOrganizationPreferences(organizationId, context) {
+        this.ensureOrganizationIsolation(organizationId, context.organizationId);
+        await this.ensureOrganizationExists(organizationId);
+        const preferences = await organization_repository_1.organizationRepository.getOrCreatePreferences(organizationId);
+        logger_1.default.info('Organization preferences retrieved', { organizationId });
+        return preferences;
+    }
+    async updateOrganizationPreferences(organizationId, payload, context) {
+        this.ensureOrganizationIsolation(organizationId, context.organizationId);
+        await this.ensureOrganizationExists(organizationId);
+        const preferences = await organization_repository_1.organizationRepository.updatePreferences(organizationId, {
+            ...payload,
+            updatedBy: context.userId,
+        });
+        logger_1.default.info('Organization preferences updated', { organizationId, actorUserId: context.userId });
+        return preferences;
+    }
     buildWhereClause(query, organizationId) {
         const searchClause = query.search
             ? {
