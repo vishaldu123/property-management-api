@@ -75,7 +75,7 @@ export class ApiResponse {
     errors: Record<string, string[]>,
     message: string = APP_CONSTANTS.MESSAGE.INVALID_INPUT
   ): void {
-    res.status(APP_CONSTANTS.HTTP_STATUS.UNPROCESSABLE_ENTITY).json({
+    res.status(APP_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message,
       errors,

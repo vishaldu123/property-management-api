@@ -10,33 +10,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCurrentUser = exports.changePassword = exports.resetPassword = exports.forgotPassword = exports.logout = exports.refreshToken = exports.login = exports.register = void 0;
 const auth_service_1 = require("../services/auth.service");
 const logger_1 = __importDefault(require("../utils/logger"));
-const errors_1 = require("../utils/errors");
+const response_1 = require("../shared/core/response");
 const auth_validators_1 = require("../validators/auth.validators");
+const brute_force_middleware_1 = require("../middleware/brute-force.middleware");
 /**
  * Register a new user and organization
  * POST /api/auth/register
  */
-const register = async (req, res) => {
+const register = async (req, res, next) => {
     try {
         const validation = auth_validators_1.registerSchema.safeParse(req.body);
         if (!validation.success) {
-            res.status(400).json({
-                message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors,
-            });
+            const errors = validation.error.flatten().fieldErrors;
+            response_1.ApiResponse.validationError(res, errors, 'Validation failed');
             return;
         }
         const result = await auth_service_1.authService.register(validation.data);
-        res.status(201).json(result);
+        response_1.ApiResponse.created(res, result, 'User and organization registered successfully');
     }
     catch (error) {
         logger_1.default.error('Register endpoint error', error);
-        if (error instanceof errors_1.AppError) {
-            res.status(error.statusCode).json({ message: error.message });
-        }
-        else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
+        next(error);
     }
 };
 exports.register = register;
@@ -44,27 +38,35 @@ exports.register = register;
  * Login a user
  * POST /api/auth/login
  */
-const login = async (req, res) => {
+const login = async (req, res, next) => {
     try {
         const validation = auth_validators_1.loginSchema.safeParse(req.body);
         if (!validation.success) {
-            res.status(400).json({
-                message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors,
-            });
+            const errors = validation.error.flatten().fieldErrors;
+            response_1.ApiResponse.validationError(res, errors, 'Validation failed');
             return;
         }
         const result = await auth_service_1.authService.login(validation.data);
-        res.status(200).json(result);
+        // Record successful login to clear brute-force attempts
+        const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+        brute_force_middleware_1.bruteForceProtection.recordSuccessfulLogin(clientIp, validation.data.email);
+        response_1.ApiResponse.success(res, result, 'Login successful');
     }
     catch (error) {
         logger_1.default.error('Login endpoint error', error);
-        if (error instanceof errors_1.AppError) {
-            res.status(error.statusCode).json({ message: error.message });
+        // Record failed login attempt for brute-force protection
+        if (req.body?.email) {
+            const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+            const { isLocked } = brute_force_middleware_1.bruteForceProtection.recordFailedAttempt(clientIp, req.body.email);
+            if (isLocked) {
+                res.status(429).json({
+                    success: false,
+                    message: 'Too many failed login attempts. Please try again later.',
+                });
+                return;
+            }
         }
-        else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
+        next(error);
     }
 };
 exports.login = login;
@@ -72,27 +74,20 @@ exports.login = login;
  * Refresh access token
  * POST /api/auth/refresh-token
  */
-const refreshToken = async (req, res) => {
+const refreshToken = async (req, res, next) => {
     try {
         const validation = auth_validators_1.refreshTokenSchema.safeParse(req.body);
         if (!validation.success) {
-            res.status(400).json({
-                message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors,
-            });
+            const errors = validation.error.flatten().fieldErrors;
+            response_1.ApiResponse.validationError(res, errors);
             return;
         }
         const result = await auth_service_1.authService.refreshToken(validation.data.refreshToken);
-        res.status(200).json(result);
+        response_1.ApiResponse.success(res, result, 'Token refreshed successfully');
     }
     catch (error) {
         logger_1.default.error('Refresh token endpoint error', error);
-        if (error instanceof errors_1.AppError) {
-            res.status(error.statusCode).json({ message: error.message });
-        }
-        else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
+        next(error);
     }
 };
 exports.refreshToken = refreshToken;
@@ -100,27 +95,20 @@ exports.refreshToken = refreshToken;
  * Logout a user
  * POST /api/auth/logout
  */
-const logout = async (req, res) => {
+const logout = async (req, res, next) => {
     try {
         const validation = auth_validators_1.refreshTokenSchema.safeParse(req.body);
         if (!validation.success) {
-            res.status(400).json({
-                message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors,
-            });
+            const errors = validation.error.flatten().fieldErrors;
+            response_1.ApiResponse.validationError(res, errors);
             return;
         }
         await auth_service_1.authService.logout(validation.data.refreshToken);
-        res.status(200).json({ message: 'Logged out successfully' });
+        response_1.ApiResponse.success(res, null, 'Logged out successfully');
     }
     catch (error) {
         logger_1.default.error('Logout endpoint error', error);
-        if (error instanceof errors_1.AppError) {
-            res.status(error.statusCode).json({ message: error.message });
-        }
-        else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
+        next(error);
     }
 };
 exports.logout = logout;
@@ -128,27 +116,20 @@ exports.logout = logout;
  * Request password reset
  * POST /api/auth/forgot-password
  */
-const forgotPassword = async (req, res) => {
+const forgotPassword = async (req, res, next) => {
     try {
         const validation = auth_validators_1.forgotPasswordSchema.safeParse(req.body);
         if (!validation.success) {
-            res.status(400).json({
-                message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors,
-            });
+            const errors = validation.error.flatten().fieldErrors;
+            response_1.ApiResponse.validationError(res, errors);
             return;
         }
         const result = await auth_service_1.authService.forgotPassword(validation.data.email);
-        res.status(200).json(result);
+        response_1.ApiResponse.success(res, result, 'Password reset email sent');
     }
     catch (error) {
         logger_1.default.error('Forgot password endpoint error', error);
-        if (error instanceof errors_1.AppError) {
-            res.status(error.statusCode).json({ message: error.message });
-        }
-        else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
+        next(error);
     }
 };
 exports.forgotPassword = forgotPassword;
@@ -156,27 +137,20 @@ exports.forgotPassword = forgotPassword;
  * Reset password with token
  * POST /api/auth/reset-password
  */
-const resetPassword = async (req, res) => {
+const resetPassword = async (req, res, next) => {
     try {
         const validation = auth_validators_1.resetPasswordSchema.safeParse(req.body);
         if (!validation.success) {
-            res.status(400).json({
-                message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors,
-            });
+            const errors = validation.error.flatten().fieldErrors;
+            response_1.ApiResponse.validationError(res, errors);
             return;
         }
         const result = await auth_service_1.authService.resetPassword(validation.data.token, validation.data.password);
-        res.status(200).json(result);
+        response_1.ApiResponse.success(res, result, 'Password reset successfully');
     }
     catch (error) {
         logger_1.default.error('Reset password endpoint error', error);
-        if (error instanceof errors_1.AppError) {
-            res.status(error.statusCode).json({ message: error.message });
-        }
-        else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
+        next(error);
     }
 };
 exports.resetPassword = resetPassword;
@@ -184,31 +158,24 @@ exports.resetPassword = resetPassword;
  * Change password (authenticated user)
  * POST /api/auth/change-password
  */
-const changePassword = async (req, res) => {
+const changePassword = async (req, res, next) => {
     try {
         if (!req.user) {
-            res.status(401).json({ message: 'Unauthorized' });
+            response_1.ApiResponse.error(res, 'Unauthorized', 401);
             return;
         }
         const validation = auth_validators_1.changePasswordSchema.safeParse(req.body);
         if (!validation.success) {
-            res.status(400).json({
-                message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors,
-            });
+            const errors = validation.error.flatten().fieldErrors;
+            response_1.ApiResponse.validationError(res, errors);
             return;
         }
         const result = await auth_service_1.authService.changePassword(req.user.userId, validation.data.currentPassword, validation.data.newPassword);
-        res.status(200).json(result);
+        response_1.ApiResponse.success(res, result, 'Password changed successfully');
     }
     catch (error) {
         logger_1.default.error('Change password endpoint error', error);
-        if (error instanceof errors_1.AppError) {
-            res.status(error.statusCode).json({ message: error.message });
-        }
-        else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
+        next(error);
     }
 };
 exports.changePassword = changePassword;
@@ -216,23 +183,18 @@ exports.changePassword = changePassword;
  * Get current user
  * GET /api/auth/me
  */
-const getCurrentUser = async (req, res) => {
+const getCurrentUser = async (req, res, next) => {
     try {
         if (!req.user) {
-            res.status(401).json({ message: 'Unauthorized' });
+            response_1.ApiResponse.error(res, 'Unauthorized', 401);
             return;
         }
         const result = await auth_service_1.authService.getCurrentUser(req.user.userId, req.user.organizationId);
-        res.status(200).json(result);
+        response_1.ApiResponse.success(res, result, 'User retrieved successfully');
     }
     catch (error) {
         logger_1.default.error('Get current user endpoint error', error);
-        if (error instanceof errors_1.AppError) {
-            res.status(error.statusCode).json({ message: error.message });
-        }
-        else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
+        next(error);
     }
 };
 exports.getCurrentUser = getCurrentUser;
