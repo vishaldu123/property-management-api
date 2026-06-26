@@ -284,6 +284,86 @@ export const openApiDoc = {
           isActive: { type: 'boolean' },
         },
       },
+      OrganizationSettings: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          organizationId: { type: 'string', format: 'uuid' },
+          timezone: { type: 'string', description: 'Timezone identifier (e.g., UTC, America/New_York)' },
+          currency: { type: 'string', description: 'ISO 4217 currency code (e.g., USD, EUR, INR)' },
+          dateFormat: { type: 'string', enum: ['YYYY-MM-DD', 'DD-MM-YYYY', 'MM-DD-YYYY'] },
+          timeFormat: { type: 'string', enum: ['HH:mm:ss', 'HH:mm', '12h'] },
+          language: { type: 'string', description: 'Language code (e.g., en, es, fr)' },
+          measurementUnit: { type: 'string', enum: ['metric', 'imperial'] },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      OrganizationSettingsInput: {
+        type: 'object',
+        properties: {
+          timezone: { type: 'string', description: 'Timezone identifier' },
+          currency: { type: 'string', description: 'ISO 4217 currency code' },
+          dateFormat: { type: 'string', enum: ['YYYY-MM-DD', 'DD-MM-YYYY', 'MM-DD-YYYY'] },
+          timeFormat: { type: 'string', enum: ['HH:mm:ss', 'HH:mm', '12h'] },
+          language: { type: 'string', description: 'Language code' },
+          measurementUnit: { type: 'string', enum: ['metric', 'imperial'] },
+        },
+      },
+      OrganizationBranding: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          organizationId: { type: 'string', format: 'uuid' },
+          logoUrl: { type: 'string', format: 'uri', nullable: true, description: 'URL to the organization logo' },
+          logoAltText: { type: 'string', nullable: true, description: 'Alt text for the logo' },
+          faviconUrl: { type: 'string', format: 'uri', nullable: true, description: 'URL to the favicon' },
+          primaryColor: { type: 'string', pattern: '^#[0-9A-F]{6}$', description: 'Primary brand color in hex format' },
+          secondaryColor: { type: 'string', pattern: '^#[0-9A-F]{6}$', description: 'Secondary brand color' },
+          accentColor: { type: 'string', pattern: '^#[0-9A-F]{6}$', description: 'Accent color' },
+          theme: { type: 'string', enum: ['light', 'dark'], description: 'Theme preference' },
+          customCss: { type: 'string', nullable: true, description: 'Custom CSS styles (max 5000 chars)' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      OrganizationBrandingInput: {
+        type: 'object',
+        properties: {
+          logoUrl: { type: 'string', format: 'uri', nullable: true },
+          logoAltText: { type: 'string', nullable: true },
+          faviconUrl: { type: 'string', format: 'uri', nullable: true },
+          primaryColor: { type: 'string', pattern: '^#[0-9A-F]{6}$' },
+          secondaryColor: { type: 'string', pattern: '^#[0-9A-F]{6}$' },
+          accentColor: { type: 'string', pattern: '^#[0-9A-F]{6}$' },
+          theme: { type: 'string', enum: ['light', 'dark'] },
+          customCss: { type: 'string', nullable: true },
+        },
+      },
+      OrganizationPreferences: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          organizationId: { type: 'string', format: 'uuid' },
+          emailNotifications: { type: 'boolean', description: 'Enable/disable email notifications' },
+          emailDigest: { type: 'string', enum: ['off', 'daily', 'weekly', 'monthly'], description: 'Email digest frequency' },
+          twoFactorAuth: { type: 'boolean', description: 'Enable/disable two-factor authentication' },
+          dataRetention: { type: 'integer', minimum: 1, maximum: 3650, description: 'Data retention period in days' },
+          backupFrequency: { type: 'string', enum: ['daily', 'weekly', 'monthly'], description: 'Backup frequency' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      OrganizationPreferencesInput: {
+        type: 'object',
+        properties: {
+          emailNotifications: { type: 'boolean' },
+          emailDigest: { type: 'string', enum: ['off', 'daily', 'weekly', 'monthly'] },
+          twoFactorAuth: { type: 'boolean' },
+          dataRetention: { type: 'integer', minimum: 1, maximum: 3650 },
+          backupFrequency: { type: 'string', enum: ['daily', 'weekly', 'monthly'] },
+        },
+      },
     },
   },
   security: [
@@ -1371,6 +1451,192 @@ export const openApiDoc = {
           },
           '404': {
             description: 'Organization not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/organizations/{organizationId}/settings': {
+      parameters: [
+        {
+          name: 'organizationId',
+          in: 'path',
+          required: true,
+          schema: { type: 'string', format: 'uuid' },
+        },
+      ],
+      get: {
+        summary: 'Get organization settings',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Organization settings retrieved',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/OrganizationSettings' },
+              },
+            },
+          },
+          '404': {
+            description: 'Organization not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        summary: 'Update organization settings',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/OrganizationSettingsInput' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Organization settings updated',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/OrganizationSettings' },
+              },
+            },
+          },
+          '400': {
+            description: 'Bad request',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/organizations/{organizationId}/branding': {
+      parameters: [
+        {
+          name: 'organizationId',
+          in: 'path',
+          required: true,
+          schema: { type: 'string', format: 'uuid' },
+        },
+      ],
+      get: {
+        summary: 'Get organization branding',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Organization branding retrieved',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/OrganizationBranding' },
+              },
+            },
+          },
+          '404': {
+            description: 'Organization not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        summary: 'Update organization branding',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/OrganizationBrandingInput' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Organization branding updated',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/OrganizationBranding' },
+              },
+            },
+          },
+          '400': {
+            description: 'Bad request',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/organizations/{organizationId}/preferences': {
+      parameters: [
+        {
+          name: 'organizationId',
+          in: 'path',
+          required: true,
+          schema: { type: 'string', format: 'uuid' },
+        },
+      ],
+      get: {
+        summary: 'Get organization preferences',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Organization preferences retrieved',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/OrganizationPreferences' },
+              },
+            },
+          },
+          '404': {
+            description: 'Organization not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        summary: 'Update organization preferences',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/OrganizationPreferencesInput' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Organization preferences updated',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/OrganizationPreferences' },
+              },
+            },
+          },
+          '400': {
+            description: 'Bad request',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' },

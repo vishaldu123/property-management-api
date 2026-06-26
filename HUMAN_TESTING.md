@@ -1,6 +1,6 @@
-# Human Testing Guide - Sprint 2.8
+# Human Testing Guide - Sprint 3
 
-This document provides step-by-step manual test cases for the Property Management API (Sprint 2.8 - Platform Readiness). Each test includes request examples, expected responses, and validation notes.
+This document provides step-by-step manual test cases for the Property Management API (Sprint 3 - Organization Domain). Each test includes request examples, expected responses, and validation notes.
 
 **API Base URL:** `http://localhost:5000`  
 **API Version:** `/api/v1`  
@@ -241,6 +241,287 @@ A user should not be able to access organizations they don't belong to.
 TOKEN="eyJhbGciOiJIUzI1NiIs..."  # Token from User A in Organization X
 ORG_ID="org-different"             # Organization Y ID
 curl http://localhost:5000/api/v1/organizations/$ORG_ID \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
+## Section 4: Organization Settings (Sprint 3)
+
+### Test 4.1: Get Organization Settings
+**Endpoint:** `GET /api/v1/organizations/:organizationId/settings`  
+**Auth:** Bearer token required  
+**Expected:** `200 OK`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+curl http://localhost:5000/api/v1/organizations/$ORG_ID/settings \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Expected response:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "organizationId": "123e4567-e89b-12d3-a456-426614174000",
+    "timezone": "UTC",
+    "currency": "USD",
+    "dateFormat": "YYYY-MM-DD",
+    "timeFormat": "HH:mm:ss",
+    "language": "en",
+    "measurementUnit": "metric",
+    "createdAt": "2026-06-26T12:00:00Z",
+    "updatedAt": "2026-06-26T12:00:00Z"
+  }
+}
+```
+
+### Test 4.2: Update Organization Settings
+**Endpoint:** `PUT /api/v1/organizations/:organizationId/settings`  
+**Auth:** Bearer token required  
+**Expected:** `200 OK`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+curl -X PUT http://localhost:5000/api/v1/organizations/$ORG_ID/settings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "timezone": "America/New_York",
+    "currency": "USD",
+    "dateFormat": "MM-DD-YYYY",
+    "timeFormat": "HH:mm",
+    "language": "en",
+    "measurementUnit": "imperial"
+  }'
+```
+
+### Test 4.3: Settings Validation - Invalid Timezone Format
+**Endpoint:** `PUT /api/v1/organizations/:organizationId/settings`  
+**Expected:** `400 Bad Request`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+curl -X PUT http://localhost:5000/api/v1/organizations/$ORG_ID/settings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "timezone": "Invalid/Timezone"
+  }'
+```
+
+### Test 4.4: Cross-Organization Settings Access (Authorization)
+**Endpoint:** `GET /api/v1/organizations/:organizationId/settings`  
+**Auth:** Bearer token from different organization  
+**Expected:** `403 Forbidden`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."          # From Organization A
+ORG_ID="org-different-id"               # From Organization B
+curl http://localhost:5000/api/v1/organizations/$ORG_ID/settings \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
+## Section 5: Organization Branding (Sprint 3)
+
+### Test 5.1: Get Organization Branding
+**Endpoint:** `GET /api/v1/organizations/:organizationId/branding`  
+**Auth:** Bearer token required  
+**Expected:** `200 OK`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+curl http://localhost:5000/api/v1/organizations/$ORG_ID/branding \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Expected response:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "organizationId": "123e4567-e89b-12d3-a456-426614174000",
+    "logoUrl": "https://example.com/logo.png",
+    "logoAltText": "My Organization Logo",
+    "faviconUrl": "https://example.com/favicon.ico",
+    "primaryColor": "#0066CC",
+    "secondaryColor": "#FFFFFF",
+    "accentColor": "#FF6B35",
+    "theme": "light",
+    "customCss": "body { font-family: Arial; }",
+    "createdAt": "2026-06-26T12:00:00Z",
+    "updatedAt": "2026-06-26T12:00:00Z"
+  }
+}
+```
+
+### Test 5.2: Update Organization Branding
+**Endpoint:** `PUT /api/v1/organizations/:organizationId/branding`  
+**Auth:** Bearer token required  
+**Expected:** `200 OK`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+curl -X PUT http://localhost:5000/api/v1/organizations/$ORG_ID/branding \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "primaryColor": "#0066CC",
+    "secondaryColor": "#F0F0F0",
+    "accentColor": "#FF6B35",
+    "theme": "dark"
+  }'
+```
+
+### Test 5.3: Color Validation - Invalid Hex Format
+**Endpoint:** `PUT /api/v1/organizations/:organizationId/branding`  
+**Expected:** `400 Bad Request`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+curl -X PUT http://localhost:5000/api/v1/organizations/$ORG_ID/branding \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "primaryColor": "red"
+  }'
+```
+
+Expected error response:
+```json
+{
+  "success": false,
+  "error": "Invalid color format. Use hex format (e.g., #000000)"
+}
+```
+
+---
+
+## Section 6: Organization Preferences (Sprint 3)
+
+### Test 6.1: Get Organization Preferences
+**Endpoint:** `GET /api/v1/organizations/:organizationId/preferences`  
+**Auth:** Bearer token required  
+**Expected:** `200 OK`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+curl http://localhost:5000/api/v1/organizations/$ORG_ID/preferences \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Expected response:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "organizationId": "123e4567-e89b-12d3-a456-426614174000",
+    "emailNotifications": true,
+    "emailDigest": "daily",
+    "twoFactorAuth": false,
+    "dataRetention": 90,
+    "backupFrequency": "weekly",
+    "createdAt": "2026-06-26T12:00:00Z",
+    "updatedAt": "2026-06-26T12:00:00Z"
+  }
+}
+```
+
+### Test 6.2: Update Organization Preferences
+**Endpoint:** `PUT /api/v1/organizations/:organizationId/preferences`  
+**Auth:** Bearer token required  
+**Expected:** `200 OK`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+curl -X PUT http://localhost:5000/api/v1/organizations/$ORG_ID/preferences \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "emailNotifications": false,
+    "emailDigest": "weekly",
+    "twoFactorAuth": true,
+    "dataRetention": 180,
+    "backupFrequency": "daily"
+  }'
+```
+
+### Test 6.3: Data Retention Validation
+**Endpoint:** `PUT /api/v1/organizations/:organizationId/preferences`  
+**Expected:** `400 Bad Request` (values outside 1-3650 range)
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+# Invalid: dataRetention = 5000 (exceeds max of 3650)
+curl -X PUT http://localhost:5000/api/v1/organizations/$ORG_ID/preferences \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dataRetention": 5000
+  }'
+```
+
+### Test 6.4: Persistent Preferences Update
+**Endpoint:** `PUT /api/v1/organizations/:organizationId/preferences` (multiple updates)  
+**Expected:** `200 OK` with previous values maintained
+
+Verify that updating one field doesn't reset others to defaults:
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+ORG_ID="123e4567-e89b-12d3-a456-426614174000"
+
+# First update: disable email notifications
+curl -X PUT http://localhost:5000/api/v1/organizations/$ORG_ID/preferences \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"emailNotifications": false}'
+
+# Second update: enable 2FA
+# Should still have emailNotifications = false
+curl -X PUT http://localhost:5000/api/v1/organizations/$ORG_ID/preferences \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"twoFactorAuth": true}'
+
+# Verify: GET should show both changes persisted
+curl http://localhost:5000/api/v1/organizations/$ORG_ID/preferences \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Test 6.5: Cross-Organization Preferences Access (Authorization)
+**Endpoint:** `GET /api/v1/organizations/:organizationId/preferences`  
+**Auth:** Bearer token from different organization  
+**Expected:** `403 Forbidden`
+
+```bash
+TOKEN="eyJhbGciOiJIUzI1NiIs..."          # From Organization A
+ORG_ID="org-different-id"               # From Organization B
+curl http://localhost:5000/api/v1/organizations/$ORG_ID/preferences \
   -H "Authorization: Bearer $TOKEN"
 ```
 

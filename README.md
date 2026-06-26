@@ -4,16 +4,18 @@
 
 This repository contains a production-ready Node.js/TypeScript backend for a multi-tenant property management SaaS platform. Built with Express, Prisma ORM, and PostgreSQL, it provides enterprise-grade authentication, authorization, multi-tenancy, and organization management.
 
-### Current Phase: Sprint 2.8 - Platform Readiness
+### Current Phase: Sprint 3 - Organization Domain
 
 **Completed Phases:**
 - ✅ Phase 0: Project Structure & Setup
 - ✅ Phase 1: Authentication & Multi-Tenancy Foundation
 - ✅ Phase 2.1-2.6: Shared Infrastructure & Hardening
 - ✅ Phase 2.8: Platform Readiness (Authorization Framework, API Versioning, OpenAPI/Swagger, Health Checks)
+- ✅ Phase 3: Organization Domain Implementation (Settings, Branding, Preferences)
 
 **Upcoming:**
-- Phase 3: Organization Domain Implementation
+- Phase 4: RBAC (Role-Based Access Control)
+- Phase 5: Property, Unit, Tenant, Lease, Payment modules
 
 ## Key Features
 
@@ -32,6 +34,11 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - User organization memberships
 - Organization soft-delete with restore
 - Organization-ownership verification middleware
+
+### 🎨 Organization Domain (Sprint 3)
+- **Organization Settings**: Configure timezone, currency, date/time formats, language, and measurement units per organization
+- **Organization Branding**: Customize colors, logos, favicon, theme, and CSS for each organization
+- **Organization Preferences**: Manage email notifications, communication digest frequency, 2FA settings, data retention, and backup frequency
 
 ### 🔑 Authorization Framework
 - Role-based authorization middleware (`requireRole`)
@@ -196,6 +203,88 @@ PUT    /api/v1/organizations/:organizationId
 DELETE /api/v1/organizations/:organizationId
 POST   /api/v1/organizations/:organizationId/restore
 ```
+
+### Organization Settings (Sprint 3)
+
+Configure organization-wide settings for timezone, currency, date/time formats, language, and measurement units.
+
+```bash
+# Get organization settings
+GET /api/v1/organizations/:organizationId/settings
+
+# Update organization settings
+PUT /api/v1/organizations/:organizationId/settings
+{
+  "timezone": "America/New_York",
+  "currency": "USD",
+  "dateFormat": "MM-DD-YYYY",
+  "timeFormat": "HH:mm",
+  "language": "en",
+  "measurementUnit": "metric"
+}
+```
+
+**Supported Values:**
+- Timezone: Any IANA timezone (e.g., "UTC", "America/New_York", "Europe/London")
+- Currency: ISO 4217 codes (e.g., "USD", "EUR", "INR", "GBP")
+- Date Format: "YYYY-MM-DD", "DD-MM-YYYY", "MM-DD-YYYY"
+- Time Format: "HH:mm:ss", "HH:mm", "12h"
+- Language: Language codes (e.g., "en", "es", "fr", "de")
+- Measurement Unit: "metric" or "imperial"
+
+### Organization Branding (Sprint 3)
+
+Customize your organization's visual appearance with colors, logos, and CSS.
+
+```bash
+# Get organization branding
+GET /api/v1/organizations/:organizationId/branding
+
+# Update organization branding
+PUT /api/v1/organizations/:organizationId/branding
+{
+  "logoUrl": "https://example.com/logo.png",
+  "logoAltText": "My Organization",
+  "faviconUrl": "https://example.com/favicon.ico",
+  "primaryColor": "#0066CC",
+  "secondaryColor": "#F0F0F0",
+  "accentColor": "#FF6B35",
+  "theme": "light",
+  "customCss": "body { font-family: Arial; }"
+}
+```
+
+**Requirements:**
+- Logo and Favicon URLs must be valid HTTPS URLs
+- Colors must be valid hex format (#RRGGBB)
+- Theme: "light" or "dark"
+- Custom CSS limited to 5000 characters
+
+### Organization Preferences (Sprint 3)
+
+Manage user communication and security preferences.
+
+```bash
+# Get organization preferences
+GET /api/v1/organizations/:organizationId/preferences
+
+# Update organization preferences
+PUT /api/v1/organizations/:organizationId/preferences
+{
+  "emailNotifications": true,
+  "emailDigest": "daily",
+  "twoFactorAuth": false,
+  "dataRetention": 90,
+  "backupFrequency": "weekly"
+}
+```
+
+**Configuration Options:**
+- Email Notifications: `true` or `false` - Enable/disable all email notifications
+- Email Digest: "off", "daily", "weekly", "monthly" - Frequency for digest emails
+- Two-Factor Auth: `true` or `false` - Require 2FA for organization
+- Data Retention: 1-3650 days - How long to keep deleted data
+- Backup Frequency: "daily", "weekly", "monthly" - How often to backup data
 
 ## Testing
 

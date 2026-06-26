@@ -8,6 +8,9 @@ import {
   CreateOrganizationInput,
   ListOrganizationsQuery,
   UpdateOrganizationInput,
+  OrganizationSettingsInput,
+  OrganizationBrandingInput,
+  OrganizationPreferencesInput,
 } from '../validators/organization.validators';
 
 interface OrganizationActorContext {
@@ -94,6 +97,87 @@ export class OrganizationService {
     const pagination = new PaginationRequest(query.page, query.limit, query.sort, query.order, query.search);
     const where = this.buildWhereClause(query, context.organizationId);
     return organizationRepository.paginateScoped(pagination, context.organizationId, where);
+  }
+
+  // Settings Methods
+  async getOrganizationSettings(organizationId: string, context: OrganizationActorContext) {
+    this.ensureOrganizationIsolation(organizationId, context.organizationId);
+    await this.ensureOrganizationExists(organizationId);
+
+    const settings = await organizationRepository.getOrCreateSettings(organizationId);
+    logger.info('Organization settings retrieved', { organizationId });
+    return settings;
+  }
+
+  async updateOrganizationSettings(
+    organizationId: string,
+    payload: OrganizationSettingsInput,
+    context: OrganizationActorContext
+  ) {
+    this.ensureOrganizationIsolation(organizationId, context.organizationId);
+    await this.ensureOrganizationExists(organizationId);
+
+    const settings = await organizationRepository.updateSettings(organizationId, {
+      ...payload,
+      updatedBy: context.userId,
+    });
+
+    logger.info('Organization settings updated', { organizationId, actorUserId: context.userId });
+    return settings;
+  }
+
+  // Branding Methods
+  async getOrganizationBranding(organizationId: string, context: OrganizationActorContext) {
+    this.ensureOrganizationIsolation(organizationId, context.organizationId);
+    await this.ensureOrganizationExists(organizationId);
+
+    const branding = await organizationRepository.getOrCreateBranding(organizationId);
+    logger.info('Organization branding retrieved', { organizationId });
+    return branding;
+  }
+
+  async updateOrganizationBranding(
+    organizationId: string,
+    payload: OrganizationBrandingInput,
+    context: OrganizationActorContext
+  ) {
+    this.ensureOrganizationIsolation(organizationId, context.organizationId);
+    await this.ensureOrganizationExists(organizationId);
+
+    const branding = await organizationRepository.updateBranding(organizationId, {
+      ...payload,
+      updatedBy: context.userId,
+    });
+
+    logger.info('Organization branding updated', { organizationId, actorUserId: context.userId });
+    return branding;
+  }
+
+  // Preferences Methods
+  async getOrganizationPreferences(organizationId: string, context: OrganizationActorContext) {
+    this.ensureOrganizationIsolation(organizationId, context.organizationId);
+    await this.ensureOrganizationExists(organizationId);
+
+    const preferences = await organizationRepository.getOrCreatePreferences(organizationId);
+    logger.info('Organization preferences retrieved', { organizationId });
+    return preferences;
+  }
+
+  async updateOrganizationPreferences(
+    organizationId: string,
+    payload: OrganizationPreferencesInput,
+    context: OrganizationActorContext
+  ) {
+    this.ensureOrganizationIsolation(organizationId, context.organizationId);
+    await this.ensureOrganizationExists(organizationId);
+
+    const preferences = await organizationRepository.updatePreferences(organizationId, {
+      ...payload,
+      updatedBy: context.userId,
+    });
+
+    logger.info('Organization preferences updated', { organizationId, actorUserId: context.userId });
+    return preferences;
   }
 
   private buildWhereClause(
