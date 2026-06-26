@@ -1482,6 +1482,359 @@
           ]
         }
       }
+    },
+    {
+      "name": "RBAC - Create Permission",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"key\": \"property:read\",\n  \"description\": \"View property details\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/permissions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "permissions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - List Permissions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/permissions?page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "permissions"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - Create Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"key\": \"property_manager\",\n  \"name\": \"Property Manager\",\n  \"description\": \"Manages properties and tenants\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/roles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "roles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - List Roles",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/roles?page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "roles"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - Assign Permission to Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"permissionId\": \"PERMISSION_UUID\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/roles/ROLE_UUID/permissions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "roles",
+            "ROLE_UUID",
+            "permissions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - Assign Multiple Permissions to Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"permissionIds\": [\"PERMISSION_UUID_1\", \"PERMISSION_UUID_2\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/roles/ROLE_UUID/permissions/bulk",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "roles",
+            "ROLE_UUID",
+            "permissions",
+            "bulk"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - Assign Role to User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"USER_UUID\",\n  \"roleId\": \"ROLE_UUID\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/users/roles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "users",
+            "roles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - Get User Roles",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/users/USER_UUID/roles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "users",
+            "USER_UUID",
+            "roles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - Get User Permissions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/users/USER_UUID/permissions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "users",
+            "USER_UUID",
+            "permissions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - Replace User Roles",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"USER_UUID\",\n  \"roleIds\": [\"ROLE_UUID_1\", \"ROLE_UUID_2\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/users/roles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "users",
+            "roles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC - Clone Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"key\": \"custom_property_manager\",\n  \"name\": \"Custom Property Manager\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rbac/roles/ROLE_UUID/clone",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "rbac",
+            "roles",
+            "ROLE_UUID",
+            "clone"
+          ]
+        }
+      }
     }
   ]
 }

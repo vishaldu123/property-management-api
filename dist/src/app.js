@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const organization_routes_1 = __importDefault(require("./routes/organization.routes"));
+const rbac_routes_1 = __importDefault(require("./routes/rbac.routes"));
 const health_routes_1 = __importDefault(require("./routes/health.routes"));
 const property_routes_1 = __importDefault(require("./routes/property.routes"));
 const unit_routes_1 = __importDefault(require("./routes/unit.routes"));
@@ -63,6 +64,8 @@ const apiV1Router = express_1.default.Router();
 apiV1Router.use('/auth', brute_force_middleware_1.checkBruteForceLockout, (0, rate_limit_middleware_1.createAuthRateLimiter)(), auth_routes_1.default);
 // Organization routes with authorization
 apiV1Router.use('/organizations', organization_routes_1.default);
+// RBAC routes (Role-Based Access Control)
+apiV1Router.use('/rbac', rbac_routes_1.default);
 // Property management routes
 apiV1Router.use('/properties', property_routes_1.default);
 apiV1Router.use('/units', unit_routes_1.default);

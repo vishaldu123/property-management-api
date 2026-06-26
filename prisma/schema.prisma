@@ -37,6 +37,7 @@ model Organization {
   invitations     OrganizationInvitation[]
   roles           Role[]
   permissions     Permission[]
+  userRoles       UserRole[]         @relation(name: "UserRoles")
   settings        OrganizationSettings?
   branding        OrganizationBranding?
   preferences     OrganizationPreferences?
@@ -123,6 +124,7 @@ model User {
   createdBy       String?
   updatedBy       String?
   memberships     OrganizationUser[]
+  userRoles       UserRole[]         @relation(name: "UserRoles")
   refreshTokens   RefreshToken[]
   passwordResets  PasswordResetToken[]
 
@@ -205,6 +207,7 @@ model Role {
   
   organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   permissions     RolePermission[]
+  userRoles       UserRole[]         @relation(name: "UserRoles")
 
   @@unique([organizationId, key])
   @@index([organizationId])
@@ -243,6 +246,29 @@ model RolePermission {
   @@unique([roleId, permissionId])
   @@index([permissionId])
   @@index([roleId])
+}
+
+// User Role Assignment (Maps users to roles within an organization)
+model UserRole {
+  id              String             @id @default(uuid())
+  organizationId  String
+  userId          String
+  roleId          String
+  assignedAt      DateTime           @default(now())
+  assignedBy      String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+  
+  organization    Organization       @relation(name: "UserRoles", fields: [organizationId], references: [id], onDelete: Cascade)
+  user            User               @relation(name: "UserRoles", fields: [userId], references: [id], onDelete: Cascade)
+  role            Role               @relation(name: "UserRoles", fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId, roleId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([deletedAt])
 }
 
 // Authentication Token Models (for refresh token rotation and password reset)

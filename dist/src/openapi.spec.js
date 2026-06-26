@@ -732,6 +732,848 @@ exports.openApiSpec = {
                 },
             },
         },
+        '/api/v1/rbac/permissions': {
+            get: {
+                tags: ['RBAC - Permissions'],
+                summary: 'List permissions',
+                description: 'Get all permissions in the organization with pagination and search',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'page',
+                        in: 'query',
+                        schema: { type: 'integer', default: 1 },
+                        description: 'Page number for pagination',
+                    },
+                    {
+                        name: 'limit',
+                        in: 'query',
+                        schema: { type: 'integer', default: 10 },
+                        description: 'Results per page',
+                    },
+                    {
+                        name: 'sort',
+                        in: 'query',
+                        schema: { type: 'string', default: 'createdAt:desc' },
+                        description: 'Sort field and direction',
+                    },
+                    {
+                        name: 'search',
+                        in: 'query',
+                        schema: { type: 'string' },
+                        description: 'Search in permission key and description',
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'List of permissions',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            post: {
+                tags: ['RBAC - Permissions'],
+                summary: 'Create permission',
+                description: 'Create a new permission (resource:action format)',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    key: {
+                                        type: 'string',
+                                        example: 'property:read',
+                                    },
+                                    description: {
+                                        type: 'string',
+                                        example: 'View property details',
+                                    },
+                                },
+                                required: ['key'],
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '201': {
+                        description: 'Permission created',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        $ref: '#/components/responses/ValidationErrorResponse',
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/rbac/permissions/{permissionId}': {
+            get: {
+                tags: ['RBAC - Permissions'],
+                summary: 'Get permission',
+                description: 'Get a specific permission by ID',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'permissionId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Permission details',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            put: {
+                tags: ['RBAC - Permissions'],
+                summary: 'Update permission',
+                description: 'Update a permission',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'permissionId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    description: {
+                                        type: 'string',
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Permission updated',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            delete: {
+                tags: ['RBAC - Permissions'],
+                summary: 'Delete permission',
+                description: 'Delete a permission (soft delete)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'permissionId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Permission deleted',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/rbac/roles': {
+            get: {
+                tags: ['RBAC - Roles'],
+                summary: 'List roles',
+                description: 'Get all roles in the organization with pagination and search',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'page',
+                        in: 'query',
+                        schema: { type: 'integer', default: 1 },
+                    },
+                    {
+                        name: 'limit',
+                        in: 'query',
+                        schema: { type: 'integer', default: 10 },
+                    },
+                    {
+                        name: 'sort',
+                        in: 'query',
+                        schema: { type: 'string', default: 'createdAt:desc' },
+                    },
+                    {
+                        name: 'search',
+                        in: 'query',
+                        schema: { type: 'string' },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'List of roles',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            post: {
+                tags: ['RBAC - Roles'],
+                summary: 'Create role',
+                description: 'Create a new role',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    key: {
+                                        type: 'string',
+                                        example: 'property_manager',
+                                    },
+                                    name: {
+                                        type: 'string',
+                                        example: 'Property Manager',
+                                    },
+                                    description: {
+                                        type: 'string',
+                                        example: 'Manages properties and tenants',
+                                    },
+                                },
+                                required: ['key', 'name'],
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '201': {
+                        description: 'Role created',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        $ref: '#/components/responses/ValidationErrorResponse',
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/rbac/roles/{roleId}': {
+            get: {
+                tags: ['RBAC - Roles'],
+                summary: 'Get role',
+                description: 'Get a specific role by ID',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'roleId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Role details',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            put: {
+                tags: ['RBAC - Roles'],
+                summary: 'Update role',
+                description: 'Update a role',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'roleId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string' },
+                                    description: { type: 'string' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Role updated',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            delete: {
+                tags: ['RBAC - Roles'],
+                summary: 'Delete role',
+                description: 'Delete a role (soft delete)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'roleId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Role deleted',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/rbac/roles/{roleId}/clone': {
+            post: {
+                tags: ['RBAC - Roles'],
+                summary: 'Clone role',
+                description: 'Clone a role with all its permissions',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'roleId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    key: { type: 'string', example: 'custom_manager' },
+                                    name: { type: 'string', example: 'Custom Manager' },
+                                },
+                                required: ['key', 'name'],
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '201': {
+                        description: 'Role cloned',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/rbac/roles/{roleId}/permissions': {
+            post: {
+                tags: ['RBAC - Role Permissions'],
+                summary: 'Assign permission to role',
+                description: 'Assign a single permission to a role',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'roleId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    permissionId: { type: 'string', format: 'uuid' },
+                                },
+                                required: ['permissionId'],
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Permission assigned',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            delete: {
+                tags: ['RBAC - Role Permissions'],
+                summary: 'Remove permission from role',
+                description: 'Remove a permission from a role',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'roleId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                    {
+                        name: 'permissionId',
+                        in: 'query',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Permission removed',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/rbac/roles/{roleId}/permissions/bulk': {
+            post: {
+                tags: ['RBAC - Role Permissions'],
+                summary: 'Assign multiple permissions to role',
+                description: 'Assign multiple permissions to a role at once',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'roleId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    permissionIds: {
+                                        type: 'array',
+                                        items: { type: 'string', format: 'uuid' },
+                                    },
+                                },
+                                required: ['permissionIds'],
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Permissions assigned',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/rbac/users/roles': {
+            post: {
+                tags: ['RBAC - User Roles'],
+                summary: 'Assign role to user',
+                description: 'Assign a role to a user',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    userId: { type: 'string', format: 'uuid' },
+                                    roleId: { type: 'string', format: 'uuid' },
+                                },
+                                required: ['userId', 'roleId'],
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Role assigned to user',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        $ref: '#/components/responses/ValidationErrorResponse',
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            put: {
+                tags: ['RBAC - User Roles'],
+                summary: 'Replace user roles',
+                description: 'Replace all roles for a user',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    userId: { type: 'string', format: 'uuid' },
+                                    roleIds: {
+                                        type: 'array',
+                                        items: { type: 'string', format: 'uuid' },
+                                    },
+                                },
+                                required: ['userId', 'roleIds'],
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'User roles replaced',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/rbac/users/{userId}/roles': {
+            get: {
+                tags: ['RBAC - User Roles'],
+                summary: 'Get user roles',
+                description: 'Get all roles assigned to a user',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'userId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'User roles',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            delete: {
+                tags: ['RBAC - User Roles'],
+                summary: 'Remove role from user',
+                description: 'Remove a role from a user',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'userId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                    {
+                        name: 'roleId',
+                        in: 'query',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Role removed from user',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/rbac/users/{userId}/permissions': {
+            get: {
+                tags: ['RBAC - User Permissions'],
+                summary: 'Get user permissions',
+                description: 'Get all permissions granted to a user through their roles',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'userId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string', format: 'uuid' },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'User permissions',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiResponse',
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
     },
 };
 exports.default = exports.openApiSpec;

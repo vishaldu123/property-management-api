@@ -13,6 +13,14 @@ import {
 import { AuthenticatedRequest } from '../auth.middleware';
 import { ForbiddenError } from '../../utils/errors';
 
+jest.mock('../../services/rbac.service', () => ({
+  rbacService: {
+    userHasRoleByKey: jest.fn().mockResolvedValue(true),
+    userHasAnyPermission: jest.fn().mockResolvedValue(true),
+    userHasAllPermissions: jest.fn().mockResolvedValue(true),
+  },
+}));
+
 describe('Authorization Middleware', () => {
   let req: AuthenticatedRequest;
   let res: Response;
@@ -37,31 +45,31 @@ describe('Authorization Middleware', () => {
   });
 
   describe('requireRole', () => {
-    it('should pass through valid role check', () => {
+    it('should pass through valid role check', async () => {
       const middleware = requireRole(['ADMIN', 'OWNER']);
-      middleware(req, res, next);
+      await middleware(req, res, next);
       expect(next).toHaveBeenCalled();
     });
 
-    it('should fail if user context not found', () => {
+    it('should fail if user context not found', async () => {
       const middleware = requireRole(['ADMIN']);
       req.user = undefined;
-      middleware(req, res, next);
+      await middleware(req, res, next);
       expect(res.status).toHaveBeenCalledWith(403);
     });
   });
 
   describe('requirePermission', () => {
-    it('should pass through valid permission check', () => {
+    it('should pass through valid permission check', async () => {
       const middleware = requirePermission(['READ_USERS', 'WRITE_USERS']);
-      middleware(req, res, next);
+      await middleware(req, res, next);
       expect(next).toHaveBeenCalled();
     });
 
-    it('should fail if user context not found', () => {
+    it('should fail if user context not found', async () => {
       const middleware = requirePermission(['READ_USERS']);
       req.user = undefined;
-      middleware(req, res, next);
+      await middleware(req, res, next);
       expect(res.status).toHaveBeenCalledWith(403);
     });
   });
@@ -112,24 +120,24 @@ describe('Authorization Middleware', () => {
   });
 
   describe('requireAll', () => {
-    it('should chain multiple middleware successfully', () => {
+    it('should chain multiple middleware successfully', async () => {
       const middleware1 = jest.fn((req, res, next) => next());
       const middleware2 = jest.fn((req, res, next) => next());
       
       const combined = requireAll(middleware1, middleware2);
-      combined(req, res, next);
+      await combined(req, res, next);
 
       expect(middleware1).toHaveBeenCalled();
       expect(middleware2).toHaveBeenCalled();
       expect(next).toHaveBeenCalled();
     });
 
-    it('should stop execution on middleware error', () => {
+    it('should stop execution on middleware error', async () => {
       const middleware1 = jest.fn((req, res, next) => next(new Error('Auth failed')));
       const middleware2 = jest.fn();
       
       const combined = requireAll(middleware1, middleware2);
-      combined(req, res, next);
+      await combined(req, res, next);
 
       expect(middleware1).toHaveBeenCalled();
       expect(middleware2).not.toHaveBeenCalled();
