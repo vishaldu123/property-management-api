@@ -389,7 +389,7 @@ export class AuthService {
   }
 
   private generateAccessToken(payload: { userId: string; organizationId: string }): string {
-    return jwt.sign(payload, config.jwtSecret, {
+    return jwt.sign({ ...payload, jti: crypto.randomUUID() }, config.jwtSecret, {
       expiresIn: this.jwtExpiry,
     } as any);
   }
