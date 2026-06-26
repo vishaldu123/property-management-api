@@ -99,6 +99,15 @@ http://localhost:5000/api/docs
 
 This page shows the generated OpenAPI 3.1 documentation for auth, property, unit, tenant, lease, and payment routes.
 
+### API route prefixes
+
+- `/api/auth`
+- `/api/properties`
+- `/api/units`
+- `/api/tenants`
+- `/api/leases`
+- `/api/payments`
+
 ## Test and Validation
 
 ### Run tests

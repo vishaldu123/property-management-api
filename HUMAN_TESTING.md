@@ -7,7 +7,7 @@ This document provides numbered manual test cases for the Property Management AP
 1. Send `GET /`.
 2. Expected result:
    - `200 OK`
-   - JSON body: `{ "success": true, "message": "Property Management API Running" }`
+   - JSON body: `{ "success": true, "message": "Property Management API - Foundation Phase" }`
 
 ## 2. User Registration
 
