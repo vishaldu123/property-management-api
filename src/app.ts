@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 import express, { Request, Response, NextFunction } from 'express';
+import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/auth.routes';
 import organizationRoutes from './routes/organization.routes';
+import healthRoutes from './routes/health.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
 import { createHelmetMiddleware } from './middleware/helmet.middleware';
 import { createCorsMiddleware } from './middleware/cors.middleware';
@@ -13,6 +15,7 @@ import {
 import { checkBruteForceLockout } from './middleware/brute-force.middleware';
 import { ApiResponse } from './shared/core/response';
 import { config } from './config/environment';
+import openApiSpec from './openapi.spec';
 
 const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
 dotenv.config({ path: envPath });
@@ -52,12 +55,29 @@ app.get('/', (req: Request, res: Response) => {
   );
 });
 
-// API Routes
-// Authentication routes with specific rate limiting and brute-force protection
-app.use('/api/auth', checkBruteForceLockout, createAuthRateLimiter(), authRoutes);
+// Health check routes (no auth required)
+app.use('/health', healthRoutes);
 
-// Organization routes
-app.use('/api/organizations', organizationRoutes);
+// API Documentation - Swagger UI
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(openApiSpec, { swaggerOptions: { persistAuthorization: true } }));
+
+// OpenAPI specification endpoint
+app.get('/openapi.json', (req: Request, res: Response) => {
+  res.json(openApiSpec);
+});
+
+// API Routes (versioned)
+const apiV1Router = express.Router();
+
+// Authentication routes with specific rate limiting and brute-force protection
+apiV1Router.use('/auth', checkBruteForceLockout, createAuthRateLimiter(), authRoutes);
+
+// Organization routes with authorization
+apiV1Router.use('/organizations', organizationRoutes);
+
+// Mount versioned routes
+app.use('/api/v1', apiV1Router);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
