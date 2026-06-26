@@ -23,7 +23,7 @@ describe('Organization Module E2E', () => {
   let otherOrganizationId = '';
 
   it('creates an organization (public endpoint)', async () => {
-    const createResponse = await request(app).post('/api/organizations').send({
+    const createResponse = await request(app).post('/api/v1/organizations').send({
       name: `Standalone Org ${seed}`,
       slug: `standalone-org-${seed}`,
       email: `standalone-org-${seed}@example.com`,
@@ -39,16 +39,16 @@ describe('Organization Module E2E', () => {
   });
 
   it('registers users and gets auth context', async () => {
-    await request(app).post('/api/auth/register').send(primaryUser).expect(201);
-    await request(app).post('/api/auth/register').send(secondaryUser).expect(201);
+    await request(app).post('/api/v1/auth/register').send(primaryUser).expect(201);
+    await request(app).post('/api/v1/auth/register').send(secondaryUser).expect(201);
 
     const loginPrimary = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: primaryUser.email, password: primaryUser.password })
       .expect(200);
 
     const loginSecondary = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: secondaryUser.email, password: secondaryUser.password })
       .expect(200);
 
@@ -59,7 +59,7 @@ describe('Organization Module E2E', () => {
 
   it('lists organizations with pagination metadata', async () => {
     const response = await request(app)
-      .get('/api/organizations?page=1&limit=10&search=Primary')
+      .get('/api/v1/organizations?page=1&limit=10&search=Primary')
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200);
 
@@ -71,7 +71,7 @@ describe('Organization Module E2E', () => {
 
   it('gets organization by id in same tenant', async () => {
     const response = await request(app)
-      .get(`/api/organizations/${ownOrganizationId}`)
+      .get(`/api/v1/organizations/${ownOrganizationId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200);
 
@@ -81,7 +81,7 @@ describe('Organization Module E2E', () => {
 
   it('prevents cross-organization access', async () => {
     const response = await request(app)
-      .get(`/api/organizations/${otherOrganizationId}`)
+      .get(`/api/v1/organizations/${otherOrganizationId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .expect(403);
 
@@ -90,7 +90,7 @@ describe('Organization Module E2E', () => {
 
   it('updates organization', async () => {
     const response = await request(app)
-      .put(`/api/organizations/${ownOrganizationId}`)
+      .put(`/api/v1/organizations/${ownOrganizationId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         city: 'Pune',
@@ -106,7 +106,7 @@ describe('Organization Module E2E', () => {
 
   it('soft deletes and restores organization', async () => {
     const deleteResponse = await request(app)
-      .delete(`/api/organizations/${ownOrganizationId}`)
+      .delete(`/api/v1/organizations/${ownOrganizationId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200);
 
@@ -114,7 +114,7 @@ describe('Organization Module E2E', () => {
     expect(deleteResponse.body.data.deletedAt).not.toBeNull();
 
     const restoreResponse = await request(app)
-      .post(`/api/organizations/${ownOrganizationId}/restore`)
+      .post(`/api/v1/organizations/${ownOrganizationId}/restore`)
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200);
 
