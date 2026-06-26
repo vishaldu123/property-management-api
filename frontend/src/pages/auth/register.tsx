@@ -14,7 +14,7 @@ export const RegisterPage: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false)
 
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(registerSchema) as any,
     defaultValues: {
       email: '',
       password: '',

@@ -15,7 +15,7 @@ export const ResetPasswordPage: React.FC = () => {
   const token = searchParams.get('token')
 
   const { control, handleSubmit, formState: { errors } } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(resetPasswordSchema) as any,
     defaultValues: {
       password: '',
       passwordConfirm: '',

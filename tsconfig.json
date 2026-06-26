@@ -10,5 +10,6 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "types": ["jest", "node"]
-  }
+  },
+  "exclude": ["frontend", "node_modules", "dist"]
 }

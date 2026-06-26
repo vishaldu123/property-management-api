@@ -13,7 +13,7 @@ export const ForgotPasswordPage: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false)
 
   const { control, handleSubmit, formState: { errors } } = useForm<ForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(forgotPasswordSchema) as any,
     defaultValues: {
       email: '',
     },
@@ -47,7 +47,7 @@ export const ForgotPasswordPage: React.FC = () => {
           <CardContent className="space-y-4">
             <Alert>
               <AlertDescription>
-                We've sent a password reset link to your email. Please check your inbox and follow the instructions.
+                We&apos;ve sent a password reset link to your email. Please check your inbox and follow the instructions.
               </AlertDescription>
             </Alert>
 

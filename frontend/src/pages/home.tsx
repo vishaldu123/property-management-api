@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components'
 import { useAuth } from '@/shared/hooks'
-import { ArrowRight, Shield, Zap, Users } from 'lucide-react'
+import { ArrowLongRightIcon, ShieldCheckIcon, BoltIcon, UsersIcon } from '@heroicons/react/24/outline'
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -42,7 +42,7 @@ export const HomePage: React.FC = () => {
           <div className="flex gap-4 justify-center">
             <Button size="lg" onClick={() => navigate('/register')}>
               Get Started Free
-              <ArrowRight className="ml-2 w-4 h-4" />
+              <ArrowLongRightIcon className="ml-2 w-4 h-4" />
             </Button>
             <Button size="lg" variant="outline" onClick={() => navigate('/login')}>
               Sign In
@@ -58,7 +58,7 @@ export const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card>
               <CardHeader>
-                <Shield className="w-8 h-8 text-primary mb-2" />
+                <ShieldCheckIcon className="w-8 h-8 text-primary mb-2" />
                 <CardTitle>Enterprise Security</CardTitle>
               </CardHeader>
               <CardContent>
@@ -70,7 +70,7 @@ export const HomePage: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <Zap className="w-8 h-8 text-primary mb-2" />
+                <BoltIcon className="w-8 h-8 text-primary mb-2" />
                 <CardTitle>Fast & Reliable</CardTitle>
               </CardHeader>
               <CardContent>
@@ -82,7 +82,7 @@ export const HomePage: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <Users className="w-8 h-8 text-primary mb-2" />
+                <UsersIcon className="w-8 h-8 text-primary mb-2" />
                 <CardTitle>Team Collaboration</CardTitle>
               </CardHeader>
               <CardContent>

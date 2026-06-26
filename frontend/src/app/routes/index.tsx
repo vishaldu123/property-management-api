@@ -1,5 +1,5 @@
 import React from 'react'
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import {
   HomePage,
   LoginPage,
@@ -14,8 +14,6 @@ import {
 } from '@/pages'
 import { ProtectedRoute } from './protected-route'
 import { ErrorBoundary } from '../error-boundary'
-
-const AuthLayout = () => <Outlet />
 
 const router = createBrowserRouter([
   {

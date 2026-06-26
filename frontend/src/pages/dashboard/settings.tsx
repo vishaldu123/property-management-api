@@ -19,7 +19,7 @@ export const SettingsPage: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Account settings will be available here. You'll be able to:
+              Account settings will be available here. You&apos;ll be able to:
             </p>
             <ul className="space-y-2 text-sm list-disc list-inside">
               <li>Change your password</li>
@@ -49,7 +49,7 @@ export const SettingsPage: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Notification preferences will be available here. You'll be able to:
+              Notification preferences will be available here. You&apos;ll be able to:
             </p>
             <ul className="space-y-2 text-sm list-disc list-inside">
               <li>Enable/disable email notifications</li>
