@@ -54,6 +54,7 @@ class AuthService {
                     data: {
                         name: organizationName,
                         slug: organizationSlug,
+                        email,
                     },
                 });
                 // Create membership (user as OWNER)
@@ -285,6 +286,7 @@ class AuthService {
     generateAccessToken(payload) {
         return jsonwebtoken_1.default.sign(payload, environment_1.config.jwtSecret, {
             expiresIn: this.jwtExpiry,
+            jwtid: crypto_1.default.randomUUID(),
         });
     }
     async generateAndStoreRefreshToken(userId) {

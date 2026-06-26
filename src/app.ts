@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express, { Request, Response, NextFunction } from 'express';
 import authRoutes from './routes/auth.routes';
+import organizationRoutes from './routes/organization.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
 
 const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
@@ -18,6 +19,7 @@ app.get('/', (req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/organizations', organizationRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

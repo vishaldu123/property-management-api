@@ -102,6 +102,7 @@ export class AuthService {
           data: {
             name: organizationName,
             slug: organizationSlug,
+            email,
           },
         });
 
@@ -446,4 +447,3 @@ export class AuthService {
 
 // Export singleton instance
 export const authService = new AuthService();
-

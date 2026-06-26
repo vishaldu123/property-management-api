@@ -1,24 +1,27 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UUIDGenerator = void 0;
-const uuid_1 = require("uuid");
+const crypto_1 = __importDefault(require("crypto"));
 /**
  * UUID Generation Utilities
  */
 class UUIDGenerator {
-    static NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+    static UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     /**
      * Generate a random UUID (v4)
      */
     static generate() {
-        return (0, uuid_1.v4)();
+        return crypto_1.default.randomUUID();
     }
     /**
      * Generate a namespaced UUID (v5)
      * @param name - The name to generate UUID from
      */
     static generateNamespaced(name) {
-        return (0, uuid_1.v5)(name, this.NAMESPACE);
+        return this.generateWithNamespace(name, 'default-namespace');
     }
     /**
      * Generate a namespaced UUID with custom namespace
@@ -26,13 +29,15 @@ class UUIDGenerator {
      * @param namespace - The namespace UUID
      */
     static generateWithNamespace(name, namespace) {
-        return (0, uuid_1.v5)(name, namespace);
+        const hash = crypto_1.default.createHash('sha1').update(`${namespace}:${name}`).digest('hex');
+        const base = hash.slice(0, 32);
+        return `${base.slice(0, 8)}-${base.slice(8, 12)}-5${base.slice(13, 16)}-a${base.slice(17, 20)}-${base.slice(20, 32)}`;
     }
     /**
      * Validate if a string is a valid UUID
      */
     static validate(uuid) {
-        return (0, uuid_1.validate)(uuid);
+        return this.UUID_REGEX.test(uuid);
     }
     /**
      * Validate and throw error if invalid

@@ -1,51 +1,49 @@
-/**
- * Organization Repository
- * Data access layer for Organization model
- */
-
-import { BaseRepository } from './base.repository';
+import { Organization, Prisma } from '@prisma/client';
 import prisma from '../config/prisma';
-import logger from '../utils/logger';
-
-// Type definition for Organization model
-type Organization = any;
+import { BaseRepository } from '../shared/core/repository';
+import { PaginationRequest } from '../shared/core/pagination';
 
 export class OrganizationRepository extends BaseRepository<Organization> {
-  protected model = prisma.organization;
-
   constructor() {
-    super('Organization');
+    super(prisma, 'organization');
   }
 
   async findBySlug(slug: string): Promise<Organization | null> {
-    try {
-      logger.debug('Finding organization by slug', { slug });
-      return await this.model.findUnique({
-        where: { slug },
-      });
-    } catch (error) {
-      logger.error('Failed to find organization by slug', error as Error, { slug });
-      throw error;
-    }
+    return prisma.organization.findUnique({
+      where: { slug },
+    });
   }
 
-  async findWithUsers(id: string): Promise<(Organization & { users: any[] }) | null> {
-    try {
-      logger.debug('Finding organization with users', { id });
-      return await this.model.findUnique({
-        where: { id },
-        include: {
-          users: {
-            include: {
-              user: true,
-            },
-          },
-        },
-      });
-    } catch (error) {
-      logger.error('Failed to find organization with users', error as Error, { id });
-      throw error;
+  async findByEmail(email: string): Promise<Organization | null> {
+    return prisma.organization.findUnique({
+      where: { email },
+    });
+  }
+
+  async findByIdAndOrganizationId(id: string, organizationId: string): Promise<Organization | null> {
+    if (id !== organizationId) {
+      return null;
     }
+
+    return prisma.organization.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+    });
+  }
+
+  async paginateScoped(
+    pagination: PaginationRequest,
+    organizationId: string,
+    where: Prisma.OrganizationWhereInput
+  ) {
+    const scopedWhere: Prisma.OrganizationWhereInput = {
+      ...where,
+      id: organizationId,
+    };
+
+    return this.paginate(pagination, scopedWhere);
   }
 }
 

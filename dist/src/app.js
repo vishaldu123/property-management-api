@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
+const organization_routes_1 = __importDefault(require("./routes/organization.routes"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
 dotenv_1.default.config({ path: envPath });
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 });
 // API Routes
 app.use('/api/auth', auth_routes_1.default);
+app.use('/api/organizations', organization_routes_1.default);
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({ message: 'Route not found' });

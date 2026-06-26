@@ -76,12 +76,13 @@ export abstract class BaseRepository<T> {
   async create(data: any): Promise<T> {
     const model = (this.prisma as any)[this.modelName];
     const userId = RequestContextManager.getUserId();
+    const auditUser = userId ?? data.createdBy ?? null;
 
     return model.create({
       data: {
         ...data,
-        createdBy: userId,
-        updatedBy: userId,
+        createdBy: auditUser,
+        updatedBy: auditUser,
       },
     });
   }
@@ -102,12 +103,13 @@ export abstract class BaseRepository<T> {
   async update(id: string, data: any): Promise<T> {
     const model = (this.prisma as any)[this.modelName];
     const userId = RequestContextManager.getUserId();
+    const auditUser = userId ?? data.updatedBy ?? null;
 
     return model.update({
       where: { id },
       data: {
         ...data,
-        updatedBy: userId,
+        updatedBy: auditUser,
       },
     });
   }
@@ -148,7 +150,7 @@ export abstract class BaseRepository<T> {
       where: { id },
       data: {
         deletedAt: new Date(),
-        updatedBy: userId,
+        updatedBy: userId ?? null,
       },
     });
   }
@@ -164,7 +166,7 @@ export abstract class BaseRepository<T> {
       where: { id },
       data: {
         deletedAt: null,
-        updatedBy: userId,
+        updatedBy: userId ?? null,
       },
     });
   }
@@ -221,17 +223,19 @@ export abstract class BaseRepository<T> {
   async upsert(where: any, create: any, update: any): Promise<T> {
     const model = (this.prisma as any)[this.modelName];
     const userId = RequestContextManager.getUserId();
+    const createAuditUser = userId ?? create.createdBy ?? null;
+    const updateAuditUser = userId ?? update.updatedBy ?? null;
 
     return model.upsert({
       where,
       create: {
         ...create,
-        createdBy: userId,
-        updatedBy: userId,
+        createdBy: createAuditUser,
+        updatedBy: createAuditUser,
       },
       update: {
         ...update,
-        updatedBy: userId,
+        updatedBy: updateAuditUser,
       },
     });
   }
