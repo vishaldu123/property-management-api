@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/app/providers'
 import { AppRoutes } from '@/app/routes'
 import { ErrorBoundary } from '@/app/error-boundary'
+import { ToastContainer } from '@/shared/components'
 import '@/app/globals.css'
 
 const queryClient = new QueryClient({
@@ -20,6 +21,7 @@ export const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <AppRoutes />
+          <ToastContainer />
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>

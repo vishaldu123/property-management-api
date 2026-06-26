@@ -9,8 +9,8 @@ describe('Button', () => {
   })
 
   it('renders button with different variants', () => {
-    const { rerender } = render(<Button variant="primary">Primary</Button>)
-    expect(screen.getByText('Primary')).toBeInTheDocument()
+    const { rerender } = render(<Button variant="default">Default</Button>)
+    expect(screen.getByText('Default')).toBeInTheDocument()
 
     rerender(<Button variant="destructive">Delete</Button>)
     expect(screen.getByText('Delete')).toBeInTheDocument()

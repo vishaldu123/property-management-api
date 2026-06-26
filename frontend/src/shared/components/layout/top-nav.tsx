@@ -1,5 +1,5 @@
 import React from 'react'
-import { Bell, Moon, Sun, ChevronDown } from 'lucide-react'
+import { BellIcon, MoonIcon, SunIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/shared/components/ui'
 import { useAuth, useTheme } from '@/shared/hooks'
 import { cn } from '@/utils/cn'
@@ -25,16 +25,16 @@ export const TopNav: React.FC = () => {
         <div className="flex items-center gap-4 ml-auto">
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5" />
+            <BellIcon className="w-5 h-5" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full" />
           </Button>
 
           {/* Theme toggle */}
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
             {theme === 'dark' ? (
-              <Sun className="w-5 h-5" />
+              <SunIcon className="w-5 h-5" />
             ) : (
-              <Moon className="w-5 h-5" />
+              <MoonIcon className="w-5 h-5" />
             )}
           </Button>
 
@@ -49,7 +49,7 @@ export const TopNav: React.FC = () => {
                 <span className="text-sm font-medium">{user?.displayName}</span>
                 <span className="text-xs text-muted-foreground">{user?.email}</span>
               </div>
-              <ChevronDown className={cn('w-4 h-4 transition-transform', userMenuOpen && 'rotate-180')} />
+              <ChevronDownIcon className={cn('w-4 h-4 transition-transform', userMenuOpen && 'rotate-180')} />
             </Button>
 
             {userMenuOpen && (

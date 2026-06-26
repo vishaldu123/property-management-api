@@ -63,5 +63,7 @@ export default {
       },
     },
   },
+  // @ts-ignore - tailwindcss plugin
+  // eslint-disable-next-line no-undef
   plugins: [require('tailwindcss-animate')],
 }

@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+/* @ts-ignore */
+// eslint-disable-next-line no-undef
+const __dirname = import.meta.dirname || path.dirname(new URL(import.meta.url).pathname)
 
 export default defineConfig({
   plugins: [react()],

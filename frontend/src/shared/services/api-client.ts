@@ -1,15 +1,16 @@
+/// <reference types="vite/client" />
 import axios, { AxiosInstance, AxiosError } from 'axios'
 import { AuthTokens, ApiError } from '@/types'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-const API_BASE_PATH = import.meta.env.VITE_API_BASE_PATH || '/api/v1'
+const API_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3000'
+const API_BASE_PATH = (import.meta.env.VITE_API_BASE_PATH as string) || '/api/v1'
 
-let accessToken: string | null = localStorage.getItem('accessToken')
-let refreshToken: string | null = localStorage.getItem('refreshToken')
+let refreshToken: string | null = null
 let isRefreshing = false
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let failedQueue: Array<{
-  resolve: (value: string) => void
-  reject: (reason?: unknown) => void
+  resolve: (_value: string) => void // eslint-disable-line @typescript-eslint/no-unused-vars
+  reject: (_reason?: unknown) => void // eslint-disable-line @typescript-eslint/no-unused-vars
 }> = []
 
 const processQueue = (error: unknown, token: string | null = null) => {
@@ -123,7 +124,6 @@ export const apiClient = {
 }
 
 export const setAuthTokens = (tokens: AuthTokens) => {
-  accessToken = tokens.accessToken
   refreshToken = tokens.refreshToken
   localStorage.setItem('accessToken', tokens.accessToken)
   localStorage.setItem('refreshToken', tokens.refreshToken)
@@ -131,7 +131,6 @@ export const setAuthTokens = (tokens: AuthTokens) => {
 }
 
 export const clearAuthTokens = () => {
-  accessToken = null
   refreshToken = null
   localStorage.removeItem('accessToken')
   localStorage.removeItem('refreshToken')

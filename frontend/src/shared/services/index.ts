@@ -1,3 +1,6 @@
 export { apiClient, setAuthTokens, clearAuthTokens, isApiError } from './api-client'
 export { authService } from './auth.service'
 export { organizationService } from './organization.service'
+export { rbacService } from './rbac.service'
+export { organizationSettingsService } from './organization-settings.service'
+export { toastService, toastManager, type ToastType, type Toast } from './toast.service'

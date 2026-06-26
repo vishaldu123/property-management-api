@@ -14,7 +14,7 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false)
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema) as any,
     defaultValues: {
       email: '',
       password: '',
@@ -85,7 +85,7 @@ export const LoginPage: React.FC = () => {
           </form>
 
           <div className="mt-4 text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
+            <span className="text-muted-foreground">Don&apos;t have an account? </span>
             <Link to="/register" className="text-primary hover:underline">
               Sign up
             </Link>

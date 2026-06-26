@@ -1,32 +1,35 @@
 import * as React from 'react'
-import { Controller, FieldPath, FieldValues, UseControllerProps } from 'react-hook-form'
-import { Label } from './label'
+import { Controller } from 'react-hook-form'
+import { Label } from '../ui/label'
 import { cn } from '@/utils/cn'
 
-interface FormFieldProps<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
-> extends UseControllerProps<TFieldValues, TName> {
+interface FormFieldProps {
+  className?: string
+  name: string
+  control?: any
   label?: string
   error?: string
   required?: boolean
-  children?: (props: { field: any; fieldState: any }) => React.ReactNode
+  defaultValue?: any
+  rules?: any
+  shouldUnregister?: any
+  children?: (_params: { field: any; fieldState: any }) => React.ReactNode // eslint-disable-line @typescript-eslint/no-unused-vars
 }
 
 const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
   (
-    { name, label, error, required, control, defaultValue, rules, shouldUnregister, children, ...props },
+    { name, label, error, required, control, defaultValue, rules, shouldUnregister, children },
     ref
   ) => {
     return (
-      <div ref={ref} {...props}>
+      <div ref={ref}>
         {label && (
           <Label className={cn(required && 'after:content-[\'*\'] after:ml-0.5 after:text-destructive')}>
             {label}
           </Label>
         )}
         <Controller
-          name={name}
+          name={name as any}
           control={control}
           defaultValue={defaultValue}
           rules={rules}

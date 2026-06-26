@@ -1,50 +1,61 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard,
-  Settings,
-  Users,
-  LogOut,
-  Menu,
-  X,
-} from 'lucide-react'
+  Squares2X2Icon,
+  Cog6ToothIcon,
+  UsersIcon,
+  ArrowLeftOnRectangleIcon,
+  Bars3Icon,
+  XMarkIcon,
+  KeyIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '@/utils/cn'
 import { Button } from '@/shared/components/ui'
 import { useAuth } from '@/shared/hooks'
+import { OrganizationSwitcher } from '@/shared/components'
+import { getRoleNames } from '@/shared/utils/rbac'
 
 interface NavItem {
   label: string
   href: string
   icon: React.ReactNode
   badge?: number
+  requiredRoles?: string[]
 }
 
 const navItems: NavItem[] = [
   {
     label: 'Dashboard',
     href: '/dashboard',
-    icon: <LayoutDashboard className="w-5 h-5" />,
+    icon: <Squares2X2Icon className="w-5 h-5" />,
   },
   {
-    label: 'Profile',
-    href: '/profile',
-    icon: <Users className="w-5 h-5" />,
+    label: 'Team',
+    href: '/team',
+    icon: <UsersIcon className="w-5 h-5" />,
+    requiredRoles: ['organization_admin', 'organization_owner'],
+  },
+  {
+    label: 'Roles & Permissions',
+    href: '/rbac',
+    icon: <KeyIcon className="w-5 h-5" />,
+    requiredRoles: ['organization_admin', 'organization_owner'],
   },
   {
     label: 'Settings',
     href: '/settings',
-    icon: <Settings className="w-5 h-5" />,
+    icon: <Cog6ToothIcon className="w-5 h-5" />,
   },
 ]
 
 interface SidebarProps {
   open?: boolean
-  onOpenChange?: (open: boolean) => void
+  onOpenChange?: (_isOpen: boolean) => void // eslint-disable-line @typescript-eslint/no-unused-vars
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ open = true, onOpenChange }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ open, onOpenChange }) => {
   const location = useLocation()
-  const { logout } = useAuth()
+  const { logout, user, currentOrganization } = useAuth()
 
   const handleLogout = async () => {
     try {
@@ -55,6 +66,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ open = true, onOpenChange }) =
     }
   }
 
+  // Get user's roles for the current organization
+  const userRoles = user?.roles || []
+  const roleNames = getRoleNames(userRoles)
+
+  // Filter nav items based on user's roles
+  const visibleNavItems = navItems.filter(item => {
+    if (!item.requiredRoles || item.requiredRoles.length === 0) {
+      return true
+    }
+    return item.requiredRoles.some(role => roleNames.includes(role))
+  })
+
   return (
     <>
       {/* Mobile menu button */}
@@ -64,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open = true, onOpenChange }) =
           size="icon"
           onClick={() => onOpenChange?.(!open)}
         >
-          {open ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          {open ? <XMarkIcon className="w-4 h-4" /> : <Bars3Icon className="w-4 h-4" />}
         </Button>
       </div>
 
@@ -89,9 +112,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ open = true, onOpenChange }) =
             <h1 className="text-xl font-bold text-primary">Property Management</h1>
           </div>
 
+          {/* Organization Switcher */}
+          {currentOrganization && (
+            <div className="mb-6 pb-6 border-b border-border">
+              <OrganizationSwitcher 
+                currentOrganizationId={currentOrganization.id}
+                onOrganizationChange={() => onOpenChange?.(false)}
+              />
+            </div>
+          )}
+
           {/* Navigation */}
           <nav className="flex-1 space-y-2">
-            {navItems.map(item => (
+            {visibleNavItems.map(item => (
               <Link
                 key={item.href}
                 to={item.href}
@@ -122,7 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open = true, onOpenChange }) =
             className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={handleLogout}
           >
-            <LogOut className="w-5 h-5 mr-3" />
+            <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-3" />
             Logout
           </Button>
         </div>

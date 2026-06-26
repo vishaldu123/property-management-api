@@ -1,17 +1,17 @@
 import * as React from 'react'
-import { FieldPath, FieldValues, UseControllerProps } from 'react-hook-form'
 import { Input } from '../ui/input'
 import { FormField } from './form-field'
 import { cn } from '@/utils/cn'
 
-interface TextFieldProps<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
-> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'name'>,
-    UseControllerProps<TFieldValues, TName> {
+interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'name'> {
+  name: string
+  control?: any
   label?: string
   error?: string
   required?: boolean
+  rules?: any
+  defaultValue?: any
+  shouldUnregister?: any
 }
 
 const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
