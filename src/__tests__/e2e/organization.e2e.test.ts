@@ -52,9 +52,9 @@ describe('Organization Module E2E', () => {
       .send({ email: secondaryUser.email, password: secondaryUser.password })
       .expect(200);
 
-    authToken = loginPrimary.body.token;
-    ownOrganizationId = loginPrimary.body.organization.id;
-    otherOrganizationId = loginSecondary.body.organization.id;
+    authToken = loginPrimary.body.data.token;
+    ownOrganizationId = loginPrimary.body.data.organization.id;
+    otherOrganizationId = loginSecondary.body.data.organization.id;
   });
 
   it('lists organizations with pagination metadata', async () => {

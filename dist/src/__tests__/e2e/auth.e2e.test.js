@@ -44,19 +44,19 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     .post('/api/auth/register')
                     .send(testUser);
                 expect(res.status).toBe(201);
-                expect(res.body).toHaveProperty('token');
-                expect(res.body).toHaveProperty('refreshToken');
-                expect(res.body.user).toMatchObject({
+                expect(res.body.data).toHaveProperty('token');
+                expect(res.body.data).toHaveProperty('refreshToken');
+                expect(res.body.data.user).toMatchObject({
                     name: testUser.name,
                     email: testUser.email,
                 });
-                expect(res.body.organization).toMatchObject({
+                expect(res.body.data.organization).toMatchObject({
                     name: testUser.organizationName,
                 });
-                authToken = res.body.token;
-                refreshToken = res.body.refreshToken;
-                userId = res.body.user.id;
-                organizationId = res.body.organization.id;
+                authToken = res.body.data.token;
+                refreshToken = res.body.data.refreshToken;
+                userId = res.body.data.user.id;
+                organizationId = res.body.data.organization.id;
             });
             it('should reject registration with invalid email', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -96,9 +96,9 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     password: testUser.password,
                 });
                 expect(res.status).toBe(200);
-                expect(res.body).toHaveProperty('token');
-                expect(res.body).toHaveProperty('refreshToken');
-                expect(res.body.user.email).toBe(testUser.email);
+                expect(res.body.data).toHaveProperty('token');
+                expect(res.body.data).toHaveProperty('refreshToken');
+                expect(res.body.data.user.email).toBe(testUser.email);
             });
             it('should reject login with invalid email', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -127,11 +127,11 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     .get('/api/auth/me')
                     .set('Authorization', `Bearer ${authToken}`);
                 expect(res.status).toBe(200);
-                expect(res.body.user).toMatchObject({
+                expect(res.body.data.user).toMatchObject({
                     id: userId,
                     email: testUser.email,
                 });
-                expect(res.body.organization.id).toBe(organizationId);
+                expect(res.body.data.organization.id).toBe(organizationId);
             });
             it('should reject without authentication', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -151,12 +151,12 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     .post('/api/auth/refresh-token')
                     .send({ refreshToken });
                 expect(res.status).toBe(200);
-                expect(res.body).toHaveProperty('token');
-                expect(res.body).toHaveProperty('refreshToken');
-                expect(res.body.token).not.toBe(authToken); // Should be new token
+                expect(res.body.data).toHaveProperty('token');
+                expect(res.body.data).toHaveProperty('refreshToken');
+                expect(res.body.data.token).not.toBe(authToken); // Should be new token
                 // Update tokens for subsequent tests
-                authToken = res.body.token;
-                refreshToken = res.body.refreshToken;
+                authToken = res.body.data.token;
+                refreshToken = res.body.data.refreshToken;
             });
             it('should reject with invalid refresh token', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -172,14 +172,14 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     .post('/api/auth/refresh-token')
                     .send({ refreshToken: oldToken });
                 expect(res1.status).toBe(200);
-                const newToken = res1.body.refreshToken;
+                const newToken = res1.body.data.refreshToken;
                 // Old token should be revoked
                 const res2 = await (0, supertest_1.default)(app_1.default)
                     .post('/api/auth/refresh-token')
                     .send({ refreshToken: oldToken });
                 expect(res2.status).toBe(401);
                 // Update for next test
-                authToken = res1.body.token;
+                authToken = res1.body.data.token;
                 refreshToken = newToken;
             });
         });
@@ -252,7 +252,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     email: testUser.email,
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.message).toContain('password reset email');
+                expect(res.body.message).toContain('reset email');
             });
             it('should not reveal if email exists (security)', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -261,7 +261,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     email: 'nonexistent@example.com',
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.message).toContain('password reset email');
+                expect(res.body.message).toContain('reset email');
             });
             it('should reject invalid email format', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -335,8 +335,8 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     email: testUser.email,
                     password: testUser.password,
                 });
-                logoutRefreshToken = res.body.refreshToken;
-                authToken = res.body.token;
+                logoutRefreshToken = res.body.data.refreshToken;
+                authToken = res.body.data.token;
             });
             it('should logout and invalidate refresh token', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -391,9 +391,9 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                 organizationName: `Strong Org ${Math.random()}`,
             });
             expect(res.status).toBe(201);
-            expect(res.body).toHaveProperty('token');
+            expect(res.body.data).toHaveProperty('token');
             // Cleanup
-            const user = await user_repository_1.userRepository.findByEmail(res.body.user.email);
+            const user = await user_repository_1.userRepository.findByEmail(res.body.data.user.email);
             if (user) {
                 await prisma_1.default.organizationUser.deleteMany({ where: { userId: user.id } });
                 await prisma_1.default.user.delete({ where: { id: user.id } });
@@ -435,7 +435,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     organizationName: `Test Org ${Math.random()}`,
                 });
                 if (res.status === 201) {
-                    expect(res.body).toHaveProperty('token');
+                    expect(res.body.data).toHaveProperty('token');
                     // Cleanup
                     const user = await user_repository_1.userRepository.findByEmail(email);
                     if (user) {

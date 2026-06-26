@@ -47,7 +47,7 @@ class ApiResponse {
      * Send validation error response
      */
     static validationError(res, errors, message = constants_1.APP_CONSTANTS.MESSAGE.INVALID_INPUT) {
-        res.status(constants_1.APP_CONSTANTS.HTTP_STATUS.UNPROCESSABLE_ENTITY).json({
+        res.status(constants_1.APP_CONSTANTS.HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message,
             errors,
