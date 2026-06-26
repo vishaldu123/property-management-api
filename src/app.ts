@@ -3,6 +3,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/auth.routes';
 import organizationRoutes from './routes/organization.routes';
+import rbacRoutes from './routes/rbac.routes';
 import healthRoutes from './routes/health.routes';
 import propertyRoutes from './routes/property.routes';
 import unitRoutes from './routes/unit.routes';
@@ -80,6 +81,9 @@ apiV1Router.use('/auth', checkBruteForceLockout, createAuthRateLimiter(), authRo
 
 // Organization routes with authorization
 apiV1Router.use('/organizations', organizationRoutes);
+
+// RBAC routes (Role-Based Access Control)
+apiV1Router.use('/rbac', rbacRoutes);
 
 // Property management routes
 apiV1Router.use('/properties', propertyRoutes);

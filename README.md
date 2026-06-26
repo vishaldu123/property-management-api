@@ -4,7 +4,7 @@
 
 This repository contains a production-ready Node.js/TypeScript backend for a multi-tenant property management SaaS platform. Built with Express, Prisma ORM, and PostgreSQL, it provides enterprise-grade authentication, authorization, multi-tenancy, and organization management.
 
-### Current Phase: Sprint 3 - Organization Domain
+### Current Phase: Sprint 4 - Enterprise RBAC
 
 **Completed Phases:**
 - ✅ Phase 0: Project Structure & Setup
@@ -12,9 +12,9 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - ✅ Phase 2.1-2.6: Shared Infrastructure & Hardening
 - ✅ Phase 2.8: Platform Readiness (Authorization Framework, API Versioning, OpenAPI/Swagger, Health Checks)
 - ✅ Phase 3: Organization Domain Implementation (Settings, Branding, Preferences)
+- ✅ Phase 4: Enterprise RBAC (Role-Based Access Control) - NEW!
 
 **Upcoming:**
-- Phase 4: RBAC (Role-Based Access Control)
 - Phase 5: Property, Unit, Tenant, Lease, Payment modules
 
 ## Key Features
@@ -40,7 +40,59 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - **Organization Branding**: Customize colors, logos, favicon, theme, and CSS for each organization
 - **Organization Preferences**: Manage email notifications, communication digest frequency, 2FA settings, data retention, and backup frequency
 
-### 🔑 Authorization Framework
+### � Enterprise RBAC - Role-Based Access Control (Sprint 4)
+A complete, production-ready RBAC system with granular permission management:
+
+#### Permission System
+- **Flexible Permission Model**: Resource:action format (e.g., `property:read`, `lease:create`, `payment:approve`)
+- **Permission Management**: Create, read, update, delete permissions with descriptions
+- **Search & Pagination**: Query permissions with filters and sorting
+- **Audit Trail**: Track permission creation and modifications
+
+#### Role System
+- **Custom Role Creation**: Define roles tailored to organization needs
+- **Permission Assignment**: Assign multiple permissions to roles flexibly
+- **Role Templates**: Clone system roles to quickly create custom roles
+- **System Roles** (8 predefined):
+  - `super_admin`: Full platform access (all permissions)
+  - `organization_owner`: Organization-level owner with all org permissions
+  - `organization_admin`: Admin capabilities within organization
+  - `property_manager`: Property and unit management
+  - `accountant`: Payment and financial operations
+  - `maintenance_manager`: Maintenance request and issue tracking
+  - `staff`: Limited operational access
+  - `read_only`: View-only access across modules
+
+#### User Role Assignment
+- **Flexible Assignment**: Assign multiple roles to a user per organization
+- **Permission Aggregation**: Permissions are inherited from all assigned roles (union)
+- **Role Replacement**: Replace all roles for a user in a transaction
+- **Audit Tracking**: Track who assigned/removed roles and when
+
+#### Authorization Features
+- **Role-Based Checks**: Middleware to verify user has required roles
+- **Permission-Based Checks**: Middleware to verify user has required permissions
+- **Single/Multiple Permissions**: Check for any or all required permissions
+- **Organization Scope**: All RBAC operations scoped to organization
+- **Soft Deletes**: Roles and permissions use soft delete pattern
+
+#### API Endpoints (25+ endpoints)
+- Permission Management: `/api/v1/rbac/permissions` (CRUD + list/search)
+- Role Management: `/api/v1/rbac/roles` (CRUD + list/search + clone)
+- Role Permissions: `/api/v1/rbac/roles/:roleId/permissions` (assign/remove single and bulk)
+- User Roles: `/api/v1/rbac/users/roles` (assign/remove/replace)
+- User Permissions: `/api/v1/rbac/users/:userId/permissions` (get aggregated)
+
+#### Default Permission Matrix
+
+| Category | Permissions |
+|----------|-------------|
+| **RBAC Management** | `rbac:read_role`, `rbac:create_role`, `rbac:update_role`, `rbac:delete_role`, `rbac:read_permission`, `rbac:create_permission`, `rbac:update_permission`, `rbac:delete_permission`, `rbac:assign_permission`, `rbac:remove_permission`, `rbac:assign_role`, `rbac:remove_role` |
+| **Organization** | `organization:read`, `organization:update`, `organization:read_settings`, `organization:update_settings`, `organization:read_branding`, `organization:update_branding`, `organization:read_preferences`, `organization:update_preferences` |
+| **User Management** | `user:read`, `user:create`, `user:update`, `user:delete` |
+| **Reserved** | `system:admin` |
+
+### �🔑 Authorization Framework
 - Role-based authorization middleware (`requireRole`)
 - Permission-based authorization middleware (`requirePermission`)
 - Organization ownership verification (`requireOrganizationOwnership`)

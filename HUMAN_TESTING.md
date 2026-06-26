@@ -1,6 +1,6 @@
-# Human Testing Guide - Sprint 3
+# Human Testing Guide - Sprint 4
 
-This document provides step-by-step manual test cases for the Property Management API (Sprint 3 - Organization Domain). Each test includes request examples, expected responses, and validation notes.
+This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC). Each test includes request examples, expected responses, and validation notes.
 
 **API Base URL:** `http://localhost:5000`  
 **API Version:** `/api/v1`  
@@ -657,3 +657,257 @@ Verify:
 - All endpoints documented
 - Authentication schema present
 - Error responses defined
+
+---
+
+## Section 7: Enterprise RBAC (Sprint 4)
+
+### Prerequisites
+- Valid JWT token with organization scope (see Section 2: Authentication)
+- Organization ID for testing
+- Postman or curl for testing
+
+### Test 7.1: Create Permission
+**Endpoint:** `POST /api/v1/rbac/permissions`  
+**Auth:** Required (Bearer token)  
+**Expected:** `201 Created`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/rbac/permissions \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "property:read",
+    "description": "View property details"
+  }'
+```
+
+Expected response:
+```json
+{
+  "success": true,
+  "message": "Permission created successfully",
+  "data": {
+    "id": "uuid",
+    "organizationId": "uuid",
+    "key": "property:read",
+    "description": "View property details",
+    "createdAt": "2025-06-26T...",
+    "createdBy": "user-id"
+  }
+}
+```
+
+### Test 7.2: List Permissions with Pagination
+**Endpoint:** `GET /api/v1/rbac/permissions?page=1&limit=10`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET "http://localhost:5000/api/v1/rbac/permissions?page=1&limit=10&sort=createdAt:desc" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Test 7.3: Create Role
+**Endpoint:** `POST /api/v1/rbac/roles`  
+**Auth:** Required  
+**Expected:** `201 Created`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/rbac/roles \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "property_manager",
+    "name": "Property Manager",
+    "description": "Manages properties and tenants"
+  }'
+```
+
+### Test 7.4: Assign Permission to Role
+**Endpoint:** `POST /api/v1/rbac/roles/:roleId/permissions`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/rbac/roles/ROLE_UUID/permissions \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "permissionId": "PERMISSION_UUID"
+  }'
+```
+
+### Test 7.5: Assign Multiple Permissions to Role
+**Endpoint:** `POST /api/v1/rbac/roles/:roleId/permissions/bulk`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/rbac/roles/ROLE_UUID/permissions/bulk \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "permissionIds": [
+      "PERMISSION_UUID_1",
+      "PERMISSION_UUID_2"
+    ]
+  }'
+```
+
+### Test 7.6: Assign Role to User
+**Endpoint:** `POST /api/v1/rbac/users/roles`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/rbac/users/roles \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "USER_UUID",
+    "roleId": "ROLE_UUID"
+  }'
+```
+
+### Test 7.7: Get User Roles
+**Endpoint:** `GET /api/v1/rbac/users/:userId/roles`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET http://localhost:5000/api/v1/rbac/users/USER_UUID/roles \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Expected response:
+```json
+{
+  "success": true,
+  "message": "User roles retrieved successfully",
+  "data": [
+    {
+      "id": "uuid",
+      "organizationId": "uuid",
+      "userId": "uuid",
+      "roleId": "uuid",
+      "assignedAt": "2025-06-26T...",
+      "assignedBy": "user-id",
+      "role": {
+        "id": "uuid",
+        "key": "property_manager",
+        "name": "Property Manager",
+        "description": "Manages properties and tenants"
+      }
+    }
+  ]
+}
+```
+
+### Test 7.8: Get User Permissions (Aggregated)
+**Endpoint:** `GET /api/v1/rbac/users/:userId/permissions`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET http://localhost:5000/api/v1/rbac/users/USER_UUID/permissions \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Expected response shows all permissions inherited from all assigned roles, deduplicated.
+
+### Test 7.9: Clone Role
+**Endpoint:** `POST /api/v1/rbac/roles/:roleId/clone`  
+**Auth:** Required  
+**Expected:** `201 Created`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/rbac/roles/ORIGINAL_ROLE_UUID/clone \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "custom_property_manager",
+    "name": "Custom Property Manager"
+  }'
+```
+
+### Test 7.10: Replace User Roles (Update All)
+**Endpoint:** `PUT /api/v1/rbac/users/roles`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X PUT http://localhost:5000/api/v1/rbac/users/roles \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "USER_UUID",
+    "roleIds": [
+      "ROLE_UUID_1",
+      "ROLE_UUID_2"
+    ]
+  }'
+```
+
+### Test 7.11: Remove Permission from Role
+**Endpoint:** `DELETE /api/v1/rbac/roles/:roleId/permissions?permissionId=PERMISSION_UUID`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X DELETE "http://localhost:5000/api/v1/rbac/roles/ROLE_UUID/permissions?permissionId=PERMISSION_UUID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Test 7.12: Remove Role from User
+**Endpoint:** `DELETE /api/v1/rbac/users/:userId/roles?roleId=ROLE_UUID`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X DELETE "http://localhost:5000/api/v1/rbac/users/USER_UUID/roles?roleId=ROLE_UUID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Test 7.13: Search Permissions
+**Endpoint:** `GET /api/v1/rbac/permissions?search=property`  
+**Auth:** Required  
+**Expected:** `200 OK` with filtered results
+
+```bash
+curl -X GET "http://localhost:5000/api/v1/rbac/permissions?search=property&page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Test 7.14: Error Handling - Invalid Permission Format
+**Endpoint:** `POST /api/v1/rbac/permissions`  
+**Auth:** Required  
+**Expected:** `400 Bad Request`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/rbac/permissions \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "invalid_permission_format"
+  }'
+```
+
+Expected response shows validation error about permission key format (must be `resource:action`).
+
+### Test 7.15: Error Handling - Duplicate Role
+**Endpoint:** `POST /api/v1/rbac/roles`  
+**Auth:** Required  
+**Expected:** `400 Bad Request`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/rbac/roles \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "property_manager",
+    "name": "Property Manager (Duplicate)"
+  }'
+```
+
+Expected response shows error about role key already existing.
