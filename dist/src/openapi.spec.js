@@ -181,6 +181,161 @@ exports.openApiSpec = {
                     },
                 },
             },
+            Property: {
+                type: 'object',
+                properties: {
+                    id: {
+                        type: 'string',
+                        format: 'uuid',
+                        description: 'Unique property identifier',
+                    },
+                    organizationId: {
+                        type: 'string',
+                        format: 'uuid',
+                        description: 'Organization that owns this property',
+                    },
+                    name: {
+                        type: 'string',
+                        description: 'Property name',
+                        example: 'Downtown Office Building',
+                    },
+                    code: {
+                        type: 'string',
+                        description: 'Unique property code within organization',
+                        example: 'DT-OFFICE-001',
+                    },
+                    description: {
+                        type: 'string',
+                        description: 'Detailed property description',
+                        example: 'Modern office building with 24/7 security',
+                    },
+                    propertyType: {
+                        type: 'string',
+                        enum: ['Apartment', 'Villa', 'Commercial', 'Office', 'Retail', 'Warehouse', 'Mixed Use', 'Land'],
+                        description: 'Type of property',
+                    },
+                    status: {
+                        type: 'string',
+                        enum: ['Draft', 'Active', 'Inactive', 'Archived'],
+                        description: 'Current property status',
+                    },
+                    address: {
+                        type: 'string',
+                        description: 'Street address',
+                        example: '123 Main Street',
+                    },
+                    city: {
+                        type: 'string',
+                        description: 'City',
+                        example: 'New York',
+                    },
+                    state: {
+                        type: 'string',
+                        description: 'State or province',
+                        example: 'NY',
+                    },
+                    country: {
+                        type: 'string',
+                        description: 'Country',
+                        example: 'USA',
+                    },
+                    postalCode: {
+                        type: 'string',
+                        description: 'Postal code',
+                        example: '10001',
+                    },
+                    latitude: {
+                        type: 'number',
+                        format: 'double',
+                        description: 'Latitude coordinate (-90 to 90)',
+                        example: 40.7128,
+                    },
+                    longitude: {
+                        type: 'number',
+                        format: 'double',
+                        description: 'Longitude coordinate (-180 to 180)',
+                        example: -74.006,
+                    },
+                    timezone: {
+                        type: 'string',
+                        description: 'Property timezone',
+                        example: 'America/New_York',
+                    },
+                    totalUnits: {
+                        type: 'integer',
+                        description: 'Total number of units in property',
+                        example: 150,
+                    },
+                    yearBuilt: {
+                        type: 'integer',
+                        description: 'Year property was built',
+                        example: 2020,
+                    },
+                    notes: {
+                        type: 'string',
+                        description: 'Additional property notes',
+                    },
+                    createdBy: {
+                        type: 'string',
+                        format: 'uuid',
+                        description: 'ID of user who created this property',
+                    },
+                    updatedBy: {
+                        type: 'string',
+                        format: 'uuid',
+                        description: 'ID of user who last updated this property',
+                    },
+                    createdAt: {
+                        type: 'string',
+                        format: 'date-time',
+                        description: 'Property creation timestamp',
+                    },
+                    updatedAt: {
+                        type: 'string',
+                        format: 'date-time',
+                        description: 'Property last update timestamp',
+                    },
+                    deletedAt: {
+                        type: 'string',
+                        format: 'date-time',
+                        nullable: true,
+                        description: 'Property soft delete timestamp (null if not deleted)',
+                    },
+                },
+            },
+            PaginationMeta: {
+                type: 'object',
+                properties: {
+                    page: {
+                        type: 'integer',
+                        description: 'Current page number',
+                        example: 1,
+                    },
+                    limit: {
+                        type: 'integer',
+                        description: 'Items per page',
+                        example: 20,
+                    },
+                    total: {
+                        type: 'integer',
+                        description: 'Total number of items',
+                        example: 100,
+                    },
+                    totalPages: {
+                        type: 'integer',
+                        description: 'Total number of pages',
+                        example: 5,
+                    },
+                    hasNextPage: {
+                        type: 'boolean',
+                        description: 'Whether there is a next page',
+                    },
+                    hasPreviousPage: {
+                        type: 'boolean',
+                        description: 'Whether there is a previous page',
+                    },
+                },
+            },
         },
         responses: {
             UnauthorizedError: {
@@ -1567,6 +1722,652 @@ exports.openApiSpec = {
                     },
                     '404': {
                         $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/properties': {
+            post: {
+                tags: ['Properties'],
+                summary: 'Create a new property',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['name', 'code', 'propertyType', 'address', 'city', 'country', 'state', 'postalCode'],
+                                properties: {
+                                    name: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 255,
+                                        example: 'Downtown Office Building',
+                                    },
+                                    code: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 50,
+                                        pattern: '^[a-zA-Z0-9_-]+$',
+                                        example: 'DT-OFFICE-001',
+                                    },
+                                    description: {
+                                        type: 'string',
+                                        example: 'Modern office building',
+                                    },
+                                    propertyType: {
+                                        type: 'string',
+                                        enum: ['Apartment', 'Villa', 'Commercial', 'Office', 'Retail', 'Warehouse', 'Mixed Use', 'Land'],
+                                    },
+                                    status: {
+                                        type: 'string',
+                                        enum: ['Draft', 'Active', 'Inactive', 'Archived'],
+                                        default: 'Draft',
+                                    },
+                                    address: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 255,
+                                        example: '123 Main Street',
+                                    },
+                                    city: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 100,
+                                        example: 'New York',
+                                    },
+                                    state: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 100,
+                                        example: 'NY',
+                                    },
+                                    country: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 100,
+                                        example: 'USA',
+                                    },
+                                    postalCode: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 20,
+                                        example: '10001',
+                                    },
+                                    latitude: {
+                                        type: 'number',
+                                        minimum: -90,
+                                        maximum: 90,
+                                        example: 40.7128,
+                                    },
+                                    longitude: {
+                                        type: 'number',
+                                        minimum: -180,
+                                        maximum: 180,
+                                        example: -74.006,
+                                    },
+                                    timezone: {
+                                        type: 'string',
+                                        example: 'America/New_York',
+                                    },
+                                    totalUnits: {
+                                        type: 'integer',
+                                        minimum: 0,
+                                        example: 150,
+                                    },
+                                    yearBuilt: {
+                                        type: 'integer',
+                                        minimum: 1800,
+                                        example: 2020,
+                                    },
+                                    notes: {
+                                        type: 'string',
+                                        maxLength: 2000,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '201': {
+                        description: 'Property created successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: {
+                                            type: 'boolean',
+                                            example: true,
+                                        },
+                                        message: {
+                                            type: 'string',
+                                            example: 'Property created',
+                                        },
+                                        data: {
+                                            $ref: '#/components/schemas/Property',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        $ref: '#/components/responses/ValidationErrorResponse',
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '409': {
+                        description: 'Conflict - Property code already exists',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiErrorResponse',
+                                },
+                            },
+                        },
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            get: {
+                tags: ['Properties'],
+                summary: 'List all properties with pagination, filtering, and search',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'page',
+                        in: 'query',
+                        description: 'Page number (default: 1)',
+                        schema: {
+                            type: 'integer',
+                            minimum: 1,
+                            default: 1,
+                        },
+                    },
+                    {
+                        name: 'limit',
+                        in: 'query',
+                        description: 'Items per page (default: 20)',
+                        schema: {
+                            type: 'integer',
+                            minimum: 1,
+                            maximum: 100,
+                            default: 20,
+                        },
+                    },
+                    {
+                        name: 'search',
+                        in: 'query',
+                        description: 'Search by name, code, or city',
+                        schema: {
+                            type: 'string',
+                        },
+                    },
+                    {
+                        name: 'status',
+                        in: 'query',
+                        description: 'Filter by property status',
+                        schema: {
+                            type: 'string',
+                            enum: ['Draft', 'Active', 'Inactive', 'Archived'],
+                        },
+                    },
+                    {
+                        name: 'propertyType',
+                        in: 'query',
+                        description: 'Filter by property type',
+                        schema: {
+                            type: 'string',
+                            enum: ['Apartment', 'Villa', 'Commercial', 'Office', 'Retail', 'Warehouse', 'Mixed Use', 'Land'],
+                        },
+                    },
+                    {
+                        name: 'country',
+                        in: 'query',
+                        description: 'Filter by country',
+                        schema: {
+                            type: 'string',
+                        },
+                    },
+                    {
+                        name: 'sortBy',
+                        in: 'query',
+                        description: 'Sort field (createdAt, name, status, propertyType)',
+                        schema: {
+                            type: 'string',
+                            enum: ['createdAt', 'name', 'status', 'propertyType'],
+                            default: 'createdAt',
+                        },
+                    },
+                    {
+                        name: 'sortOrder',
+                        in: 'query',
+                        description: 'Sort order',
+                        schema: {
+                            type: 'string',
+                            enum: ['asc', 'desc'],
+                            default: 'desc',
+                        },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Properties retrieved successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: {
+                                            type: 'boolean',
+                                            example: true,
+                                        },
+                                        message: {
+                                            type: 'string',
+                                            example: 'Properties retrieved',
+                                        },
+                                        data: {
+                                            type: 'array',
+                                            items: {
+                                                $ref: '#/components/schemas/Property',
+                                            },
+                                        },
+                                        meta: {
+                                            $ref: '#/components/schemas/PaginationMeta',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        $ref: '#/components/responses/ValidationErrorResponse',
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/properties/stats': {
+            get: {
+                tags: ['Properties'],
+                summary: 'Get property statistics for organization',
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    '200': {
+                        description: 'Property statistics retrieved successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: {
+                                            type: 'boolean',
+                                            example: true,
+                                        },
+                                        message: {
+                                            type: 'string',
+                                            example: 'Property statistics retrieved',
+                                        },
+                                        data: {
+                                            type: 'object',
+                                            properties: {
+                                                total: {
+                                                    type: 'integer',
+                                                    example: 25,
+                                                },
+                                                byStatus: {
+                                                    type: 'object',
+                                                    additionalProperties: {
+                                                        type: 'integer',
+                                                    },
+                                                },
+                                                byType: {
+                                                    type: 'object',
+                                                    additionalProperties: {
+                                                        type: 'integer',
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/properties/{id}': {
+            get: {
+                tags: ['Properties'],
+                summary: 'Get property by ID',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'id',
+                        in: 'path',
+                        required: true,
+                        description: 'Property ID (UUID)',
+                        schema: {
+                            type: 'string',
+                            format: 'uuid',
+                        },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Property retrieved successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: {
+                                            type: 'boolean',
+                                            example: true,
+                                        },
+                                        message: {
+                                            type: 'string',
+                                            example: 'Property retrieved',
+                                        },
+                                        data: {
+                                            $ref: '#/components/schemas/Property',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        $ref: '#/components/responses/ValidationErrorResponse',
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            put: {
+                tags: ['Properties'],
+                summary: 'Update property',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'id',
+                        in: 'path',
+                        required: true,
+                        description: 'Property ID (UUID)',
+                        schema: {
+                            type: 'string',
+                            format: 'uuid',
+                        },
+                    },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    name: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 255,
+                                    },
+                                    code: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 50,
+                                        pattern: '^[a-zA-Z0-9_-]+$',
+                                    },
+                                    description: {
+                                        type: 'string',
+                                    },
+                                    propertyType: {
+                                        type: 'string',
+                                        enum: ['Apartment', 'Villa', 'Commercial', 'Office', 'Retail', 'Warehouse', 'Mixed Use', 'Land'],
+                                    },
+                                    status: {
+                                        type: 'string',
+                                        enum: ['Draft', 'Active', 'Inactive', 'Archived'],
+                                    },
+                                    address: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 255,
+                                    },
+                                    city: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 100,
+                                    },
+                                    state: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 100,
+                                    },
+                                    country: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 100,
+                                    },
+                                    postalCode: {
+                                        type: 'string',
+                                        minLength: 1,
+                                        maxLength: 20,
+                                    },
+                                    latitude: {
+                                        type: 'number',
+                                        minimum: -90,
+                                        maximum: 90,
+                                    },
+                                    longitude: {
+                                        type: 'number',
+                                        minimum: -180,
+                                        maximum: 180,
+                                    },
+                                    timezone: {
+                                        type: 'string',
+                                    },
+                                    totalUnits: {
+                                        type: 'integer',
+                                        minimum: 0,
+                                    },
+                                    yearBuilt: {
+                                        type: 'integer',
+                                        minimum: 1800,
+                                    },
+                                    notes: {
+                                        type: 'string',
+                                        maxLength: 2000,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': {
+                        description: 'Property updated successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: {
+                                            type: 'boolean',
+                                            example: true,
+                                        },
+                                        message: {
+                                            type: 'string',
+                                            example: 'Property updated',
+                                        },
+                                        data: {
+                                            $ref: '#/components/schemas/Property',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        $ref: '#/components/responses/ValidationErrorResponse',
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '409': {
+                        description: 'Conflict - Property code already exists',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiErrorResponse',
+                                },
+                            },
+                        },
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+            delete: {
+                tags: ['Properties'],
+                summary: 'Delete property (soft delete)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'id',
+                        in: 'path',
+                        required: true,
+                        description: 'Property ID (UUID)',
+                        schema: {
+                            type: 'string',
+                            format: 'uuid',
+                        },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Property deleted successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: {
+                                            type: 'boolean',
+                                            example: true,
+                                        },
+                                        message: {
+                                            type: 'string',
+                                            example: 'Property deleted',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        $ref: '#/components/responses/ValidationErrorResponse',
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        $ref: '#/components/responses/NotFoundError',
+                    },
+                    '500': {
+                        $ref: '#/components/responses/InternalServerError',
+                    },
+                },
+            },
+        },
+        '/api/v1/properties/{id}/restore': {
+            patch: {
+                tags: ['Properties'],
+                summary: 'Restore deleted property',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: 'id',
+                        in: 'path',
+                        required: true,
+                        description: 'Property ID (UUID)',
+                        schema: {
+                            type: 'string',
+                            format: 'uuid',
+                        },
+                    },
+                ],
+                responses: {
+                    '200': {
+                        description: 'Property restored successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: {
+                                            type: 'boolean',
+                                            example: true,
+                                        },
+                                        message: {
+                                            type: 'string',
+                                            example: 'Property restored',
+                                        },
+                                        data: {
+                                            $ref: '#/components/schemas/Property',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    '400': {
+                        $ref: '#/components/responses/ValidationErrorResponse',
+                    },
+                    '401': {
+                        $ref: '#/components/responses/UnauthorizedError',
+                    },
+                    '404': {
+                        description: 'Not Found - Property not found or not deleted',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/ApiErrorResponse',
+                                },
+                            },
+                        },
                     },
                     '500': {
                         $ref: '#/components/responses/InternalServerError',

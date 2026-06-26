@@ -13,12 +13,13 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - ✅ Phase 2.8: Platform Readiness (Authorization Framework, API Versioning, OpenAPI/Swagger, Health Checks)
 - ✅ Phase 3: Organization Domain Implementation (Settings, Branding, Preferences)
 - ✅ Phase 4: Enterprise RBAC (Role-Based Access Control)
+- ✅ Phase 5: Property Domain Implementation (CRUD, Search, Filtering, Pagination, Statistics)
 
 **Completed Phases - Frontend:**
 - ✅ Sprint UI-1: Enterprise React Foundation (React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui)
 
 **Upcoming:**
-- Phase 5: Property, Unit, Tenant, Lease, Payment modules (backend & frontend)
+- Phase 6: Unit, Tenant, Lease, Payment modules (backend & frontend)
 
 ## Key Features
 
@@ -123,6 +124,100 @@ A complete, production-ready RBAC system with granular permission management:
 - Pagination & filtering framework
 - Custom exception classes
 - Base repository pattern for CRUD operations
+
+### 🏠 Property Domain (Sprint 5)
+Complete property management system with comprehensive CRUD operations, advanced filtering, search, and statistics:
+
+#### Core Features
+- **Full CRUD Operations**: Create, retrieve, update, delete, and restore properties
+- **Soft Delete & Restore**: All deleted properties remain recoverable
+- **Property Types**: Apartment, Villa, Commercial, Office, Retail, Warehouse, Mixed Use, Land
+- **Property Status**: Draft, Active, Inactive, Archived
+- **Geographic Data**: Full address, coordinates (latitude/longitude), timezone support
+- **Metadata**: Total units, year built, notes, audit fields (createdBy, updatedBy)
+
+#### Search & Filtering
+- **Full-Text Search**: Search by property name, code, city, or country
+- **Status Filtering**: Filter by property status (Draft, Active, Inactive, Archived)
+- **Type Filtering**: Filter by property type (8 types supported)
+- **Geographic Filtering**: Filter by country
+- **Sorting**: Sort by creation date, name, status, or property type (ascending/descending)
+
+#### Pagination & Performance
+- **Cursor-based Pagination**: Efficient pagination with configurable page size (1-100 items)
+- **Metadata**: Total count, total pages, has next/previous indicators
+- **Optimized Queries**: Database indexes on organizationId, status, type, location, dates
+
+#### API Endpoints
+- `POST /api/v1/properties` - Create property
+- `GET /api/v1/properties` - List properties (with filters, search, pagination)
+- `GET /api/v1/properties/stats` - Get organization property statistics
+- `GET /api/v1/properties/:id` - Get property by ID
+- `PUT /api/v1/properties/:id` - Update property
+- `DELETE /api/v1/properties/:id` - Soft delete property
+- `PATCH /api/v1/properties/:id/restore` - Restore deleted property
+
+#### Request Example
+```bash
+# Create a property
+curl -X POST http://localhost:5000/api/v1/properties \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Downtown Office",
+    "code": "DT-OFFICE-001",
+    "propertyType": "Commercial",
+    "status": "Active",
+    "address": "123 Main St",
+    "city": "New York",
+    "state": "NY",
+    "country": "USA",
+    "postalCode": "10001",
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "totalUnits": 150,
+    "yearBuilt": 2020
+  }'
+
+# List properties with filters
+curl "http://localhost:5000/api/v1/properties?page=1&limit=20&status=Active&country=USA&search=Downtown" \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Response Format
+```json
+{
+  "success": true,
+  "message": "Properties retrieved",
+  "data": [
+    {
+      "id": "uuid",
+      "organizationId": "uuid",
+      "name": "Downtown Office",
+      "code": "DT-OFFICE-001",
+      "propertyType": "Commercial",
+      "status": "Active",
+      "address": "123 Main St",
+      "city": "New York",
+      "country": "USA",
+      "latitude": 40.7128,
+      "longitude": -74.0060,
+      "totalUnits": 150,
+      "yearBuilt": 2020,
+      "createdAt": "2026-06-26T18:00:00Z",
+      "createdBy": "user-id"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 45,
+    "totalPages": 3,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
 
 ### ✅ Testing
 - Comprehensive end-to-end tests (100+ passing tests)
