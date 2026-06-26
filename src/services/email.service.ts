@@ -147,6 +147,51 @@ Property Management Team
       text,
     });
   }
+
+  /**
+   * Send invitation email
+   */
+  async sendInvitationEmail(payload: {
+    email: string;
+    organizationName: string;
+    inviteLink: string;
+    inviterName: string;
+  }): Promise<void> {
+    const html = `
+      <h2>You're Invited to Join ${payload.organizationName}</h2>
+      <p>Hello,</p>
+      <p>${payload.inviterName} has invited you to join ${payload.organizationName} on Property Management Platform.</p>
+      <p><a href="${payload.inviteLink}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Accept Invitation</a></p>
+      <p>This invitation link will expire in 7 days.</p>
+      <p>If you did not expect this invitation, you can safely ignore this email.</p>
+      <p>Best regards,<br>Property Management Team</p>
+    `;
+
+    const text = `
+You're Invited to Join ${payload.organizationName}
+
+Hello,
+
+${payload.inviterName} has invited you to join ${payload.organizationName} on Property Management Platform.
+
+Accept your invitation here:
+${payload.inviteLink}
+
+This invitation link will expire in 7 days.
+
+If you did not expect this invitation, you can safely ignore this email.
+
+Best regards,
+Property Management Team
+    `;
+
+    await this.send({
+      to: payload.email,
+      subject: `Invitation to join ${payload.organizationName}`,
+      html,
+      text,
+    });
+  }
 }
 
 export const emailService = new EmailService();
