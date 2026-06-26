@@ -5,8 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const organization_routes_1 = __importDefault(require("./routes/organization.routes"));
+const health_routes_1 = __importDefault(require("./routes/health.routes"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const helmet_middleware_1 = require("./middleware/helmet.middleware");
 const cors_middleware_1 = require("./middleware/cors.middleware");
@@ -14,6 +16,7 @@ const rate_limit_middleware_1 = require("./middleware/rate-limit.middleware");
 const brute_force_middleware_1 = require("./middleware/brute-force.middleware");
 const response_1 = require("./shared/core/response");
 const environment_1 = require("./config/environment");
+const openapi_spec_1 = __importDefault(require("./openapi.spec"));
 const envPath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
 dotenv_1.default.config({ path: envPath });
 const app = (0, express_1.default)();
@@ -40,11 +43,23 @@ app.get('/', (req, res) => {
         version: environment_1.config.appVersion,
     }, 'Property Management API is healthy');
 });
-// API Routes
+// Health check routes (no auth required)
+app.use('/health', health_routes_1.default);
+// API Documentation - Swagger UI
+app.use('/api-docs', swagger_ui_express_1.default.serve);
+app.get('/api-docs', swagger_ui_express_1.default.setup(openapi_spec_1.default, { swaggerOptions: { persistAuthorization: true } }));
+// OpenAPI specification endpoint
+app.get('/openapi.json', (req, res) => {
+    res.json(openapi_spec_1.default);
+});
+// API Routes (versioned)
+const apiV1Router = express_1.default.Router();
 // Authentication routes with specific rate limiting and brute-force protection
-app.use('/api/auth', brute_force_middleware_1.checkBruteForceLockout, (0, rate_limit_middleware_1.createAuthRateLimiter)(), auth_routes_1.default);
-// Organization routes
-app.use('/api/organizations', organization_routes_1.default);
+apiV1Router.use('/auth', brute_force_middleware_1.checkBruteForceLockout, (0, rate_limit_middleware_1.createAuthRateLimiter)(), auth_routes_1.default);
+// Organization routes with authorization
+apiV1Router.use('/organizations', organization_routes_1.default);
+// Mount versioned routes
+app.use('/api/v1', apiV1Router);
 // 404 handler
 app.use((req, res) => {
     response_1.ApiResponse.error(res, 'Route not found', 404);

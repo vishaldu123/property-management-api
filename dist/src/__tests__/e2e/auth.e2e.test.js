@@ -38,10 +38,10 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
         await prisma_1.default.$disconnect();
     });
     describe('Authentication Workflow', () => {
-        describe('POST /api/auth/register', () => {
+        describe('POST /api/v1/auth/register', () => {
             it('should register a new user successfully', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/register')
+                    .post('/api/v1/auth/register')
                     .send(testUser);
                 expect(res.status).toBe(201);
                 expect(res.body.data).toHaveProperty('token');
@@ -60,7 +60,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject registration with invalid email', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/register')
+                    .post('/api/v1/auth/register')
                     .send({
                     ...testUser,
                     email: 'invalid-email',
@@ -70,7 +70,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject registration with weak password', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/register')
+                    .post('/api/v1/auth/register')
                     .send({
                     ...testUser,
                     email: 'another.user@example.com',
@@ -81,16 +81,16 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject duplicate email registration', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/register')
+                    .post('/api/v1/auth/register')
                     .send(testUser);
                 expect(res.status).toBe(400);
                 expect(res.body.message).toBe('Validation failed');
             });
         });
-        describe('POST /api/auth/login', () => {
+        describe('POST /api/v1/auth/login', () => {
             it('should login successfully', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/login')
+                    .post('/api/v1/auth/login')
                     .send({
                     email: testUser.email,
                     password: testUser.password,
@@ -102,7 +102,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject login with invalid email', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/login')
+                    .post('/api/v1/auth/login')
                     .send({
                     email: 'nonexistent@example.com',
                     password: testUser.password,
@@ -112,7 +112,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject login with wrong password', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/login')
+                    .post('/api/v1/auth/login')
                     .send({
                     email: testUser.email,
                     password: 'WrongPassword123!',
@@ -121,10 +121,10 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                 expect(res.body.message).toBe('Invalid credentials');
             });
         });
-        describe('GET /api/auth/me', () => {
+        describe('GET /api/v1/auth/me', () => {
             it('should get current user info when authenticated', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .get('/api/auth/me')
+                    .get('/api/v1/auth/me')
                     .set('Authorization', `Bearer ${authToken}`);
                 expect(res.status).toBe(200);
                 expect(res.body.data.user).toMatchObject({
@@ -135,20 +135,20 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject without authentication', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .get('/api/auth/me');
+                    .get('/api/v1/auth/me');
                 expect(res.status).toBe(401);
             });
             it('should reject with invalid token', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .get('/api/auth/me')
+                    .get('/api/v1/auth/me')
                     .set('Authorization', 'Bearer invalid.token.here');
                 expect(res.status).toBe(401);
             });
         });
-        describe('POST /api/auth/refresh-token', () => {
+        describe('POST /api/v1/auth/refresh-token', () => {
             it('should generate new token with valid refresh token', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/refresh-token')
+                    .post('/api/v1/auth/refresh-token')
                     .send({ refreshToken });
                 expect(res.status).toBe(200);
                 expect(res.body.data).toHaveProperty('token');
@@ -160,7 +160,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject with invalid refresh token', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/refresh-token')
+                    .post('/api/v1/auth/refresh-token')
                     .send({ refreshToken: 'invalid.token' });
                 expect(res.status).toBe(401);
                 expect(res.body.message).toContain('Invalid or expired');
@@ -169,13 +169,13 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                 // Get initial token count
                 const oldToken = refreshToken;
                 const res1 = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/refresh-token')
+                    .post('/api/v1/auth/refresh-token')
                     .send({ refreshToken: oldToken });
                 expect(res1.status).toBe(200);
                 const newToken = res1.body.data.refreshToken;
                 // Old token should be revoked
                 const res2 = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/refresh-token')
+                    .post('/api/v1/auth/refresh-token')
                     .send({ refreshToken: oldToken });
                 expect(res2.status).toBe(401);
                 // Update for next test
@@ -183,11 +183,11 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                 refreshToken = newToken;
             });
         });
-        describe('POST /api/auth/change-password', () => {
+        describe('POST /api/v1/auth/change-password', () => {
             it('should change password when authenticated', async () => {
                 const newPassword = 'NewSecurePassword456!';
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/change-password')
+                    .post('/api/v1/auth/change-password')
                     .set('Authorization', `Bearer ${authToken}`)
                     .send({
                     currentPassword: testUser.password,
@@ -201,7 +201,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject with incorrect current password', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/change-password')
+                    .post('/api/v1/auth/change-password')
                     .set('Authorization', `Bearer ${authToken}`)
                     .send({
                     currentPassword: 'WrongPassword123!',
@@ -213,7 +213,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject mismatched password confirmation', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/change-password')
+                    .post('/api/v1/auth/change-password')
                     .set('Authorization', `Bearer ${authToken}`)
                     .send({
                     currentPassword: testUser.password,
@@ -224,7 +224,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject if new password same as current', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/change-password')
+                    .post('/api/v1/auth/change-password')
                     .set('Authorization', `Bearer ${authToken}`)
                     .send({
                     currentPassword: testUser.password,
@@ -235,7 +235,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should require authentication', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/change-password')
+                    .post('/api/v1/auth/change-password')
                     .send({
                     currentPassword: testUser.password,
                     newPassword: 'NewPassword789!',
@@ -244,10 +244,10 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                 expect(res.status).toBe(401);
             });
         });
-        describe('POST /api/auth/forgot-password', () => {
+        describe('POST /api/v1/auth/forgot-password', () => {
             it('should handle forgot password request', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/forgot-password')
+                    .post('/api/v1/auth/forgot-password')
                     .send({
                     email: testUser.email,
                 });
@@ -256,7 +256,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should not reveal if email exists (security)', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/forgot-password')
+                    .post('/api/v1/auth/forgot-password')
                     .send({
                     email: 'nonexistent@example.com',
                 });
@@ -265,14 +265,14 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject invalid email format', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/forgot-password')
+                    .post('/api/v1/auth/forgot-password')
                     .send({
                     email: 'invalid-email',
                 });
                 expect(res.status).toBe(400);
             });
         });
-        describe('POST /api/auth/reset-password', () => {
+        describe('POST /api/v1/auth/reset-password', () => {
             let resetToken;
             beforeAll(async () => {
                 // Create a reset token directly in database
@@ -289,7 +289,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             it('should reset password with valid token', async () => {
                 const newPassword = 'FinalNewPassword321!';
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/reset-password')
+                    .post('/api/v1/auth/reset-password')
                     .send({
                     token: resetToken,
                     password: newPassword,
@@ -298,7 +298,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                 expect(res.body.message).toContain('successfully');
                 // Verify new password works
                 const loginRes = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/login')
+                    .post('/api/v1/auth/login')
                     .send({
                     email: testUser.email,
                     password: newPassword,
@@ -308,7 +308,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject reuse of same reset token', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/reset-password')
+                    .post('/api/v1/auth/reset-password')
                     .send({
                     token: resetToken,
                     password: 'AnotherPassword789!',
@@ -317,7 +317,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should reject invalid reset token', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/reset-password')
+                    .post('/api/v1/auth/reset-password')
                     .send({
                     token: 'invalid.token.here',
                     password: 'NewPassword789!',
@@ -325,12 +325,12 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                 expect(res.status).toBe(401);
             });
         });
-        describe('POST /api/auth/logout', () => {
+        describe('POST /api/v1/auth/logout', () => {
             let logoutRefreshToken;
             beforeAll(async () => {
                 // Login to get fresh tokens
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/login')
+                    .post('/api/v1/auth/login')
                     .send({
                     email: testUser.email,
                     password: testUser.password,
@@ -340,20 +340,20 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             });
             it('should logout and invalidate refresh token', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/logout')
+                    .post('/api/v1/auth/logout')
                     .set('Authorization', `Bearer ${authToken}`)
                     .send({ refreshToken: logoutRefreshToken });
                 expect(res.status).toBe(200);
                 expect(res.body.message).toContain('successfully');
                 // Try to use revoked refresh token
                 const res2 = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/refresh-token')
+                    .post('/api/v1/auth/refresh-token')
                     .send({ refreshToken: logoutRefreshToken });
                 expect(res2.status).toBe(401);
             });
             it('should require authentication to logout', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/logout')
+                    .post('/api/v1/auth/logout')
                     .send({ refreshToken: 'some.token' });
                 expect(res.status).toBe(401);
             });
@@ -370,7 +370,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
         testCases.forEach(({ password, description }) => {
             it(`should reject password that is ${description}`, async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/register')
+                    .post('/api/v1/auth/register')
                     .send({
                     name: 'Another User',
                     email: `test${Math.random()}@example.com`,
@@ -383,7 +383,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
         });
         it('should accept valid strong password', async () => {
             const res = await (0, supertest_1.default)(app_1.default)
-                .post('/api/auth/register')
+                .post('/api/v1/auth/register')
                 .send({
                 name: 'Strong Password User',
                 email: `strong${Math.random()}@example.com`,
@@ -410,7 +410,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             ];
             for (const email of invalidEmails) {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/register')
+                    .post('/api/v1/auth/register')
                     .send({
                     name: 'Test User',
                     email,
@@ -427,7 +427,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
             ];
             for (const email of validEmails) {
                 const res = await (0, supertest_1.default)(app_1.default)
-                    .post('/api/auth/register')
+                    .post('/api/v1/auth/register')
                     .send({
                     name: 'Test User',
                     email,
