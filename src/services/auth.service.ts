@@ -34,18 +34,49 @@ interface AuthToken {
 }
 
 interface AuthResponse {
-  token: string;
-  refreshToken?: string;
   user: {
     id: string;
-    name: string;
     email: string;
+    firstName: string;
+    lastName: string;
+    displayName?: string;
+    avatar?: string;
+    roles: Array<{
+      id: string;
+      userId: string;
+      organizationId: string;
+      roleId: string;
+      role?: {
+        id: string;
+        organizationId: string;
+        name: string;
+        description?: string;
+      };
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    organizations: Array<{
+      id: string;
+      userId: string;
+      organizationId: string;
+      joinedAt: string;
+      organization?: {
+        id: string;
+        name: string;
+        slug: string;
+        description?: string;
+        logo?: string;
+        favicon?: string;
+        ownerId: string;
+        createdAt: string;
+        updatedAt: string;
+      };
+    }>;
+    createdAt: string;
+    updatedAt: string;
   };
-  organization: {
-    id: string;
-    name: string;
-    slug: string;
-  };
+  accessToken: string;
+  refreshToken: string;
 }
 
 interface CurrentUserResponse {
@@ -127,19 +158,55 @@ export class AuthService {
 
       logger.info('User registered successfully', { userId: result.user.id, organizationId: result.organization.id });
 
+      // Get full user data with roles and organizations
+      const fullUser = await prisma.user.findUnique({
+        where: { id: result.user.id },
+        include: {
+          userRoles: {
+            include: {
+              role: true,
+            },
+          },
+          memberships: {
+            include: {
+              organization: true,
+            },
+          },
+        },
+      });
+
+      // Transform user data to match frontend User interface
+      const transformedUser = {
+        id: fullUser!.id,
+        email: fullUser!.email,
+        firstName: fullUser!.name.split(' ')[0],
+        lastName: fullUser!.name.split(' ').slice(1).join(' ') || '',
+        displayName: fullUser!.name,
+        avatar: undefined,
+        roles: fullUser!.userRoles.map((ur: any) => ({
+          id: ur.id,
+          userId: ur.userId,
+          organizationId: ur.organizationId,
+          roleId: ur.roleId,
+          role: ur.role,
+          createdAt: ur.createdAt.toISOString(),
+          updatedAt: ur.updatedAt.toISOString(),
+        })),
+        organizations: fullUser!.memberships.map((m: any) => ({
+          id: m.id,
+          userId: m.userId,
+          organizationId: m.organizationId,
+          joinedAt: m.joinedAt.toISOString(),
+          organization: m.organization,
+        })),
+        createdAt: fullUser!.createdAt.toISOString(),
+        updatedAt: fullUser!.updatedAt.toISOString(),
+      };
+
       return {
-        token: accessToken,
+        user: transformedUser,
+        accessToken,
         refreshToken,
-        user: {
-          id: result.user.id,
-          name: result.user.name,
-          email: result.user.email,
-        },
-        organization: {
-          id: result.organization.id,
-          name: result.organization.name,
-          slug: result.organization.slug,
-        },
       };
     } catch (error) {
       logger.error('Registration failed', error as Error, { email });
@@ -153,25 +220,43 @@ export class AuthService {
     logger.debug('Login attempt', { email });
 
     // Find user with memberships
-    const user = await userRepository.findWithMemberships(
-      (await userRepository.findByEmail(email))?.id || ''
-    );
+    const userResult = await userRepository.findByEmail(email);
+    if (!userResult) {
+      logger.warn('Login failed - user not found', { email });
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    // Verify password
+    const passwordMatches = await bcrypt.compare(password, userResult.password);
+    if (!passwordMatches) {
+      logger.warn('Login failed - invalid password', { email });
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    // Get full user data with roles and organizations
+    const user = await prisma.user.findUnique({
+      where: { id: userResult.id },
+      include: {
+        userRoles: {
+          include: {
+            role: true,
+          },
+        },
+        memberships: {
+          include: {
+            organization: true,
+          },
+        },
+      },
+    });
 
     if (!user || user.memberships.length === 0) {
       logger.warn('Login failed - user not found or no memberships', { email });
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    // Verify password
-    const passwordMatches = await bcrypt.compare(password, user.password);
-    if (!passwordMatches) {
-      logger.warn('Login failed - invalid password', { email });
-      throw new UnauthorizedError('Invalid credentials');
-    }
-
-    // Get first organization membership
+    // Generate tokens
     const membership = user.memberships[0];
-
     const accessToken = this.generateAccessToken({
       userId: user.id,
       organizationId: membership.organizationId,
@@ -181,23 +266,42 @@ export class AuthService {
 
     logger.info('User logged in successfully', { userId: user.id });
 
+    // Transform user data to match frontend User interface
+    const transformedUser = {
+      id: user.id,
+      email: user.email,
+      firstName: user.name.split(' ')[0],
+      lastName: user.name.split(' ').slice(1).join(' ') || '',
+      displayName: user.name,
+      avatar: undefined,
+      roles: user.userRoles.map((ur: any) => ({
+        id: ur.id,
+        userId: ur.userId,
+        organizationId: ur.organizationId,
+        roleId: ur.roleId,
+        role: ur.role,
+        createdAt: ur.createdAt.toISOString(),
+        updatedAt: ur.updatedAt.toISOString(),
+      })),
+      organizations: user.memberships.map((m: any) => ({
+        id: m.id,
+        userId: m.userId,
+        organizationId: m.organizationId,
+        joinedAt: m.joinedAt.toISOString(),
+        organization: m.organization,
+      })),
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+    };
+
     return {
-      token: accessToken,
+      user: transformedUser,
+      accessToken,
       refreshToken,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-      organization: {
-        id: membership.organization.id,
-        name: membership.organization.name,
-        slug: membership.organization.slug,
-      },
     };
   }
 
-  async refreshToken(refreshToken: string): Promise<{ token: string; refreshToken: string }> {
+  async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     logger.debug('Refreshing token');
 
     // Verify refresh token exists and is valid
@@ -231,7 +335,7 @@ export class AuthService {
     logger.info('Token refreshed successfully', { userId: user.id });
 
     return {
-      token: newAccessToken,
+      accessToken: newAccessToken,
       refreshToken: newRefreshToken,
     };
   }
@@ -358,34 +462,60 @@ export class AuthService {
     }
   }
 
-  async getCurrentUser(userId: string, organizationId: string): Promise<CurrentUserResponse> {
+  async getCurrentUser(userId: string, organizationId: string): Promise<{ user: any }> {
     logger.debug('Get current user', { userId });
 
-    const user = await userRepository.findById(userId);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        userRoles: {
+          include: {
+            role: true,
+          },
+        },
+        memberships: {
+          include: {
+            organization: true,
+          },
+        },
+      },
+    });
 
     if (!user) {
       logger.warn('User not found', { userId });
       throw new NotFoundError('User not found');
     }
 
-    const organization = await organizationRepository.findById(organizationId);
-
-    if (!organization) {
-      logger.warn('Organization not found', { organizationId });
-      throw new NotFoundError('Organization not found');
-    }
+    // Transform user data to match frontend User interface
+    const transformedUser = {
+      id: user.id,
+      email: user.email,
+      firstName: user.name.split(' ')[0],
+      lastName: user.name.split(' ').slice(1).join(' ') || '',
+      displayName: user.name,
+      avatar: undefined,
+      roles: user.userRoles.map((ur: any) => ({
+        id: ur.id,
+        userId: ur.userId,
+        organizationId: ur.organizationId,
+        roleId: ur.roleId,
+        role: ur.role,
+        createdAt: ur.createdAt.toISOString(),
+        updatedAt: ur.updatedAt.toISOString(),
+      })),
+      organizations: user.memberships.map((m: any) => ({
+        id: m.id,
+        userId: m.userId,
+        organizationId: m.organizationId,
+        joinedAt: m.joinedAt.toISOString(),
+        organization: m.organization,
+      })),
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+    };
 
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-      organization: {
-        id: organization.id,
-        name: organization.name,
-        slug: organization.slug,
-      },
+      user: transformedUser,
     };
   }
 

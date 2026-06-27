@@ -37,11 +37,15 @@ export const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      console.log('[LoginPage] Form submitted with email:', data.email)
       setError(null)
       setIsLoading(true)
+      console.log('[LoginPage] Calling login function...')
       await login(data.email, data.password)
+      console.log('[LoginPage] Login succeeded, navigating to /dashboard')
       navigate('/dashboard')
     } catch (err) {
+      console.error('[LoginPage] Login error:', err)
       if (isApiError(err)) {
         setError(err.response?.data?.message || 'Login failed')
       } else {
