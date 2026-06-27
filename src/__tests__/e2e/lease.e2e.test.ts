@@ -4,6 +4,7 @@ import app from '../../app';
 import prisma from '../../config/prisma';
 
 const DAYS_AFTER_EXISTING_ACTIVE_LEASE = 366;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 describe('Lease Domain E2E Tests', () => {
   let authToken: string;
@@ -363,8 +364,8 @@ describe('Lease Domain E2E Tests', () => {
     });
 
     it('should renew lease with new dates', async () => {
-      const newStartDate = new Date(Date.now() + DAYS_AFTER_EXISTING_ACTIVE_LEASE * 24 * 60 * 60 * 1000);
-      const newEndDate = new Date(newStartDate.getTime() + 365 * 24 * 60 * 60 * 1000);
+      const newStartDate = new Date(Date.now() + DAYS_AFTER_EXISTING_ACTIVE_LEASE * MILLISECONDS_PER_DAY);
+      const newEndDate = new Date(newStartDate.getTime() + 365 * MILLISECONDS_PER_DAY);
 
       const res = await request(app)
         .post(`/api/v1/leases/${renewableLeaseId}/renew`)
