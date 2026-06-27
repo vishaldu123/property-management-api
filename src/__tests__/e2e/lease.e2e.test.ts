@@ -20,7 +20,7 @@ describe('Lease Domain E2E Tests', () => {
         name: 'Lease Test User',
         email: `lease-test-${Date.now()}@example.com`,
         password: 'TestPassword123!',
-        organizationName: 'Lease Test Org',
+        organizationName: `Lease Test Org ${Date.now()}`,
       });
 
     userId = registerRes.body.data.user.id;
@@ -354,14 +354,14 @@ describe('Lease Domain E2E Tests', () => {
           monthlyRent: 1500,
           securityDeposit: 3000,
           renewalOption: true,
-          status: 'Active',
+          status: 'Draft',
         });
 
       renewableLeaseId = res.body.data.id;
     });
 
     it('should renew lease with new dates', async () => {
-      const newStartDate = new Date();
+      const newStartDate = new Date(Date.now() + 366 * 24 * 60 * 60 * 1000);
       const newEndDate = new Date(newStartDate.getTime() + 365 * 24 * 60 * 60 * 1000);
 
       const res = await request(app)
@@ -396,7 +396,7 @@ describe('Lease Domain E2E Tests', () => {
           endDate: endDate.toISOString(),
           monthlyRent: 1500,
           securityDeposit: 3000,
-          status: 'Active',
+          status: 'Draft',
         });
 
       terminableLeaseId = res.body.data.id;
@@ -483,7 +483,7 @@ describe('Lease Domain E2E Tests', () => {
           name: 'Other Org User',
           email: `org-isolation-lease-${Date.now()}@example.com`,
           password: 'TestPassword123!',
-          organizationName: 'Other Org',
+          organizationName: `Other Org ${Date.now()}`,
         });
 
       otherToken = registerRes.body.data.token;

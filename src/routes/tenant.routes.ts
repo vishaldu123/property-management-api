@@ -17,6 +17,7 @@ import {
   getOrganizationTenantStatistics,
   getUnitTenantStatistics,
 } from '../controllers/tenant.controller';
+import { getTenantLeaseStatistics } from '../controllers/lease.controller';
 import { z } from 'zod';
 
 /**
@@ -76,6 +77,17 @@ router.delete('/:id', validate({ params: tenantIdSchema }), deleteTenant);
  * @access Private
  */
 router.patch('/:id/restore', validate({ params: tenantIdSchema }), restoreTenant);
+
+/**
+ * @route GET /api/v1/tenants/:tenantId/leases/stats
+ * @desc Get tenant lease statistics
+ * @access Private
+ */
+const tenantLeaseStatsSchema = z.object({
+  tenantId: z.string().uuid(),
+});
+
+router.get('/:tenantId/leases/stats', validate({ params: tenantLeaseStatsSchema }), getTenantLeaseStatistics);
 
 /**
  * @route GET /api/v1/units/:unitId/tenants/stats

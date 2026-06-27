@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/glo
 import { paymentService, ActorContext } from '../payment.service';
 import { paymentRepository, CreatePaymentInput } from '../../repositories/payment.repository';
 import { leaseRepository } from '../../repositories/lease.repository';
+import { organizationRepository } from '../../repositories/organization.repository';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../utils/errors';
 
 // Mock repositories
@@ -49,6 +50,15 @@ describe('PaymentService', () => {
     createdBy: 'user-123',
     updatedBy: 'user-123',
   };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(organizationRepository, 'findByIdAndOrganizationId').mockResolvedValue({
+      id: 'org-123',
+    } as any);
+    jest.spyOn(leaseRepository, 'findByIdAndOrganizationId').mockResolvedValue(mockLease as any);
+    jest.spyOn(paymentRepository, 'paymentNumberExists').mockResolvedValue(false);
+  });
 
   describe('createPayment', () => {
     it('should create a payment successfully', async () => {
