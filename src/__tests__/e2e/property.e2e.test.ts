@@ -4,11 +4,12 @@ import app from '../../app';
 import prisma from '../../config/prisma';
 
 describe('Property CRUD E2E Tests', () => {
+  const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const user = {
     name: 'Property Manager',
-    email: 'property.manager@test.com',
+    email: `property.manager.${uniqueSuffix}@test.com`,
     password: 'Password123!@',
-    organizationName: 'Property Test Org',
+    organizationName: `Property Test Org ${uniqueSuffix}`,
   };
 
   let authToken: string;
@@ -396,9 +397,9 @@ describe('Property CRUD E2E Tests', () => {
       // Create another organization
       const otherUser = {
         name: 'Other User',
-        email: 'other.user@test.com',
+        email: `other.user.${uniqueSuffix}@test.com`,
         password: 'Password123!@',
-        organizationName: 'Other Org',
+        organizationName: `Other Org ${uniqueSuffix}`,
       };
 
       const registerRes = await request(app)
