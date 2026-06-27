@@ -43,6 +43,7 @@ model Organization {
   preferences     OrganizationPreferences?
   properties      Property[]         @relation("OrganizationProperties")
   units           Unit[]             @relation("OrganizationUnits")
+  tenants         Tenant[]           @relation("OrganizationTenants")
 
   @@index([deletedAt])
   @@index([createdBy])
@@ -371,6 +372,7 @@ model Unit {
   
   property          Property           @relation("PropertyUnits", fields: [propertyId], references: [id], onDelete: Cascade)
   organization      Organization       @relation("OrganizationUnits", fields: [organizationId], references: [id], onDelete: Cascade)
+  tenants           Tenant[]           @relation("UnitTenants")
   
   // Indexes for common queries
   @@unique([propertyId, unitNumber]) // Unit number must be unique per property
@@ -387,7 +389,46 @@ model Unit {
   @@index([block])
 }
 
-// Extend Organization model to include properties and units relationships
-// Add these lines to the Organization model above:
-// properties     Property[]         @relation("OrganizationProperties")
-// units          Unit[]             @relation("OrganizationUnits")
+// Tenant Model (Sprint 7)
+model Tenant {
+  id                    String             @id @default(uuid())
+  organizationId        String             // Organization this tenant belongs to
+  unitId                String?            // Optional: Unit this tenant is associated with
+  firstName             String             // First name
+  lastName              String             // Last name
+  email                 String             // Email address
+  phone                 String?            // Phone number
+  dateOfBirth           DateTime?          // Date of birth
+  governmentIdType      String?            // ID type (Passport, Driver License, National ID, etc.)
+  governmentIdNumber    String?            // ID number
+  emergencyContactName  String?            // Emergency contact name
+  emergencyContactPhone String?            // Emergency contact phone
+  occupation            String?            // Occupation
+  employer              String?            // Employer name
+  status                String             @default("Prospect") // Prospect, Active, Notice, Former, Blacklisted
+  notes                 String?            // Additional notes
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  deletedAt             DateTime?          // Soft delete
+  createdBy             String?
+  updatedBy             String?
+  
+  organization          Organization      @relation("OrganizationTenants", fields: [organizationId], references: [id], onDelete: Cascade)
+  unit                  Unit?              @relation("UnitTenants", fields: [unitId], references: [id], onDelete: SetNull)
+  
+  // Indexes for common queries
+  @@unique([organizationId, email]) // Email unique per organization
+  @@index([organizationId])
+  @@index([unitId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([createdBy])
+  @@index([firstName])
+  @@index([lastName])
+  @@index([phone])
+}
+
+// Extend Organization model to include tenants relationship
+// Add this line to the Organization model above:
+// tenants         Tenant[]           @relation("OrganizationTenants")
