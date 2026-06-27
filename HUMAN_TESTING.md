@@ -1,6 +1,6 @@
-# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint 9 (Payment Domain)
+# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint 9 (Payment) + Sprint 10 (Maintenance)
 
-This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC, Sprint 9 - Payment Domain) and Frontend (Sprint UI-1 - React Foundation, Sprint UI-3 - Property, Unit & Tenant Management). Each test includes request examples, expected responses, and validation notes.
+This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC, Sprint 9 - Payment Domain, Sprint 10 - Maintenance Domain) and Frontend (Sprint UI-1 - React Foundation, Sprint UI-3 - Property, Unit & Tenant Management). Each test includes request examples, expected responses, and validation notes.
 
 **Backend API Base URL:** `http://localhost:3000`  
 **Backend API Version:** `/api/v1`  
@@ -2551,9 +2551,444 @@ Complete manual testing guide for the Payment Management system including CRUD o
 
 ---
 
+## Sprint 10: Maintenance Domain
+
+Complete manual testing guide for the Maintenance Request Management system including CRUD operations, workflow transitions, assignment, and statistics.
+
+### Section 21: Maintenance API - Fundamentals
+
+#### Test 21.1: Create Maintenance Request
+- **Method:** POST
+- **Endpoint:** `/api/v1/maintenance`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {
+    "propertyId": "property-123",
+    "unitId": "unit-123",
+    "requestNumber": "MR-001",
+    "title": "Plumbing Issue",
+    "description": "Water leak in bathroom",
+    "category": "Plumbing",
+    "priority": "High",
+    "status": "Open",
+    "requestedDate": "2026-06-27T00:00:00Z",
+    "scheduledDate": "2026-06-28T00:00:00Z",
+    "estimatedCost": "500.00",
+    "vendor": "Local Plumber",
+    "notes": "Urgent repair needed"
+  }
+  ```
+- **Expected Response:**
+  - Status: 201 Created
+  - Response includes created maintenance request with all fields
+- **Validation:**
+  - ✓ Request created with unique ID (UUID)
+  - ✓ organizationId auto-populated from token
+  - ✓ reportedBy set to current user ID
+  - ✓ Status is Open initially
+  - ✓ Timestamps: createdAt and createdBy populated
+
+#### Test 21.2: Create Maintenance - Duplicate Request Number Error
+- **Method:** POST
+- **Endpoint:** `/api/v1/maintenance`
+- **Request Body:** (same requestNumber as Test 21.1)
+- **Expected Response:**
+  - Status: 409 Conflict
+  - Error message: "Request number already exists for this organization"
+- **Validation:**
+  - ✓ Duplicate request numbers rejected per organization
+
+#### Test 21.3: Create Maintenance - Invalid Category Error
+- **Method:** POST
+- **Endpoint:** `/api/v1/maintenance`
+- **Request Body:** (category: "InvalidCategory")
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error: "Invalid maintenance category"
+- **Validation:**
+  - ✓ Valid categories: Plumbing, Electrical, HVAC, Structural, Cleaning, Pest Control, Other
+
+#### Test 21.4: Create Maintenance - Invalid Priority Error
+- **Method:** POST
+- **Endpoint:** `/api/v1/maintenance`
+- **Request Body:** (priority: "InvalidPriority")
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error: "Invalid priority level"
+- **Validation:**
+  - ✓ Valid priorities: Low, Medium, High, Urgent, Emergency
+
+#### Test 21.5: Create Maintenance - Invalid Status Error
+- **Method:** POST
+- **Endpoint:** `/api/v1/maintenance`
+- **Request Body:** (status: "InvalidStatus")
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error: "Invalid maintenance status"
+- **Validation:**
+  - ✓ Valid statuses: Open, Assigned, Scheduled, In Progress, On Hold, Completed, Cancelled
+
+#### Test 21.6: Get Maintenance Request by ID
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance/{maintenanceId}`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes full maintenance request details
+- **Validation:**
+  - ✓ Request retrieved with all fields
+  - ✓ Organization scope enforced
+  - ✓ Soft-deleted requests not returned
+
+#### Test 21.7: List Maintenance Requests with Pagination
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance?page=1&limit=10`
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes paginated list
+- **Validation:**
+  - ✓ Pagination defaults work
+  - ✓ All requests for organization returned
+  - ✓ Metadata includes totalCount and currentPage
+
+### Section 22: Maintenance API - Filtering & Search
+
+#### Test 22.1: Filter by Status
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance?status=Open`
+- **Expected Response:**
+  - Status: 200 OK
+  - Only Open status requests returned
+- **Validation:**
+  - ✓ Valid statuses filterable
+
+#### Test 22.2: Filter by Priority
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance?priority=High`
+- **Expected Response:**
+  - Status: 200 OK
+  - Only High priority requests returned
+- **Validation:**
+  - ✓ All priority levels filterable
+
+#### Test 22.3: Filter by Category
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance?category=Plumbing`
+- **Expected Response:**
+  - Status: 200 OK
+  - Only Plumbing category requests returned
+- **Validation:**
+  - ✓ All categories filterable
+
+#### Test 22.4: Filter by Property
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance?propertyId=property-123`
+- **Expected Response:**
+  - Status: 200 OK
+  - Only requests for specified property returned
+- **Validation:**
+  - ✓ Property scope works
+
+#### Test 22.5: Search Maintenance Requests
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance?search=Plumbing`
+- **Expected Response:**
+  - Status: 200 OK
+  - Results matching request number, title, or description
+- **Validation:**
+  - ✓ Partial match supported
+  - ✓ Case-insensitive search
+
+#### Test 22.6: Sort by Different Fields
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance?sortBy=priority&sortOrder=desc`
+- **Expected Response:**
+  - Status: 200 OK
+  - Requests sorted by priority descending
+- **Validation:**
+  - ✓ Valid sortBy fields: requestNumber, title, priority, status, requestedDate, scheduledDate, completedDate, estimatedCost, actualCost, createdAt
+
+### Section 23: Maintenance API - Workflow & Status Transitions
+
+#### Test 23.1: Assign Technician
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/maintenance/{maintenanceId}/assign`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {
+    "assignedTo": "tech-123"
+  }
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - assignedTo set to tech ID
+  - Status changed to "Assigned"
+- **Validation:**
+  - ✓ Technician assigned successfully
+  - ✓ Status auto-changed to Assigned
+  - ✓ assignedTo user verified to exist
+
+#### Test 23.2: Change Status to Scheduled
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/maintenance/{maintenanceId}/change-status`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {
+    "status": "Scheduled"
+  }
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Status changed to "Scheduled"
+- **Validation:**
+  - ✓ Valid transition from Open or Assigned to Scheduled
+
+#### Test 23.3: Change Status to In Progress
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/maintenance/{maintenanceId}/change-status`
+- **Request Body:**
+  ```json
+  {
+    "status": "In Progress"
+  }
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Status changed to "In Progress"
+  - startedDate auto-set to current timestamp
+- **Validation:**
+  - ✓ Valid transition from Scheduled status
+  - ✓ startedDate captured
+
+#### Test 23.4: Invalid Status Transition Error
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/maintenance/{completedMaintenanceId}/change-status`
+- **Request Body:**
+  ```json
+  {
+    "status": "Open"
+  }
+  ```
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error: "Cannot transition from Completed to Open"
+- **Validation:**
+  - ✓ Invalid transitions rejected
+  - ✓ Status state machine enforced
+
+#### Test 23.5: Update with Actual Cost
+- **Method:** PUT
+- **Endpoint:** `/api/v1/maintenance/{maintenanceId}`
+- **Request Body:**
+  ```json
+  {
+    "actualCost": "450.00",
+    "status": "Completed",
+    "notes": "Repair completed successfully"
+  }
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Actual cost recorded
+  - Status changed to Completed
+  - completedDate auto-set
+- **Validation:**
+  - ✓ Multiple fields updated
+  - ✓ Date tracking captured
+
+#### Test 23.6: Add Notes to Request
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/maintenance/{maintenanceId}/notes`
+- **Request Body:**
+  ```json
+  {
+    "notes": "Additional progress note"
+  }
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Notes appended
+- **Validation:**
+  - ✓ Notes field updated
+
+### Section 24: Maintenance API - Soft Delete & Restore
+
+#### Test 24.1: Soft Delete Maintenance Request
+- **Method:** DELETE
+- **Endpoint:** `/api/v1/maintenance/{maintenanceId}`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Success message returned
+- **Validation:**
+  - ✓ Request marked as deleted (deletedAt set)
+  - ✓ updatedBy set to current user ID
+  - ✓ Request not returned in list queries
+  - ✓ GET /maintenance/:id returns 404 for deleted request
+
+#### Test 24.2: Restore Deleted Request
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/maintenance/{deletedMaintenanceId}/restore`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {}
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Request restored (deletedAt cleared)
+- **Validation:**
+  - ✓ Request deletedAt cleared
+  - ✓ Request now appears in list queries
+  - ✓ Only soft-deleted requests can be restored
+
+### Section 25: Maintenance API - Statistics
+
+#### Test 25.1: Organization Maintenance Statistics
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance/stats/organization`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes statistics:
+    ```json
+    {
+      "totalRequests": 10,
+      "byStatus": {
+        "Open": 2,
+        "Assigned": 2,
+        "Scheduled": 1,
+        "In Progress": 1,
+        "On Hold": 0,
+        "Completed": 4,
+        "Cancelled": 0
+      },
+      "byPriority": {
+        "Low": 1,
+        "Medium": 3,
+        "High": 4,
+        "Urgent": 2,
+        "Emergency": 0
+      },
+      "totalEstimatedCost": 5000.00,
+      "totalActualCost": 4500.00
+    }
+    ```
+- **Validation:**
+  - ✓ Total count correct
+  - ✓ Status distribution accurate
+  - ✓ Priority distribution accurate
+  - ✓ Cost calculations correct
+
+#### Test 25.2: Property Maintenance Statistics
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance/properties/{propertyId}/stats`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Statistics for specific property
+- **Validation:**
+  - ✓ Stats scoped to property
+  - ✓ Only property requests included
+
+### Section 26: Maintenance RBAC & Authorization
+
+#### Test 26.1: Admin Can Create Maintenance
+- **Role:** Admin
+- **Method:** POST
+- **Endpoint:** `/api/v1/maintenance`
+- **Expected Response:**
+  - Status: 201 Created
+- **Validation:**
+  - ✓ Admin permission granted
+
+#### Test 26.2: Manager Can Create Maintenance
+- **Role:** Manager
+- **Method:** POST
+- **Endpoint:** `/api/v1/maintenance`
+- **Expected Response:**
+  - Status: 201 Created
+- **Validation:**
+  - ✓ Manager permission granted
+
+#### Test 26.3: Staff Cannot Create Maintenance
+- **Role:** Staff
+- **Method:** POST
+- **Endpoint:** `/api/v1/maintenance`
+- **Expected Response:**
+  - Status: 403 Forbidden
+- **Validation:**
+  - ✓ Staff denied
+  - ✓ RBAC enforced
+
+#### Test 26.4: Unauthenticated Cannot Access
+- **Authentication:** None
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance`
+- **Expected Response:**
+  - Status: 401 Unauthorized
+- **Validation:**
+  - ✓ Token required
+
+### Section 27: Maintenance Organization Isolation
+
+#### Test 27.1: Prevent Cross-Org Access
+- **Setup:** Request in Org A, token from Org B
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance/{orgAMaintenanceId}`
+- **Expected Response:**
+  - Status: 404 Not Found
+- **Validation:**
+  - ✓ Org B cannot access Org A's requests
+  - ✓ No data leakage
+
+#### Test 27.2: List Scoped to Organization
+- **Method:** GET
+- **Endpoint:** `/api/v1/maintenance`
+- **Expected Response:**
+  - Status: 200 OK
+  - Only current org's requests returned
+- **Validation:**
+  - ✓ Automatic org scope applied
+
+---
+
 ## Testing Complete
 
-All Payment Domain features are now verified. Sprint 9 is ready for production.
+All Maintenance Domain features are now verified. Sprint 10 is ready for production.
+
+All Payment Domain features are also verified. Sprint 9 is ready for production.
 
 All Property, Unit, and Tenant management features are also verified. Sprint UI-3 is ready for production.
 
