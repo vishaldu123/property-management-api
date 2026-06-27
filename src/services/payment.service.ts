@@ -254,8 +254,8 @@ export class PaymentService {
     const tax = input.tax !== undefined ? input.tax : payment.tax;
     const paidAmount = input.paidAmount !== undefined ? input.paidAmount : payment.paidAmount;
 
-    const totalCharges = (lateFee || 0) + (tax || 0);
-    const totalCredits = (discount || 0) + (paidAmount || 0);
+    const totalCharges = Number(lateFee ?? 0) + Number(tax ?? 0);
+    const totalCredits = Number(discount ?? 0) + Number(paidAmount ?? 0);
     const outstandingBalance = Number(payment.amount) + totalCharges - totalCredits;
 
     const updateData = {
