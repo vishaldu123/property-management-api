@@ -14,7 +14,13 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
     }[size]
 
     return (
-      <div ref={ref} className={cn('flex items-center justify-center', className)} {...props}>
+      <div
+        ref={ref}
+        role="status"
+        aria-label="Loading"
+        className={cn('flex items-center justify-center', className)}
+        {...props}
+      >
         <div className={cn('animate-spin', sizeClass)}>
           <div className="h-full w-full border-4 border-transparent border-t-primary rounded-full" />
         </div>
