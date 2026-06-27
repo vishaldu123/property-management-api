@@ -30,3 +30,4 @@ export {
   useReplaceUserRoles,
 } from './use-rbac'
 export { useToast } from './use-toast'
+export { usePermissionGate } from './use-permission-gate'

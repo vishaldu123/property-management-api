@@ -1,2 +1,6 @@
 export { FormField } from './form-field'
 export { TextField } from './text-field'
+export { NumberField } from './number-field'
+export { TextAreaField } from './textarea-field'
+export { DateField } from './date-field'
+export { SelectField, type SelectOption } from './select-field'

@@ -1,6 +1,6 @@
-# Human Testing Guide - Sprint 4 + Sprint UI-1
+# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3
 
-This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC) and Frontend (Sprint UI-1 - React Foundation). Each test includes request examples, expected responses, and validation notes.
+This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC) and Frontend (Sprint UI-1 - React Foundation, Sprint UI-3 - Property, Unit & Tenant Management). Each test includes request examples, expected responses, and validation notes.
 
 **Backend API Base URL:** `http://localhost:3000`  
 **Backend API Version:** `/api/v1`  
@@ -1519,7 +1519,324 @@ curl -X GET "http://localhost:5000/api/v1/properties" \
 
 ---
 
+## Sprint UI-3: Property, Unit & Tenant Management
+
+This section covers the new frontend features for managing Properties, Units, and Tenants.
+
+### Section 10: Property Management UI
+
+#### Test 10.1: Navigate to Properties List
+- **URL:** `http://localhost:5173/properties`
+- **Expected:** Properties list page loads with table
+- **Validation:**
+  - ✓ Page shows "Properties" header
+  - ✓ Table displays existing properties
+  - ✓ Search box is available
+  - ✓ Filter dropdowns for status and type are present
+  - ✓ "New Property" button is visible for authorized users
+
+#### Test 10.2: Create Property (with Permission)
+- **URL:** `http://localhost:5173/properties/create`
+- **Steps:**
+  1. Fill in property details (name, code, type, address, city, state, country, postal code)
+  2. Click "Create Property"
+- **Expected:** Property is created and user is redirected to property list
+- **Validation:**
+  - ✓ Form validation prevents empty required fields
+  - ✓ Success message shows "Property created successfully"
+  - ✓ New property appears in the list
+
+#### Test 10.3: View Property Details
+- **URL:** `http://localhost:5173/properties/:id`
+- **Expected:** Property details page displays all information
+- **Validation:**
+  - ✓ Property name, code, and type are shown
+  - ✓ Location information is displayed
+  - ✓ Edit and Delete buttons are available for authorized users
+  - ✓ Soft-deleted properties show restore button
+
+#### Test 10.4: Edit Property
+- **URL:** `http://localhost:5173/properties/:id/edit`
+- **Steps:**
+  1. Modify property details
+  2. Click "Update Property"
+- **Expected:** Property is updated successfully
+- **Validation:**
+  - ✓ Form pre-fills with existing property data
+  - ✓ Changes are saved to backend
+  - ✓ User is redirected to property details
+
+#### Test 10.5: Delete Property (Soft Delete)
+- **Location:** Property Details page
+- **Steps:**
+  1. Click "Delete" button
+  2. Confirm deletion in dialog
+- **Expected:** Property is soft-deleted
+- **Validation:**
+  - ✓ Yellow warning banner appears saying "This property has been deleted"
+  - ✓ "Restore" button replaces "Delete" button
+  - ✓ Property can still be viewed but is marked as deleted
+
+#### Test 10.6: Restore Deleted Property
+- **Location:** Property Details page (deleted property)
+- **Steps:**
+  1. Click "Restore" button
+- **Expected:** Property is restored
+- **Validation:**
+  - ✓ Warning banner disappears
+  - ✓ Delete button reappears
+  - ✓ deletedAt timestamp is cleared
+
+#### Test 10.7: Search Properties
+- **Location:** Properties List page
+- **Steps:**
+  1. Type property name or code in search box
+  2. List updates automatically
+- **Expected:** Only matching properties are shown
+- **Validation:**
+  - ✓ Search is case-insensitive
+  - ✓ Results update in real-time
+  - ✓ Pagination resets to page 1
+
+#### Test 10.8: Filter Properties by Status
+- **Location:** Properties List page
+- **Steps:**
+  1. Select status from dropdown (Active, Draft, Inactive, Archived)
+  2. List updates
+- **Expected:** Only properties with selected status shown
+- **Validation:**
+  - ✓ Status badges are color-coded
+  - ✓ Filter works in combination with search
+
+#### Test 10.9: Property Pagination
+- **Location:** Properties List page
+- **Steps:**
+  1. Scroll to bottom
+  2. Click "Next" button
+- **Expected:** Next page of properties loads
+- **Validation:**
+  - ✓ Previous/Next buttons are enabled/disabled appropriately
+  - ✓ Page counter shows correct range
+  - ✓ 10 properties per page (default)
+
+### Section 11: Unit Management UI
+
+#### Test 11.1: Navigate to Units List
+- **URL:** `http://localhost:5173/units`
+- **Expected:** Units list page loads with table
+- **Validation:**
+  - ✓ Table displays unit number, type, status, bedrooms, rent
+  - ✓ Search and filter options available
+  - ✓ "New Unit" button visible for authorized users
+
+#### Test 11.2: Create Unit
+- **URL:** `http://localhost:5173/units/create`
+- **Steps:**
+  1. Select property from dropdown
+  2. Enter unit number (e.g., "101")
+  3. Select unit type (Apartment, Villa, etc.)
+  4. Fill in specifications (bedrooms, bathrooms, area)
+  5. Fill in rental information (rent amount, security deposit)
+  6. Click "Create Unit"
+- **Expected:** Unit is created successfully
+- **Validation:**
+  - ✓ Property selector shows all available properties
+  - ✓ Unit number must be unique per property
+  - ✓ Form validation works for required fields
+  - ✓ Success message appears
+
+#### Test 11.3: View Unit Details
+- **URL:** `http://localhost:5173/units/:id`
+- **Expected:** Unit details page displays comprehensive information
+- **Validation:**
+  - ✓ Unit specifications are shown (bedrooms, bathrooms, area)
+  - ✓ Financial information displayed (rent, deposit)
+  - ✓ Property reference shown
+  - ✓ Current availability status visible
+
+#### Test 11.4: Edit Unit
+- **URL:** `http://localhost:5173/units/:id/edit`
+- **Steps:**
+  1. Update unit status to "Occupied"
+  2. Click "Update Unit"
+- **Expected:** Unit status is updated
+- **Validation:**
+  - ✓ Form shows current unit data
+  - ✓ All fields are editable
+  - ✓ Changes persist after save
+
+#### Test 11.5: Filter Units by Status
+- **Location:** Units List page
+- **Steps:**
+  1. Select "Occupied" from status dropdown
+- **Expected:** Only occupied units displayed
+- **Validation:**
+  - ✓ Status colors are consistent (Green=Available, Blue=Occupied, etc.)
+  - ✓ Filter combines with property filter if applicable
+
+#### Test 11.6: Search Units
+- **Location:** Units List page
+- **Steps:**
+  1. Type "101" in search box
+- **Expected:** Units matching search term appear
+- **Validation:**
+  - ✓ Search works on unit number and name
+  - ✓ Results are instant
+
+### Section 12: Tenant Management UI
+
+#### Test 12.1: Navigate to Tenants List
+- **URL:** `http://localhost:5173/tenants`
+- **Expected:** Tenants list page loads with table
+- **Validation:**
+  - ✓ Table shows name, email, phone, status
+  - ✓ Search and filter available
+  - ✓ "New Tenant" button visible
+
+#### Test 12.2: Create Tenant
+- **URL:** `http://localhost:5173/tenants/create`
+- **Steps:**
+  1. Enter first name and last name
+  2. Enter email address
+  3. Enter phone number (optional)
+  4. Select status (Active, Prospect, etc.)
+  5. Optionally assign to unit
+  6. Fill in optional fields (ID type, emergency contact, etc.)
+  7. Click "Create Tenant"
+- **Expected:** Tenant is created
+- **Validation:**
+  - ✓ Email must be unique per organization
+  - ✓ Email format is validated
+  - ✓ Required fields (name, email) are enforced
+  - ✓ Tenant can be created without unit assignment
+
+#### Test 12.3: View Tenant Details
+- **URL:** `http://localhost:5173/tenants/:id`
+- **Expected:** Tenant details page shows complete information
+- **Validation:**
+  - ✓ Personal information displayed
+  - ✓ Government ID details shown
+  - ✓ Employment information visible
+  - ✓ Emergency contact information shown
+  - ✓ Status badge color-coded
+
+#### Test 12.4: Edit Tenant
+- **URL:** `http://localhost:5173/tenants/:id/edit`
+- **Steps:**
+  1. Change tenant status to "Notice"
+  2. Assign to a unit
+  3. Click "Update Tenant"
+- **Expected:** Tenant is updated
+- **Validation:**
+  - ✓ All fields can be updated
+  - ✓ Unit assignment can be changed
+  - ✓ Status change is reflected immediately
+
+#### Test 12.5: Assign Unit to Tenant
+- **Location:** Tenant Create/Edit form
+- **Steps:**
+  1. Click unit dropdown
+  2. Select a unit
+- **Expected:** Unit is assigned to tenant
+- **Validation:**
+  - ✓ Only available units shown
+  - ✓ Unit selector shows unit number and floor
+
+#### Test 12.6: Filter Tenants by Status
+- **Location:** Tenants List page
+- **Steps:**
+  1. Select "Active" from status dropdown
+- **Expected:** Only active tenants shown
+- **Validation:**
+  - ✓ Statuses: Prospect (blue), Active (green), Notice (yellow), Former (gray), Blacklisted (red)
+  - ✓ Filter is applied immediately
+
+#### Test 12.7: Search Tenants
+- **Location:** Tenants List page
+- **Steps:**
+  1. Type tenant name or email in search box
+- **Expected:** Matching tenants displayed
+- **Validation:**
+  - ✓ Search works on first name, last name, and email
+  - ✓ Search is case-insensitive
+
+### Section 13: RBAC Integration Tests
+
+#### Test 13.1: Permission Checks - Create Property
+- **Prerequisite:** User without `property:create` permission
+- **Expected:** "New Property" button is hidden
+- **Validation:**
+  - ✓ Button not visible in UI
+  - ✓ Cannot access `/properties/create` directly (returns 403 or redirects)
+
+#### Test 13.2: Permission Checks - Edit Unit
+- **Prerequisite:** User without `unit:update` permission
+- **Expected:** "Edit" button is hidden on unit details
+- **Validation:**
+  - ✓ Edit button not visible
+  - ✓ Cannot access `/units/:id/edit` directly
+
+#### Test 13.3: Permission Checks - Delete Tenant
+- **Prerequisite:** User without `tenant:delete` permission
+- **Expected:** "Delete" button is hidden on tenant details
+- **Validation:**
+  - ✓ Delete button not visible
+  - ✓ Soft-delete via API is prevented with 403 error
+
+#### Test 13.4: Admin User Full Access
+- **Prerequisite:** User with admin role (all permissions)
+- **Expected:** All CRUD buttons visible
+- **Validation:**
+  - ✓ Create buttons visible on all list pages
+  - ✓ Edit buttons visible on all detail pages
+  - ✓ Delete buttons visible on all detail pages
+
+### Section 14: Error Handling and Edge Cases
+
+#### Test 14.1: Invalid Form Submission
+- **Location:** Property Create form
+- **Steps:**
+  1. Leave required fields empty
+  2. Click "Create Property"
+- **Expected:** Form validation errors appear
+- **Validation:**
+  - ✓ Red error messages for empty required fields
+  - ✓ Form doesn't submit
+  - ✓ Errors clear when field is corrected
+
+#### Test 14.2: Duplicate Unit Number
+- **Location:** Unit Create form
+- **Steps:**
+  1. Select a property
+  2. Enter a unit number that already exists for that property
+  3. Click "Create Unit"
+- **Expected:** API error is handled gracefully
+- **Validation:**
+  - ✓ Toast notification shows error message
+  - ✓ Form remains populated with data
+
+#### Test 14.3: Network Error Handling
+- **Prerequisite:** Disconnect network or mock network error
+- **Steps:**
+  1. Try to load properties list
+- **Expected:** Error state is displayed
+- **Validation:**
+  - ✓ Error message is user-friendly
+  - ✓ Retry option available or page can be reloaded
+
+#### Test 14.4: Pagination Edge Cases
+- **Location:** Properties List with 25 properties
+- **Steps:**
+  1. Navigate to last page
+  2. Try to click "Next"
+- **Expected:** "Next" button is disabled
+- **Validation:**
+  - ✓ Button appears grayed out
+  - ✓ No additional page loads
+
+---
+
 ## Testing Complete
 
-All Property domain functionality is now verified. Property management module is ready for integration with other domains (Units, Tenants, Leases, Payments).
+All Property, Unit, and Tenant management features are now verified. Sprint UI-3 is ready for production.
 
