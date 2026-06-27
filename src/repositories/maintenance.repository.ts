@@ -1,4 +1,4 @@
-import prisma from '../shared/infrastructure/prisma';
+import prisma from '../config/prisma';
 import {
   CreateMaintenanceInput,
   UpdateMaintenanceInput,

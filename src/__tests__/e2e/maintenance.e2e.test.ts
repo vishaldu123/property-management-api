@@ -1,4 +1,4 @@
-import prisma from '../../shared/infrastructure/prisma';
+import prisma from '../../config/prisma';
 import { maintenanceService } from '../../services/maintenance.service';
 import { propertyRepository } from '../../repositories/property.repository';
 import { organizationRepository } from '../../repositories/organization.repository';
@@ -273,7 +273,7 @@ describe('Maintenance Domain - E2E Tests', () => {
       // Try to access from different org
       try {
         await maintenanceService.getRequest(maint.id, 'different-org');
-        expect.fail('Should not find request in different organization');
+        throw new Error('Should not find request in different organization');
       } catch (error: any) {
         expect(error.message).toContain('not found');
       }

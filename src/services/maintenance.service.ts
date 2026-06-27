@@ -1,4 +1,4 @@
-import prisma from '../shared/infrastructure/prisma';
+import prisma from '../config/prisma';
 import { maintenanceRepository } from '../repositories/maintenance.repository';
 import { propertyRepository } from '../repositories/property.repository';
 import { unitRepository } from '../repositories/unit.repository';

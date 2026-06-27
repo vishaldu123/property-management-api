@@ -58,15 +58,9 @@ export const createMaintenanceSchema = z
       .string()
       .min(1, 'Description is required')
       .max(2000, 'Description must be at most 2000 characters'),
-    category: z.enum(MAINTENANCE_CATEGORIES, {
-      errorMap: () => ({ message: 'Invalid maintenance category' }),
-    }),
-    priority: z.enum(MAINTENANCE_PRIORITIES, {
-      errorMap: () => ({ message: 'Invalid priority level' }),
-    }),
-    status: z.enum(MAINTENANCE_STATUSES, {
-      errorMap: () => ({ message: 'Invalid maintenance status' }),
-    }),
+    category: z.enum(MAINTENANCE_CATEGORIES, { message: 'Invalid maintenance category' }),
+    priority: z.enum(MAINTENANCE_PRIORITIES, { message: 'Invalid priority level' }),
+    status: z.enum(MAINTENANCE_STATUSES, { message: 'Invalid maintenance status' }),
     requestedDate: z.string().datetime('Invalid date format'),
     scheduledDate: z.string().datetime('Invalid date format').optional(),
     estimatedCost: positiveDecimalSchema.optional(),
@@ -88,15 +82,15 @@ export const updateMaintenanceSchema = z
       .min(1, 'Description is required')
       .max(2000, 'Description must be at most 2000 characters')
       .optional(),
-    category: z.enum(MAINTENANCE_CATEGORIES, {
-      errorMap: () => ({ message: 'Invalid maintenance category' }),
-    }).optional(),
-    priority: z.enum(MAINTENANCE_PRIORITIES, {
-      errorMap: () => ({ message: 'Invalid priority level' }),
-    }).optional(),
-    status: z.enum(MAINTENANCE_STATUSES, {
-      errorMap: () => ({ message: 'Invalid maintenance status' }),
-    }).optional(),
+    category: z
+      .enum(MAINTENANCE_CATEGORIES, { message: 'Invalid maintenance category' })
+      .optional(),
+    priority: z
+      .enum(MAINTENANCE_PRIORITIES, { message: 'Invalid priority level' })
+      .optional(),
+    status: z
+      .enum(MAINTENANCE_STATUSES, { message: 'Invalid maintenance status' })
+      .optional(),
     assignedTo: uuidSchema.optional(),
     scheduledDate: z.string().datetime('Invalid date format').optional(),
     startedDate: z.string().datetime('Invalid date format').optional(),
@@ -158,9 +152,7 @@ export const assignTechnicianSchema = z
 // Change Status Schema
 export const changeStatusSchema = z
   .object({
-    status: z.enum(MAINTENANCE_STATUSES, {
-      errorMap: () => ({ message: 'Invalid maintenance status' }),
-    }),
+    status: z.enum(MAINTENANCE_STATUSES, { message: 'Invalid maintenance status' }),
   })
   .strict();
 

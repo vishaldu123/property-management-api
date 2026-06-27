@@ -1,4 +1,4 @@
-import { maintenanceService } from '../maintenance.service';
+import { maintenanceService } from '../../services/maintenance.service';
 import {
   createMaintenance,
   getMaintenance,
@@ -13,7 +13,7 @@ import {
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { Response } from 'express';
 
-jest.mock('../maintenance.service');
+jest.mock('../../services/maintenance.service');
 
 describe('Maintenance Controller', () => {
   const mockCtx = {
