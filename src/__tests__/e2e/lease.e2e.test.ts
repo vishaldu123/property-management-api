@@ -3,6 +3,9 @@ import request from 'supertest';
 import app from '../../app';
 import prisma from '../../config/prisma';
 
+const LEASE_RENEWAL_OFFSET_DAYS = 366;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
 describe('Lease Domain E2E Tests', () => {
   let authToken: string;
   let userId: string;
@@ -20,7 +23,7 @@ describe('Lease Domain E2E Tests', () => {
         name: 'Lease Test User',
         email: `lease-test-${Date.now()}@example.com`,
         password: 'TestPassword123!',
-        organizationName: 'Lease Test Org',
+        organizationName: `Lease Test Org ${Date.now()}`,
       });
 
     userId = registerRes.body.data.user.id;
@@ -354,15 +357,15 @@ describe('Lease Domain E2E Tests', () => {
           monthlyRent: 1500,
           securityDeposit: 3000,
           renewalOption: true,
-          status: 'Active',
+          status: 'Draft',
         });
 
       renewableLeaseId = res.body.data.id;
     });
 
     it('should renew lease with new dates', async () => {
-      const newStartDate = new Date();
-      const newEndDate = new Date(newStartDate.getTime() + 365 * 24 * 60 * 60 * 1000);
+      const newStartDate = new Date(Date.now() + LEASE_RENEWAL_OFFSET_DAYS * MILLISECONDS_PER_DAY);
+      const newEndDate = new Date(newStartDate.getTime() + 365 * MILLISECONDS_PER_DAY);
 
       const res = await request(app)
         .post(`/api/v1/leases/${renewableLeaseId}/renew`)
@@ -396,7 +399,7 @@ describe('Lease Domain E2E Tests', () => {
           endDate: endDate.toISOString(),
           monthlyRent: 1500,
           securityDeposit: 3000,
-          status: 'Active',
+          status: 'Draft',
         });
 
       terminableLeaseId = res.body.data.id;
@@ -483,7 +486,7 @@ describe('Lease Domain E2E Tests', () => {
           name: 'Other Org User',
           email: `org-isolation-lease-${Date.now()}@example.com`,
           password: 'TestPassword123!',
-          organizationName: 'Other Org',
+          organizationName: `Other Org ${Date.now()}`,
         });
 
       otherToken = registerRes.body.data.token;

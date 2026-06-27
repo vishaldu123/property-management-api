@@ -4,7 +4,7 @@
 
 This repository contains a production-ready Node.js/TypeScript backend for a multi-tenant property management SaaS platform. Built with Express, Prisma ORM, and PostgreSQL, it provides enterprise-grade authentication, authorization, multi-tenancy, and organization management.
 
-### Current Phase: Sprint UI-3 - Property, Unit & Tenant Management UI
+### Current Phase: Sprint 9 - Payment Domain
 
 **Completed Phases - Backend:**
 - ✅ Phase 0: Project Structure & Setup
@@ -16,6 +16,8 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - ✅ Phase 5: Property Domain Implementation (CRUD, Search, Filtering, Pagination, Statistics)
 - ✅ Phase 6: Unit Domain Implementation (CRUD, Search, Filtering, Pagination, Statistics)
 - ✅ Phase 7: Tenant Domain Implementation (CRUD, Search, Filtering, Pagination, Statistics)
+- ✅ Phase 8: Lease Domain Implementation (CRUD, Lease Management, Status Transitions)
+- ✅ Sprint 9: Payment Domain Implementation (CRUD, Multiple Payment Methods, Partial Payments, Receipt Generation)
 
 **Completed Phases - Frontend:**
 - ✅ Sprint UI-1: Enterprise React Foundation (React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui)
@@ -795,6 +797,118 @@ spec:
       timeoutSeconds: 3
       failureThreshold: 3
 ```
+
+### 💳 Payment Domain (Sprint 9)
+Complete payment management system with support for multiple payment methods, partial payments, and comprehensive financial tracking:
+
+#### Core Features
+- **Full CRUD Operations**: Create, retrieve, update, delete, and restore payments
+- **Soft Delete & Restore**: All deleted payments remain recoverable
+- **Payment Methods**: Cash, Bank Transfer, Cheque, Credit Card, Debit Card, UPI, Online
+- **Payment Types**: Rent, Security Deposit, Late Fee, Discount, Refund, Other
+- **Payment Statuses**: Pending, Paid, PartiallyPaid, Overdue, Failed, Refunded, Cancelled
+- **Partial Payments**: Support for partial payments with outstanding balance tracking
+- **Financial Tracking**: Late fees, discounts, taxes, receipt numbers
+
+#### Key Operations
+- **Mark as Paid**: Mark payments as paid (full or partial)
+- **Mark as Overdue**: Track overdue payments
+- **Refund**: Process refunds for paid/partially paid payments
+- **Generate Receipt**: Generate receipt numbers for paid payments
+- **Statistics**: Organization, lease, and tenant-level payment statistics
+- **Automatic Balance Calculation**: Outstanding balance computed automatically
+
+#### Validation & Business Rules
+- Payment amount must be positive
+- Due date must be >= payment date
+- Paid/Refunded payments cannot be edited (use refund workflow)
+- Payment numbers unique per organization
+- Automatic outstanding balance calculation
+- Support for monetary values with 4 decimal places
+
+#### API Endpoints
+- `POST /api/v1/payments` - Create payment
+- `GET /api/v1/payments` - List payments (with filters, search, pagination, sorting)
+- `GET /api/v1/payments/stats/organization` - Get organization payment statistics
+- `GET /api/v1/payments/:paymentId` - Get payment by ID
+- `PUT /api/v1/payments/:paymentId` - Update payment
+- `PATCH /api/v1/payments/:paymentId/mark-as-paid` - Mark as paid
+- `PATCH /api/v1/payments/:paymentId/mark-as-overdue` - Mark as overdue
+- `PATCH /api/v1/payments/:paymentId/refund` - Refund payment
+- `POST /api/v1/payments/:paymentId/generate-receipt` - Generate receipt
+- `DELETE /api/v1/payments/:paymentId` - Soft delete payment
+- `PATCH /api/v1/payments/:paymentId/restore` - Restore deleted payment
+- `GET /api/v1/leases/:leaseId/payments/stats` - Get lease payment statistics
+- `GET /api/v1/tenants/:tenantId/payments/stats` - Get tenant payment statistics
+
+#### Request Example
+```bash
+# Create a payment
+curl -X POST http://localhost:3000/api/v1/payments \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "leaseId": "lease-123",
+    "paymentNumber": "PAY-ORG-001",
+    "amount": 5000,
+    "currency": "USD",
+    "paymentDate": "2026-06-27",
+    "dueDate": "2026-07-27",
+    "paymentMethod": "BankTransfer",
+    "paymentType": "Rent",
+    "status": "Pending",
+    "notes": "June rent payment"
+  }'
+
+# List payments with filters
+curl "http://localhost:3000/api/v1/payments?page=1&limit=20&status=Pending&paymentType=Rent&sortBy=dueDate" \
+  -H "Authorization: Bearer <token>"
+
+# Mark as paid
+curl -X PATCH http://localhost:3000/api/v1/payments/payment-123/mark-as-paid \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"paidAmount": 5000}'
+
+# Generate receipt
+curl -X POST http://localhost:3000/api/v1/payments/payment-123/generate-receipt \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+#### Response Format
+```json
+{
+  "success": true,
+  "message": "Payment created successfully",
+  "data": {
+    "id": "payment-123",
+    "organizationId": "org-123",
+    "leaseId": "lease-123",
+    "propertyId": "property-123",
+    "unitId": "unit-123",
+    "tenantId": "tenant-123",
+    "paymentNumber": "PAY-ORG-001",
+    "amount": "5000.00",
+    "currency": "USD",
+    "paymentDate": "2026-06-27T00:00:00Z",
+    "dueDate": "2026-07-27T00:00:00Z",
+    "paymentMethod": "BankTransfer",
+    "paymentType": "Rent",
+    "status": "Pending",
+    "outstandingBalance": "5000.00",
+    "createdAt": "2026-06-27T12:34:56Z",
+    "createdBy": "user-123"
+  }
+}
+```
+
+#### Organization Isolation
+- All payments scoped to organization
+- Payment numbers unique per organization
+- Lease/tenant/property verification enforced
+- Multi-tenant isolation guaranteed
 
 ## Troubleshooting
 
