@@ -1,6 +1,7 @@
 import { Lease } from '@prisma/client';
 import { leaseRepository, CreateLeaseInput, UpdateLeaseInput, PaginationOptions, LeaseFilter } from '../repositories/lease.repository';
 import { propertyRepository } from '../repositories/property.repository';
+import { organizationRepository } from '../repositories/organization.repository';
 import { unitRepository } from '../repositories/unit.repository';
 import { tenantRepository } from '../repositories/tenant.repository';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../utils/errors';
@@ -32,7 +33,10 @@ export class LeaseService {
    */
   async createLease(ctx: ActorContext, input: CreateLeaseInput): Promise<Lease> {
     // Validate organization exists
-    const organization = await propertyRepository.findOrganizationById(ctx.organizationId);
+    const organization = await organizationRepository.findByIdAndOrganizationId(
+      ctx.organizationId,
+      ctx.organizationId
+    );
     if (!organization) {
       throw new ForbiddenError('Organization not found');
     }

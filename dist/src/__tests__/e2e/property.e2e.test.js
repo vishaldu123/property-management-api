@@ -8,11 +8,12 @@ const supertest_1 = __importDefault(require("supertest"));
 const app_1 = __importDefault(require("../../app"));
 const prisma_1 = __importDefault(require("../../config/prisma"));
 describe('Property CRUD E2E Tests', () => {
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const user = {
         name: 'Property Manager',
-        email: 'property.manager@test.com',
+        email: `property.manager.${uniqueSuffix}@test.com`,
         password: 'Password123!@',
-        organizationName: 'Property Test Org',
+        organizationName: `Property Test Org ${uniqueSuffix}`,
     };
     let authToken;
     let organizationId;
@@ -347,9 +348,9 @@ describe('Property CRUD E2E Tests', () => {
             // Create another organization
             const otherUser = {
                 name: 'Other User',
-                email: 'other.user@test.com',
+                email: `other.user.${uniqueSuffix}@test.com`,
                 password: 'Password123!@',
-                organizationName: 'Other Org',
+                organizationName: `Other Org ${uniqueSuffix}`,
             };
             const registerRes = await (0, supertest_1.default)(app_1.default)
                 .post('/api/v1/auth/register')
