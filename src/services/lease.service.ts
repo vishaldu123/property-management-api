@@ -33,10 +33,7 @@ export class LeaseService {
    */
   async createLease(ctx: ActorContext, input: CreateLeaseInput): Promise<Lease> {
     // Validate organization exists
-    const organization = await organizationRepository.findByIdAndOrganizationId(
-      ctx.organizationId,
-      ctx.organizationId
-    );
+    const organization = await organizationRepository.findById(ctx.organizationId);
     if (!organization) {
       throw new ForbiddenError('Organization not found');
     }
