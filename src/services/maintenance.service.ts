@@ -100,13 +100,6 @@ export class MaintenanceService {
       }
     }
 
-    // Validate unique request number
-    const existingRequest = await maintenanceRepository.findByIdAndOrganizationId(
-      '', // dummy
-      organizationId
-    );
-    // We need to check if request number is unique - this is handled at DB level with unique constraint
-
     // Validate status
     if (!VALID_STATUSES.includes(data.status)) {
       throw new ValidationError('Invalid maintenance status');
