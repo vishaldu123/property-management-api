@@ -283,7 +283,7 @@ describe('PropertyService', () => {
       };
 
       (organizationRepository.findById as jest.Mock).mockResolvedValue({ id: 'org-123' });
-      (propertyRepository.codeExists as jest.Mock).mockResolvedValue(true);
+      (propertyRepository.findByCode as jest.Mock).mockResolvedValue(mockProperty);
 
       await expect(propertyService.createProperty(mockContext, input)).rejects.toThrow(ConflictError);
     });
@@ -321,7 +321,7 @@ describe('PropertyService', () => {
       };
 
       (organizationRepository.findById as jest.Mock).mockResolvedValue({ id: 'org-123' });
-      (propertyRepository.codeExists as jest.Mock).mockResolvedValue(false);
+      (propertyRepository.findByCode as jest.Mock).mockResolvedValue(null);
 
       await expect(propertyService.createProperty(mockContext, input)).rejects.toThrow(ValidationError);
     });
@@ -341,7 +341,7 @@ describe('PropertyService', () => {
       };
 
       (organizationRepository.findById as jest.Mock).mockResolvedValue({ id: 'org-123' });
-      (propertyRepository.codeExists as jest.Mock).mockResolvedValue(false);
+      (propertyRepository.findByCode as jest.Mock).mockResolvedValue(null);
 
       await expect(propertyService.createProperty(mockContext, input)).rejects.toThrow(ValidationError);
     });

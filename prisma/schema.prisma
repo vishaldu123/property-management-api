@@ -42,6 +42,7 @@ model Organization {
   branding        OrganizationBranding?
   preferences     OrganizationPreferences?
   properties      Property[]         @relation("OrganizationProperties")
+  units           Unit[]             @relation("OrganizationUnits")
 
   @@index([deletedAt])
   @@index([createdBy])
@@ -327,6 +328,7 @@ model Property {
   updatedBy       String?
   
   organization    Organization       @relation("OrganizationProperties", fields: [organizationId], references: [id], onDelete: Cascade)
+  units           Unit[]              @relation("PropertyUnits")
   
   // Indexes for common queries
   @@unique([organizationId, code]) // Code must be unique per organization
@@ -342,6 +344,50 @@ model Property {
   @@index([country])
 }
 
-// Extend Organization model to include properties relationship
-// Add this line to the Organization model above:
+// Unit model - represents individual units/apartments within a property
+model Unit {
+  id                String             @id @default(uuid())
+  propertyId        String             // Property this unit belongs to
+  organizationId    String             // Organization for tenant isolation (denormalized for efficiency)
+  unitNumber        String             // Unit number/identifier (e.g., 101, A-102, etc.)
+  name              String?            // Optional unit name/title
+  floor             Int?               // Floor number
+  block             String?            // Building/Block identifier
+  unitType          String             @default("Apartment") // Studio, Apartment, Villa, Office, Shop, Warehouse, Parking, Storage
+  status            String             @default("Available") // Available, Occupied, Reserved, Under Maintenance, Inactive
+  bedrooms          Int?               // Number of bedrooms
+  bathrooms        Int?               // Number of bathrooms
+  area              Decimal?           // Unit area/size
+  areaUnit          String             @default("sqft") // Unit of measurement (sqft, sqm, etc.)
+  rentAmount        Decimal?           // Monthly rent amount
+  securityDeposit   Decimal?           // Security deposit amount
+  availabilityDate  DateTime?          // When unit becomes available for rent/sale
+  notes             String?            // Additional notes
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?          // Soft delete
+  createdBy         String?
+  updatedBy         String?
+  
+  property          Property           @relation("PropertyUnits", fields: [propertyId], references: [id], onDelete: Cascade)
+  organization      Organization       @relation("OrganizationUnits", fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Indexes for common queries
+  @@unique([propertyId, unitNumber]) // Unit number must be unique per property
+  @@index([propertyId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([unitType])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([createdBy])
+  @@index([floor])
+  // Search indexes
+  @@index([name])
+  @@index([block])
+}
+
+// Extend Organization model to include properties and units relationships
+// Add these lines to the Organization model above:
 // properties     Property[]         @relation("OrganizationProperties")
+// units          Unit[]             @relation("OrganizationUnits")
