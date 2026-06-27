@@ -1,6 +1,6 @@
-# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3
+# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint 9 (Payment Domain)
 
-This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC) and Frontend (Sprint UI-1 - React Foundation, Sprint UI-3 - Property, Unit & Tenant Management). Each test includes request examples, expected responses, and validation notes.
+This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC, Sprint 9 - Payment Domain) and Frontend (Sprint UI-1 - React Foundation, Sprint UI-3 - Property, Unit & Tenant Management). Each test includes request examples, expected responses, and validation notes.
 
 **Backend API Base URL:** `http://localhost:3000`  
 **Backend API Version:** `/api/v1`  
@@ -1836,7 +1836,724 @@ This section covers the new frontend features for managing Properties, Units, an
 
 ---
 
+## Sprint 9: Payment Domain
+
+Complete manual testing guide for the Payment Management system including CRUD operations, payment workflows (mark as paid, refund), receipt generation, and comprehensive filtering.
+
+### Section 13: Payment API - Fundamentals
+
+#### Test 13.1: Create Payment
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {
+    "leaseId": "lease-123",
+    "paymentNumber": "PAY-ORG-001",
+    "amount": "5000.00",
+    "currency": "USD",
+    "paymentDate": "2026-06-27",
+    "dueDate": "2026-07-27",
+    "paymentMethod": "BankTransfer",
+    "paymentType": "Rent",
+    "status": "Pending",
+    "lateFee": "0.00",
+    "discount": "0.00",
+    "tax": "0.00",
+    "notes": "June rent payment"
+  }
+  ```
+- **Expected Response:** 
+  - Status: 201 Created
+  - Response body includes created payment with auto-calculated `outstandingBalance: 5000.00`
+- **Validation:**
+  - ✓ Payment created with unique ID (UUID)
+  - ✓ organizationId auto-populated from token context
+  - ✓ propertyId, unitId, tenantId extracted from lease
+  - ✓ outstandingBalance = amount + lateFee + tax - discount - paidAmount
+  - ✓ Timestamps: createdAt and createdBy populated
+  - ✓ Status is Pending
+
+#### Test 13.2: Create Payment - Duplicate Payment Number Error
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Request Body:** (same paymentNumber as Test 13.1)
+  ```json
+  {
+    "leaseId": "lease-123",
+    "paymentNumber": "PAY-ORG-001",
+    "amount": "5000.00",
+    ...
+  }
+  ```
+- **Expected Response:**
+  - Status: 409 Conflict
+  - Error message: "Payment number already exists for this organization"
+- **Validation:**
+  - ✓ Duplicate payment numbers rejected per organization
+  - ✓ Payment numbers can be duplicated across organizations
+
+#### Test 13.3: Create Payment - Negative Amount Error
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Request Body:** (amount: "-1000")
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error: "Amount must be greater than 0"
+- **Validation:**
+  - ✓ Negative amounts rejected
+  - ✓ Zero amounts rejected
+
+#### Test 13.4: Create Payment - Invalid Lease Error
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Request Body:** (leaseId: "invalid-lease-123")
+- **Expected Response:**
+  - Status: 404 Not Found
+  - Error message: "Lease not found"
+- **Validation:**
+  - ✓ Non-existent leases rejected
+  - ✓ Invalid UUIDs rejected
+
+#### Test 13.5: Create Payment - Invalid Payment Method
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Request Body:** (paymentMethod: "InvalidMethod")
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error: "Payment method is not valid"
+- **Validation:**
+  - ✓ Invalid methods rejected
+  - ✓ Valid methods: Cash, BankTransfer, Cheque, CreditCard, DebitCard, UPI, Online
+
+#### Test 13.6: Get Payment by ID
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments/{paymentId}`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes full payment details
+- **Validation:**
+  - ✓ Payment retrieved with all fields
+  - ✓ Organization scope enforced (cannot retrieve other org's payments)
+  - ✓ Soft-deleted payments not returned
+
+#### Test 13.7: Get Payment - Not Found Error
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments/invalid-payment-id`
+- **Expected Response:**
+  - Status: 404 Not Found
+  - Error message: "Payment not found"
+- **Validation:**
+  - ✓ Invalid payment IDs return 404
+
+### Section 14: Payment API - Listing, Filtering & Search
+
+#### Test 14.1: List All Payments
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments`
+- **Query Parameters:** (none)
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes paginated list (default page=1, limit=20)
+  - Total count of payments
+- **Validation:**
+  - ✓ Pagination defaults work
+  - ✓ All payments for organization returned
+  - ✓ Soft-deleted payments excluded
+
+#### Test 14.2: List with Pagination
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments?page=2&limit=10`
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes 10 payments (or fewer if near end)
+  - Correct page offset applied
+- **Validation:**
+  - ✓ Page offset correct (skip = (page-1) * limit)
+  - ✓ Limit enforced
+  - ✓ Metadata includes totalCount and currentPage
+
+#### Test 14.3: Filter by Status
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments?status=Pending`
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes only Pending payments
+- **Validation:**
+  - ✓ Only Pending status returned
+  - ✓ Multiple status filters work: Paid, PartiallyPaid, Overdue, Failed, Refunded, Cancelled
+  - ✓ Invalid status returns all payments or error
+
+#### Test 14.4: Filter by Payment Method
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments?paymentMethod=BankTransfer`
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes only BankTransfer payments
+- **Validation:**
+  - ✓ Only BankTransfer method returned
+  - ✓ All payment methods filterable
+
+#### Test 14.5: Filter by Payment Type
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments?paymentType=Rent`
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes only Rent type payments
+- **Validation:**
+  - ✓ Only Rent type returned
+  - ✓ All payment types filterable: Rent, SecurityDeposit, LateFee, Discount, Refund, Other
+
+#### Test 14.6: Filter by Date Range
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments?startDate=2026-06-01&endDate=2026-06-30`
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes payments with paymentDate between startDate and endDate
+- **Validation:**
+  - ✓ Payments within range returned
+  - ✓ Boundary dates included
+  - ✓ End date uses end-of-day (23:59:59)
+
+#### Test 14.7: Multiple Filters Combined
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments?status=Pending&paymentType=Rent&paymentMethod=BankTransfer&page=1&limit=10`
+- **Expected Response:**
+  - Status: 200 OK
+  - Response filtered by all criteria
+- **Validation:**
+  - ✓ All filters applied (AND operation)
+  - ✓ Pagination works with filters
+  - ✓ Correct subset returned
+
+#### Test 14.8: Search by Payment Number
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments?search=PAY-ORG-001`
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes payments with matching paymentNumber
+- **Validation:**
+  - ✓ Partial match supported
+  - ✓ Case-insensitive search
+  - ✓ Only paymentNumber, referenceNumber, notes searched
+
+#### Test 14.9: Sort by Due Date (Ascending)
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments?sortBy=dueDate&sortOrder=asc`
+- **Expected Response:**
+  - Status: 200 OK
+  - Payments sorted by dueDate ascending (earliest first)
+- **Validation:**
+  - ✓ Ascending sort correct
+  - ✓ Valid sortBy fields: paymentNumber, amount, paymentDate, dueDate, status
+  - ✓ Valid sortOrder: asc, desc
+
+#### Test 14.10: Sort by Amount (Descending)
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments?sortBy=amount&sortOrder=desc`
+- **Expected Response:**
+  - Status: 200 OK
+  - Payments sorted by amount descending (highest first)
+- **Validation:**
+  - ✓ Descending sort correct
+  - ✓ Numeric sorting applied
+
+### Section 15: Payment API - Update & Workflow
+
+#### Test 15.1: Update Payment
+- **Method:** PUT
+- **Endpoint:** `/api/v1/payments/{paymentId}`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {
+    "paymentNumber": "PAY-ORG-001",
+    "amount": "5500.00",
+    "currency": "USD",
+    "paymentDate": "2026-06-27",
+    "dueDate": "2026-07-28",
+    "paymentMethod": "Cash",
+    "paymentType": "Rent",
+    "status": "Pending",
+    "lateFee": "50.00",
+    "discount": "0.00",
+    "tax": "0.00",
+    "notes": "Updated: June rent with late fee"
+  }
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes updated payment
+  - updatedAt and updatedBy timestamps set
+- **Validation:**
+  - ✓ All fields updated correctly
+  - ✓ outstandingBalance recalculated (5550.00 in this case)
+  - ✓ Cannot update paid payments (status: Paid)
+
+#### Test 15.2: Update Paid Payment - Error
+- **Method:** PUT
+- **Endpoint:** `/api/v1/payments/{paidPaymentId}`
+- **Request Body:** (any update)
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error message: "Cannot update a paid payment. Use refund workflow instead."
+- **Validation:**
+  - ✓ Paid payments cannot be edited
+  - ✓ Refunded payments cannot be edited
+  - ✓ Only Pending/PartiallyPaid payments editable
+
+#### Test 15.3: Mark as Paid (Full Payment)
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/payments/{paymentId}/mark-as-paid`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {
+    "paidAmount": "5500.00"
+  }
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Payment status changed to "Paid"
+  - outstandingBalance = 0
+  - paidAt timestamp set
+  - paymentDate updated (current date)
+- **Validation:**
+  - ✓ Status changed to Paid
+  - ✓ paidAmount recorded
+  - ✓ outstandingBalance becomes 0
+  - ✓ paidAt timestamp set to current time
+
+#### Test 15.4: Mark as Paid (Partial Payment)
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/payments/{paymentId}/mark-as-paid`
+- **Request Body:**
+  ```json
+  {
+    "paidAmount": "3000.00"
+  }
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Payment status changed to "PartiallyPaid"
+  - outstandingBalance = 2500.00
+- **Validation:**
+  - ✓ Status changed to PartiallyPaid (not Paid)
+  - ✓ outstandingBalance = total - paidAmount
+  - ✓ paidAt timestamp set
+  - ✓ Can mark as paid again with remaining amount
+
+#### Test 15.5: Mark as Paid - Already Paid Error
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/payments/{paidPaymentId}/mark-as-paid`
+- **Request Body:**
+  ```json
+  {
+    "paidAmount": "1000.00"
+  }
+  ```
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error message: "Cannot mark as paid: payment is already paid"
+- **Validation:**
+  - ✓ Already paid payments cannot be marked paid again
+  - ✓ Error message clear
+
+#### Test 15.6: Mark as Overdue
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/payments/{paymentId}/mark-as-overdue`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {}
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Payment status changed to "Overdue"
+- **Validation:**
+  - ✓ Status changed to Overdue
+  - ✓ Only works for Pending/PartiallyPaid payments
+  - ✓ Already paid payments cannot be marked overdue
+
+#### Test 15.7: Refund Paid Payment (Full Refund)
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/payments/{paidPaymentId}/refund`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {
+    "refundAmount": "5500.00"
+  }
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Payment status changed to "Refunded"
+  - paidAmount reset to 0
+  - outstandingBalance reset to 0
+- **Validation:**
+  - ✓ Status changed to Refunded
+  - ✓ Full refund recorded
+  - ✓ paidAmount becomes 0
+  - ✓ outstandingBalance becomes 0
+
+#### Test 15.8: Refund Non-Paid Payment - Error
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/payments/{pendingPaymentId}/refund`
+- **Request Body:**
+  ```json
+  {
+    "refundAmount": "1000.00"
+  }
+  ```
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error message: "Cannot refund a payment that is not paid"
+- **Validation:**
+  - ✓ Only Paid/PartiallyPaid payments can be refunded
+  - ✓ Pending payments cannot be refunded
+
+#### Test 15.9: Generate Receipt
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments/{paidPaymentId}/generate-receipt`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {}
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - receiptNumber generated (format: RCP-{orgId}-{paymentId}-{timestamp})
+  - Response includes updated payment with receiptNumber
+- **Validation:**
+  - ✓ Receipt number generated in expected format
+  - ✓ Receipt number unique per payment
+  - ✓ Cannot regenerate if already exists
+  - ✓ Only for paid payments
+
+### Section 16: Payment API - Soft Delete & Restore
+
+#### Test 16.1: Soft Delete Payment
+- **Method:** DELETE
+- **Endpoint:** `/api/v1/payments/{paymentId}`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Success message returned
+- **Validation:**
+  - ✓ Payment marked as deleted (deletedAt set)
+  - ✓ deletedBy set to current user ID
+  - ✓ Payment not returned in list queries
+  - ✓ GET /payments/:id returns 404 for deleted payment
+
+#### Test 16.2: Soft Delete - Already Deleted Error
+- **Method:** DELETE
+- **Endpoint:** `/api/v1/payments/{deletedPaymentId}`
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error message: "Payment already deleted"
+- **Validation:**
+  - ✓ Cannot delete already deleted payments
+
+#### Test 16.3: Restore Deleted Payment
+- **Method:** PATCH
+- **Endpoint:** `/api/v1/payments/{deletedPaymentId}/restore`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  Content-Type: application/json
+  ```
+- **Request Body:**
+  ```json
+  {}
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Payment restored (deletedAt reset, deletedBy reset)
+  - Payment now appears in list queries
+- **Validation:**
+  - ✓ Payment deletedAt cleared
+  - ✓ Payment deletedBy cleared
+  - ✓ Payment retrievable by ID
+  - ✓ Only soft-deleted payments can be restored
+
+### Section 17: Payment API - Statistics
+
+#### Test 17.1: Organization Statistics
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments/stats/organization`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes:
+    ```json
+    {
+      "totalPayments": 15,
+      "totalAmount": "75000.00",
+      "paidAmount": "50000.00",
+      "pendingAmount": "15000.00",
+      "partiallyPaidAmount": "10000.00",
+      "overdueAmount": "5000.00",
+      "refundedAmount": "0.00",
+      "averagePaymentAmount": "5000.00",
+      "paymentsByStatus": {
+        "Pending": 3,
+        "Paid": 10,
+        "PartiallyPaid": 2,
+        "Overdue": 2,
+        "Failed": 0,
+        "Refunded": 0,
+        "Cancelled": 0
+      },
+      "paymentsByMethod": {
+        "BankTransfer": 8,
+        "Cash": 4,
+        "CreditCard": 2,
+        "Other": 1
+      },
+      "paymentsByType": {
+        "Rent": 12,
+        "LateFee": 2,
+        "SecurityDeposit": 1
+      }
+    }
+    ```
+- **Validation:**
+  - ✓ Total count correct
+  - ✓ Sum calculations accurate
+  - ✓ Status distribution correct
+  - ✓ Method distribution correct
+  - ✓ Type distribution correct
+
+#### Test 17.2: Lease Statistics
+- **Method:** GET
+- **Endpoint:** `/api/v1/leases/{leaseId}/payments/stats`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes payments statistics for specific lease
+- **Validation:**
+  - ✓ Stats scoped to lease
+  - ✓ All lease payments included in totals
+  - ✓ Same structure as organization stats
+
+#### Test 17.3: Tenant Statistics
+- **Method:** GET
+- **Endpoint:** `/api/v1/tenants/{tenantId}/payments/stats`
+- **Headers:**
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes payments statistics for specific tenant
+- **Validation:**
+  - ✓ Stats scoped to tenant
+  - ✓ All tenant payments included in totals
+  - ✓ Same structure as organization stats
+
+### Section 18: Payment RBAC & Authorization
+
+#### Test 18.1: Admin Can Create Payment
+- **Role:** Admin
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Expected Response:**
+  - Status: 201 Created
+  - Payment created successfully
+- **Validation:**
+  - ✓ Admin permission granted
+
+#### Test 18.2: Manager Can Create Payment
+- **Role:** Manager
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Expected Response:**
+  - Status: 201 Created
+  - Payment created successfully
+- **Validation:**
+  - ✓ Manager permission granted
+
+#### Test 18.3: Staff Cannot Create Payment
+- **Role:** Staff
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Expected Response:**
+  - Status: 403 Forbidden
+  - Error message: "Insufficient permissions"
+- **Validation:**
+  - ✓ Staff denied
+  - ✓ RBAC enforced
+
+#### Test 18.4: Viewer Cannot Update Payment
+- **Role:** Viewer
+- **Method:** PUT
+- **Endpoint:** `/api/v1/payments/{paymentId}`
+- **Expected Response:**
+  - Status: 403 Forbidden
+- **Validation:**
+  - ✓ Read-only role cannot modify
+
+#### Test 18.5: Unauthenticated Cannot Access Payments
+- **Authentication:** None
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments`
+- **Expected Response:**
+  - Status: 401 Unauthorized
+- **Validation:**
+  - ✓ Token required
+  - ✓ Invalid/expired tokens rejected
+
+### Section 19: Payment Error Handling & Validation
+
+#### Test 19.1: Invalid UUID Format
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments/invalid-uuid`
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error message: "Invalid UUID format"
+- **Validation:**
+  - ✓ UUID validation enforced
+  - ✓ Error message clear
+
+#### Test 19.2: Invalid Currency Code
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Request Body:** (currency: "INVALID")
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error: "Invalid currency code"
+- **Validation:**
+  - ✓ Standard currency codes validated (USD, EUR, GBP, etc.)
+
+#### Test 19.3: Due Date Before Payment Date
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Request Body:**
+  ```json
+  {
+    "paymentDate": "2026-07-27",
+    "dueDate": "2026-06-27"
+  }
+  ```
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error: "Due date must be on or after payment date"
+- **Validation:**
+  - ✓ Date relationship validation
+
+#### Test 19.4: Negative Late Fee
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Request Body:** (lateFee: "-50")
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error: "Late fee must be non-negative"
+- **Validation:**
+  - ✓ Monetary field validation
+  - ✓ Discount, tax also validated
+
+#### Test 19.5: Missing Required Fields
+- **Method:** POST
+- **Endpoint:** `/api/v1/payments`
+- **Request Body:**
+  ```json
+  {
+    "paymentNumber": "PAY-001"
+  }
+  ```
+- **Expected Response:**
+  - Status: 400 Bad Request
+  - Error includes list of missing fields
+- **Validation:**
+  - ✓ Required fields: leaseId, paymentNumber, amount, currency, paymentDate, dueDate, paymentMethod, paymentType, status
+  - ✓ Error message lists each missing field
+
+### Section 20: Payment Cross-Organization Isolation
+
+#### Test 20.1: Prevent Access to Other Organization's Payments
+- **Setup:** User in Organization A, attacker token from Organization B
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments/{orgAPaymentId}`
+- **Expected Response:**
+  - Status: 404 Not Found
+- **Validation:**
+  - ✓ Organization B cannot access Organization A's payments
+  - ✓ No data leakage across orgs
+
+#### Test 20.2: List Only Current Organization Payments
+- **Setup:** Multiple organizations with payments
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments`
+- **Expected Response:**
+  - Status: 200 OK
+  - Response includes only Organization A's payments
+- **Validation:**
+  - ✓ Automatic organization scope applied
+  - ✓ organizationId from token used for filtering
+
+#### Test 20.3: Prevent Cross-Organization Payment Update
+- **Setup:** User in Organization A, attacker token
+- **Method:** PUT
+- **Endpoint:** `/api/v1/payments/{orgBPaymentId}`
+- **Request Body:** (any update)
+- **Expected Response:**
+  - Status: 404 Not Found
+- **Validation:**
+  - ✓ Update prevented for other org's payments
+
+#### Test 20.4: Prevent Cross-Organization Statistics
+- **Setup:** User in Organization A
+- **Method:** GET
+- **Endpoint:** `/api/v1/payments/stats/organization`
+- **Expected Response:**
+  - Status: 200 OK
+  - Statistics only for Organization A
+- **Validation:**
+  - ✓ Statistics scoped to current organization
+
+---
+
 ## Testing Complete
 
-All Property, Unit, and Tenant management features are now verified. Sprint UI-3 is ready for production.
+All Payment Domain features are now verified. Sprint 9 is ready for production.
+
+All Property, Unit, and Tenant management features are also verified. Sprint UI-3 is ready for production.
 

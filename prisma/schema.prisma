@@ -45,6 +45,7 @@ model Organization {
   units           Unit[]             @relation("OrganizationUnits")
   tenants         Tenant[]           @relation("OrganizationTenants")
   leases          Lease[]            @relation("OrganizationLeases")
+  payments        Payment[]          @relation("OrganizationPayments")
 
   @@index([deletedAt])
   @@index([createdBy])
@@ -332,6 +333,7 @@ model Property {
   organization    Organization       @relation("OrganizationProperties", fields: [organizationId], references: [id], onDelete: Cascade)
   units           Unit[]              @relation("PropertyUnits")
   leases          Lease[]             @relation("PropertyLeases")
+  payments        Payment[]           @relation("PropertyPayments")
   
   // Indexes for common queries
   @@unique([organizationId, code]) // Code must be unique per organization
@@ -376,6 +378,7 @@ model Unit {
   organization      Organization       @relation("OrganizationUnits", fields: [organizationId], references: [id], onDelete: Cascade)
   tenants           Tenant[]           @relation("UnitTenants")
   leases            Lease[]            @relation("UnitLeases")
+  payments          Payment[]          @relation("UnitPayments")
   
   // Indexes for common queries
   @@unique([propertyId, unitNumber]) // Unit number must be unique per property
@@ -419,6 +422,7 @@ model Tenant {
   organization          Organization      @relation("OrganizationTenants", fields: [organizationId], references: [id], onDelete: Cascade)
   unit                  Unit?              @relation("UnitTenants", fields: [unitId], references: [id], onDelete: SetNull)
   leases                Lease[]            @relation("TenantLeases")
+  payments              Payment[]          @relation("TenantPayments")
   
   // Indexes for common queries
   @@unique([organizationId, email]) // Email unique per organization
@@ -464,6 +468,7 @@ model Lease {
   property          Property           @relation("PropertyLeases", fields: [propertyId], references: [id], onDelete: Cascade)
   unit              Unit               @relation("UnitLeases", fields: [unitId], references: [id], onDelete: Cascade)
   tenant            Tenant             @relation("TenantLeases", fields: [tenantId], references: [id], onDelete: Cascade)
+  payments          Payment[]          @relation("LeasePayments")
   
   // Indexes for common queries
   @@index([organizationId])
@@ -481,6 +486,61 @@ model Lease {
 }
 
 
-// Extend Organization model to include tenants relationship
-// Add this line to the Organization model above:
-// tenants         Tenant[]           @relation("OrganizationTenants")
+// Payment Model (Sprint 9)
+model Payment {
+  id                String             @id @default(uuid())
+  organizationId    String             // Organization this payment belongs to
+  leaseId           String             // Lease this payment is for
+  propertyId        String             // Property (denormalized from lease for faster queries)
+  unitId            String             // Unit (denormalized from lease for faster queries)
+  tenantId          String             // Tenant (denormalized from lease for faster queries)
+  paymentNumber     String             // Payment identifier/number (unique per organization)
+  amount            Decimal            // Payment amount
+  currency          String             @default("USD") // ISO 4217 currency code
+  paymentDate       DateTime           // Date payment was made/received
+  dueDate           DateTime           // Due date for the payment
+  paymentMethod     String             @default("BankTransfer") // Cash, BankTransfer, Cheque, CreditCard, DebitCard, UPI, Online
+  paymentType       String             @default("Rent") // Rent, SecurityDeposit, LateFee, Discount, Refund, Other
+  status            String             @default("Pending") // Pending, Paid, PartiallyPaid, Overdue, Failed, Refunded, Cancelled
+  referenceNumber   String?            // External reference (check number, transaction ID, etc.)
+  notes             String?            // Additional notes
+  lateFee           Decimal?           // Late fee amount (if applicable)
+  discount          Decimal?           // Discount amount (if applicable)
+  tax               Decimal?           // Tax amount (if applicable)
+  receiptNumber     String?            // Receipt identifier
+  paidAt            DateTime?          // When payment was marked as paid
+  paidAmount        Decimal?           // Actual amount paid (for partial payments)
+  outstandingBalance Decimal?          // Outstanding/remaining balance
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?          // Soft delete
+  createdBy         String?
+  updatedBy         String?
+  
+  organization      Organization      @relation("OrganizationPayments", fields: [organizationId], references: [id], onDelete: Cascade)
+  lease             Lease              @relation("LeasePayments", fields: [leaseId], references: [id], onDelete: Cascade)
+  property          Property           @relation("PropertyPayments", fields: [propertyId], references: [id], onDelete: Cascade)
+  unit              Unit               @relation("UnitPayments", fields: [unitId], references: [id], onDelete: Cascade)
+  tenant            Tenant             @relation("TenantPayments", fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Indexes for common queries
+  @@unique([organizationId, paymentNumber]) // Payment number unique per organization
+  @@index([organizationId])
+  @@index([leaseId])
+  @@index([propertyId])
+  @@index([unitId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([paymentNumber])
+  @@index([paymentDate])
+  @@index([dueDate])
+  @@index([paymentMethod])
+  @@index([paymentType])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([createdBy])
+  @@index([paidAt])
+}
+
+// Extend Organization model to include payments relationship
+// payments        Payment[]          @relation("OrganizationPayments")

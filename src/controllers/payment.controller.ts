@@ -1,66 +1,64 @@
-// @ts-nocheck - Phase 1: Payment model deferred to Phase 2
 import { Response, NextFunction } from 'express';
-import prisma from '../config/prisma';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { paymentService } from '../services/payment.service';
 import { ApiResponse } from '../shared/core/response';
 import logger from '../utils/logger';
-import { createPaymentWithProvider } from '../services/payments/payment.service';
+import {
+  createPaymentSchema,
+  updatePaymentSchema,
+  listPaymentsSchema,
+  paymentIdParamSchema,
+  markAsPaidSchema,
+  markAsOverdueSchema,
+  refundPaymentSchema,
+  generateReceiptSchema,
+  leaseIdParamSchema,
+  tenantIdParamSchema,
+} from '../validators/payment.validators';
 
-export const listPayments = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    const payments = await prisma.payment.findMany({
-      where: { lease: { unit: { property: { organizationId: req.user!.organizationId } } } },
-      include: { lease: true },
-    });
-    ApiResponse.success(res, payments, 'Payments retrieved successfully');
-  } catch (error) {
-    logger.error('listPayments error', error as Error);
-    next(error);
-  }
-};
+/**
+ * Helper function to extract actor context from request
+ */
+function getActorContext(req: AuthenticatedRequest) {
+  return {
+    userId: req.user?.userId || '',
+    organizationId: req.user?.organizationId || '',
+  };
+}
 
-export const getPayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    const paymentId = req.params.paymentId as string;
-    const payment = await prisma.payment.findFirst({
-      where: { id: paymentId, lease: { unit: { property: { organizationId: req.user!.organizationId } } } },
-      include: { lease: true },
-    });
+/**
+ * Helper function to safely extract parameter
+ */
+function getParam(param: any): string | undefined {
+  return typeof param === 'string' ? param : undefined;
+}
 
-    if (!payment) {
-      ApiResponse.error(res, 'Payment not found', 404);
-      return;
-    }
-
-    ApiResponse.success(res, payment, 'Payment retrieved successfully');
-  } catch (error) {
-    logger.error('getPayment error', error as Error);
-    next(error);
-  }
-};
-
+/**
+ * Create a new payment
+ * POST /api/v1/payments
+ */
 export const createPayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { leaseId, amount, paymentDate, status } = req.body;
+    const ctx = getActorContext(req);
 
-    const lease = await prisma.lease.findFirst({
-      where: { id: leaseId, unit: { property: { organizationId: req.user!.organizationId } } },
-    });
-
-    if (!lease) {
-      ApiResponse.error(res, 'Lease not found', 404);
+    const validation = createPaymentSchema.safeParse(req.body);
+    if (!validation.success) {
+      const errors = validation.error.flatten().fieldErrors as Record<string, string[]>;
+      ApiResponse.validationError(res, errors, 'Validation failed');
       return;
     }
 
-    const payment = await prisma.payment.create({
-      data: {
-        leaseId,
-        amount,
-        paymentDate: new Date(paymentDate),
-        status,
-      },
-    });
+    // Convert date strings to Date objects
+    const input = {
+      ...validation.data,
+      paymentDate: new Date(validation.data.paymentDate),
+      dueDate: new Date(validation.data.dueDate),
+      propertyId: '', // Will be set in service
+      unitId: '', // Will be set in service
+      tenantId: '', // Will be set in service
+    };
 
+    const payment = await paymentService.createPayment(ctx, input as any);
     ApiResponse.created(res, payment, 'Payment created successfully');
   } catch (error) {
     logger.error('createPayment error', error as Error);
@@ -68,118 +66,365 @@ export const createPayment = async (req: AuthenticatedRequest, res: Response, ne
   }
 };
 
-export const initiatePayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+/**
+ * Get payment by ID
+ * GET /api/v1/payments/:paymentId
+ */
+export const getPayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { leaseId, amount, provider, metadata } = req.body; // provider: 'razorpay' | 'cashfree'
+    const ctx = getActorContext(req);
 
-    if (!['razorpay', 'cashfree'].includes(provider)) {
-      ApiResponse.error(res, 'Unsupported provider', 400);
+    const paramValidation = paymentIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid payment ID', 400);
       return;
     }
 
-    const lease = await prisma.lease.findFirst({
-      where: { id: leaseId, unit: { property: { organizationId: req.user!.organizationId } } },
-    });
-
-    if (!lease) {
-      ApiResponse.error(res, 'Lease not found', 404);
+    const paymentId = getParam(req.params.paymentId);
+    if (!paymentId) {
+      ApiResponse.error(res, 'Payment ID is required', 400);
       return;
     }
 
-    // Create a local payment record with PENDING status
-    const payment = await prisma.payment.create({
-      data: {
-        leaseId,
-        amount,
-        paymentDate: new Date(),
-        status: 'PENDING',
-        provider: provider,
-      },
-    });
-
-    try {
-      const providerResponse = await createPaymentWithProvider(provider, {
-        amount: Number(amount) * 100, // convert to paise
-        currency: 'INR',
-        receipt: payment.id,
-        metadata: { ...metadata, leaseId, paymentId: payment.id },
-      });
-
-      const providerPaymentId =
-        providerResponse?.id ||
-        providerResponse?.order_id ||
-        providerResponse?.data?.order_id ||
-        providerResponse?.order?.id;
-
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: {
-          providerPaymentId: providerPaymentId || undefined,
-          providerResponse: providerResponse,
-        },
-      });
-
-      ApiResponse.created(res, { paymentId: payment.id, providerResponse }, 'Payment initiated successfully');
-    } catch (err: any) {
-      logger.error('initiatePayment provider error', err as Error);
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: { status: 'FAILED', providerResponse: { error: String(err?.message || err) } as any },
-      });
-      ApiResponse.error(res, 'Failed to initiate payment', 500, { error: err?.message || err });
-    }
+    const payment = await paymentService.getPayment(ctx, paymentId);
+    ApiResponse.success(res, payment, 'Payment retrieved successfully');
   } catch (error) {
-    logger.error('initiatePayment error', error as Error);
+    logger.error('getPayment error', error as Error);
     next(error);
   }
 };
 
-export const updatePayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+/**
+ * List payments with pagination, filtering, and search
+ * GET /api/v1/payments
+ */
+export const listPayments = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const paymentId = req.params.paymentId as string;
-    const { amount, paymentDate, status } = req.body;
+    const ctx = getActorContext(req);
 
-    const payment = await prisma.payment.findFirst({
-      where: { id: paymentId, lease: { unit: { property: { organizationId: req.user!.organizationId } } } },
-    });
-
-    if (!payment) {
-      ApiResponse.error(res, 'Payment not found', 404);
+    const validation = listPaymentsSchema.safeParse(req.query);
+    if (!validation.success) {
+      const errors = validation.error.flatten().fieldErrors as Record<string, string[]>;
+      ApiResponse.validationError(res, errors, 'Validation failed');
       return;
     }
 
-    const updated = await prisma.payment.update({
-      where: { id: paymentId as string },
-      data: {
-        amount: amount !== undefined ? amount : undefined,
-        paymentDate: paymentDate ? new Date(paymentDate) : undefined,
-        status,
-      },
-    });
+    const result = await paymentService.listPayments(ctx, validation.data as any);
+    ApiResponse.success(res, result, 'Payments retrieved successfully');
+  } catch (error) {
+    logger.error('listPayments error', error as Error);
+    next(error);
+  }
+};
 
-    ApiResponse.success(res, updated, 'Payment updated successfully');
+/**
+ * Update payment
+ * PUT /api/v1/payments/:paymentId
+ */
+export const updatePayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const ctx = getActorContext(req);
+
+    const paramValidation = paymentIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid payment ID', 400);
+      return;
+    }
+
+    const validation = updatePaymentSchema.safeParse(req.body);
+    if (!validation.success) {
+      const errors = validation.error.flatten().fieldErrors as Record<string, string[]>;
+      ApiResponse.validationError(res, errors, 'Validation failed');
+      return;
+    }
+
+    const paymentId = getParam(req.params.paymentId);
+    if (!paymentId) {
+      ApiResponse.error(res, 'Payment ID is required', 400);
+      return;
+    }
+
+    const input = {
+      ...validation.data,
+      paymentDate: validation.data.paymentDate ? new Date(validation.data.paymentDate) : undefined,
+      dueDate: validation.data.dueDate ? new Date(validation.data.dueDate) : undefined,
+    };
+
+    const payment = await paymentService.updatePayment(ctx, paymentId, input as any);
+    ApiResponse.success(res, payment, 'Payment updated successfully');
   } catch (error) {
     logger.error('updatePayment error', error as Error);
     next(error);
   }
 };
 
-export const deletePayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+/**
+ * Mark payment as paid
+ * PATCH /api/v1/payments/:paymentId/mark-as-paid
+ */
+export const markAsPaid = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const paymentId = req.params.paymentId as string;
+    const ctx = getActorContext(req);
 
-    const deleted = await prisma.payment.deleteMany({
-      where: { id: paymentId, lease: { unit: { property: { organizationId: req.user!.organizationId } } } },
-    });
-
-    if (deleted.count === 0) {
-      ApiResponse.error(res, 'Payment not found', 404);
+    const paramValidation = paymentIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid payment ID', 400);
       return;
     }
 
-    ApiResponse.success(res, null, 'Payment deleted successfully', 204);
+    const validation = markAsPaidSchema.safeParse(req.body);
+    if (!validation.success) {
+      const errors = validation.error.flatten().fieldErrors as Record<string, string[]>;
+      ApiResponse.validationError(res, errors, 'Validation failed');
+      return;
+    }
+
+    const paymentId = getParam(req.params.paymentId);
+    if (!paymentId) {
+      ApiResponse.error(res, 'Payment ID is required', 400);
+      return;
+    }
+
+    const payment = await paymentService.markAsPaid(ctx, paymentId, validation.data.paidAmount);
+    ApiResponse.success(res, payment, 'Payment marked as paid');
+  } catch (error) {
+    logger.error('markAsPaid error', error as Error);
+    next(error);
+  }
+};
+
+/**
+ * Mark payment as overdue
+ * PATCH /api/v1/payments/:paymentId/mark-as-overdue
+ */
+export const markAsOverdue = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const ctx = getActorContext(req);
+
+    const paramValidation = paymentIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid payment ID', 400);
+      return;
+    }
+
+    const validation = markAsOverdueSchema.safeParse(req.body);
+    if (!validation.success) {
+      const errors = validation.error.flatten().fieldErrors as Record<string, string[]>;
+      ApiResponse.validationError(res, errors, 'Validation failed');
+      return;
+    }
+
+    const paymentId = getParam(req.params.paymentId);
+    if (!paymentId) {
+      ApiResponse.error(res, 'Payment ID is required', 400);
+      return;
+    }
+
+    const payment = await paymentService.markAsOverdue(ctx, paymentId);
+    ApiResponse.success(res, payment, 'Payment marked as overdue');
+  } catch (error) {
+    logger.error('markAsOverdue error', error as Error);
+    next(error);
+  }
+};
+
+/**
+ * Refund payment
+ * PATCH /api/v1/payments/:paymentId/refund
+ */
+export const refundPayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const ctx = getActorContext(req);
+
+    const paramValidation = paymentIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid payment ID', 400);
+      return;
+    }
+
+    const validation = refundPaymentSchema.safeParse(req.body);
+    if (!validation.success) {
+      const errors = validation.error.flatten().fieldErrors as Record<string, string[]>;
+      ApiResponse.validationError(res, errors, 'Validation failed');
+      return;
+    }
+
+    const paymentId = getParam(req.params.paymentId);
+    if (!paymentId) {
+      ApiResponse.error(res, 'Payment ID is required', 400);
+      return;
+    }
+
+    const payment = await paymentService.refundPayment(ctx, paymentId, validation.data.refundAmount);
+    ApiResponse.success(res, payment, 'Payment refunded successfully');
+  } catch (error) {
+    logger.error('refundPayment error', error as Error);
+    next(error);
+  }
+};
+
+/**
+ * Generate receipt
+ * POST /api/v1/payments/:paymentId/generate-receipt
+ */
+export const generateReceipt = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const ctx = getActorContext(req);
+
+    const paramValidation = paymentIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid payment ID', 400);
+      return;
+    }
+
+    const validation = generateReceiptSchema.safeParse(req.body);
+    if (!validation.success) {
+      const errors = validation.error.flatten().fieldErrors as Record<string, string[]>;
+      ApiResponse.validationError(res, errors, 'Validation failed');
+      return;
+    }
+
+    const paymentId = getParam(req.params.paymentId);
+    if (!paymentId) {
+      ApiResponse.error(res, 'Payment ID is required', 400);
+      return;
+    }
+
+    const receiptNumber = await paymentService.generateReceipt(ctx, paymentId);
+    ApiResponse.success(res, { receiptNumber }, 'Receipt generated successfully');
+  } catch (error) {
+    logger.error('generateReceipt error', error as Error);
+    next(error);
+  }
+};
+
+/**
+ * Delete payment (soft delete)
+ * DELETE /api/v1/payments/:paymentId
+ */
+export const deletePayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const ctx = getActorContext(req);
+
+    const paramValidation = paymentIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid payment ID', 400);
+      return;
+    }
+
+    const paymentId = getParam(req.params.paymentId);
+    if (!paymentId) {
+      ApiResponse.error(res, 'Payment ID is required', 400);
+      return;
+    }
+
+    const payment = await paymentService.deletePayment(ctx, paymentId);
+    ApiResponse.success(res, payment, 'Payment deleted successfully');
   } catch (error) {
     logger.error('deletePayment error', error as Error);
+    next(error);
+  }
+};
+
+/**
+ * Restore payment
+ * PATCH /api/v1/payments/:paymentId/restore
+ */
+export const restorePayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const ctx = getActorContext(req);
+
+    const paramValidation = paymentIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid payment ID', 400);
+      return;
+    }
+
+    const paymentId = getParam(req.params.paymentId);
+    if (!paymentId) {
+      ApiResponse.error(res, 'Payment ID is required', 400);
+      return;
+    }
+
+    const payment = await paymentService.restorePayment(ctx, paymentId);
+    ApiResponse.success(res, payment, 'Payment restored successfully');
+  } catch (error) {
+    logger.error('restorePayment error', error as Error);
+    next(error);
+  }
+};
+
+/**
+ * Get organization payment statistics
+ * GET /api/v1/payments/stats/organization
+ */
+export const getOrganizationStatistics = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const ctx = getActorContext(req);
+    const stats = await paymentService.getOrganizationStatistics(ctx);
+    ApiResponse.success(res, stats, 'Organization statistics retrieved successfully');
+  } catch (error) {
+    logger.error('getOrganizationStatistics error', error as Error);
+    next(error);
+  }
+};
+
+/**
+ * Get lease payment statistics
+ * GET /api/v1/leases/:leaseId/payments/stats
+ */
+export const getLeaseStatistics = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const ctx = getActorContext(req);
+
+    const paramValidation = leaseIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid lease ID', 400);
+      return;
+    }
+
+    const leaseId = getParam(req.params.leaseId);
+    if (!leaseId) {
+      ApiResponse.error(res, 'Lease ID is required', 400);
+      return;
+    }
+
+    const stats = await paymentService.getLeaseStatistics(ctx, leaseId);
+    ApiResponse.success(res, stats, 'Lease payment statistics retrieved successfully');
+  } catch (error) {
+    logger.error('getLeaseStatistics error', error as Error);
+    next(error);
+  }
+};
+
+/**
+ * Get tenant payment statistics
+ * GET /api/v1/tenants/:tenantId/payments/stats
+ */
+export const getTenantStatistics = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const ctx = getActorContext(req);
+
+    const paramValidation = tenantIdParamSchema.safeParse(req.params);
+    if (!paramValidation.success) {
+      ApiResponse.error(res, 'Invalid tenant ID', 400);
+      return;
+    }
+
+    const tenantId = getParam(req.params.tenantId);
+    if (!tenantId) {
+      ApiResponse.error(res, 'Tenant ID is required', 400);
+      return;
+    }
+
+    const stats = await paymentService.getTenantStatistics(ctx, tenantId);
+    ApiResponse.success(res, stats, 'Tenant payment statistics retrieved successfully');
+  } catch (error) {
+    logger.error('getTenantStatistics error', error as Error);
     next(error);
   }
 };
