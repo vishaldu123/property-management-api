@@ -44,6 +44,7 @@ model Organization {
   properties      Property[]         @relation("OrganizationProperties")
   units           Unit[]             @relation("OrganizationUnits")
   tenants         Tenant[]           @relation("OrganizationTenants")
+  leases          Lease[]            @relation("OrganizationLeases")
 
   @@index([deletedAt])
   @@index([createdBy])
@@ -330,6 +331,7 @@ model Property {
   
   organization    Organization       @relation("OrganizationProperties", fields: [organizationId], references: [id], onDelete: Cascade)
   units           Unit[]              @relation("PropertyUnits")
+  leases          Lease[]             @relation("PropertyLeases")
   
   // Indexes for common queries
   @@unique([organizationId, code]) // Code must be unique per organization
@@ -373,6 +375,7 @@ model Unit {
   property          Property           @relation("PropertyUnits", fields: [propertyId], references: [id], onDelete: Cascade)
   organization      Organization       @relation("OrganizationUnits", fields: [organizationId], references: [id], onDelete: Cascade)
   tenants           Tenant[]           @relation("UnitTenants")
+  leases            Lease[]            @relation("UnitLeases")
   
   // Indexes for common queries
   @@unique([propertyId, unitNumber]) // Unit number must be unique per property
@@ -415,6 +418,7 @@ model Tenant {
   
   organization          Organization      @relation("OrganizationTenants", fields: [organizationId], references: [id], onDelete: Cascade)
   unit                  Unit?              @relation("UnitTenants", fields: [unitId], references: [id], onDelete: SetNull)
+  leases                Lease[]            @relation("TenantLeases")
   
   // Indexes for common queries
   @@unique([organizationId, email]) // Email unique per organization
@@ -428,6 +432,54 @@ model Tenant {
   @@index([lastName])
   @@index([phone])
 }
+
+// Lease Model (Sprint 8)
+model Lease {
+  id                String             @id @default(uuid())
+  organizationId    String             // Organization this lease belongs to
+  propertyId        String             // Property this lease is for
+  unitId            String             // Unit this lease is for
+  tenantId          String             // Tenant this lease is for
+  leaseNumber       String             // Lease identifier/number
+  startDate         DateTime           // Lease start date
+  endDate           DateTime           // Lease end date
+  moveInDate        DateTime?          // Actual move-in date
+  moveOutDate       DateTime?          // Actual move-out date
+  monthlyRent       Decimal            // Monthly rent amount
+  securityDeposit   Decimal            // Security deposit amount
+  billingCycle      String             @default("monthly") // monthly, quarterly, annual
+  gracePeriod       Int                @default(0) // Grace period in days
+  status            String             @default("Draft") // Draft, Pending, Active, Expired, Terminated, Renewed
+  renewalOption     Boolean            @default(false) // Whether renewal is available
+  autoRenewal       Boolean            @default(false) // Auto-renew on expiry
+  noticePeriod      Int                @default(30) // Notice period in days for termination
+  notes             String?            // Additional notes
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?          // Soft delete
+  createdBy         String?
+  updatedBy         String?
+  
+  organization      Organization      @relation("OrganizationLeases", fields: [organizationId], references: [id], onDelete: Cascade)
+  property          Property           @relation("PropertyLeases", fields: [propertyId], references: [id], onDelete: Cascade)
+  unit              Unit               @relation("UnitLeases", fields: [unitId], references: [id], onDelete: Cascade)
+  tenant            Tenant             @relation("TenantLeases", fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Indexes for common queries
+  @@index([organizationId])
+  @@index([propertyId])
+  @@index([unitId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([leaseNumber])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([createdBy])
+  @@index([autoRenewal])
+}
+
 
 // Extend Organization model to include tenants relationship
 // Add this line to the Organization model above:
