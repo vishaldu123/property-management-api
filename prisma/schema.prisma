@@ -466,7 +466,6 @@ model Lease {
   tenant            Tenant             @relation("TenantLeases", fields: [tenantId], references: [id], onDelete: Cascade)
   
   // Indexes for common queries
-  @@unique([unitId, startDate, endDate]) @ignore // Unique constraint to prevent overlapping leases (soft-deleted excluded)
   @@index([organizationId])
   @@index([propertyId])
   @@index([unitId])
