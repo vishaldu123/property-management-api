@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { FormField, TextField, NumberField, TextAreaField, SelectField } from '@/shared/components/form'
+import { TextField, NumberField, TextAreaField, SelectField } from '@/shared/components/form'
 import { Button } from '@/shared/components/ui/button'
 
 const propertyFormSchema = z.object({
@@ -38,7 +38,11 @@ export const PropertyForm: React.FC<PropertyFormProps> = ({
   isLoading = false,
   submitLabel = 'Save Property',
 }) => {
-  const { control, handleSubmit, formState: { errors } } = useForm<PropertyFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PropertyFormData>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
       ...defaultValues,

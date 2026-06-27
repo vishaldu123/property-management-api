@@ -14,14 +14,9 @@ interface UnitListProps {
   propertyId?: string
 }
 
-export const UnitList: React.FC<UnitListProps> = ({
-  onEdit,
-  onDelete,
-  onView,
-  propertyId,
-}) => {
+export const UnitList: React.FC<UnitListProps> = ({ onEdit, onDelete, onView, propertyId }) => {
   const [page, setPage] = React.useState(1)
-  const [limit, setLimit] = React.useState(10)
+  const [limit] = React.useState(10)
   const [search, setSearch] = React.useState('')
   const [status, setStatus] = React.useState<string>('')
   const [unitType, setUnitType] = React.useState<string>('')
@@ -47,17 +42,14 @@ export const UnitList: React.FC<UnitListProps> = ({
     return (
       <ErrorState
         title="Error loading units"
-        description={error instanceof Error ? error.message : 'An error occurred'}
+        message={error instanceof Error ? error.message : 'An error occurred'}
       />
     )
   }
 
   if (!data?.data || data.data.length === 0) {
     return (
-      <EmptyState
-        title="No units found"
-        description="Get started by creating your first unit"
-      />
+      <EmptyState title="No units found" description="Get started by creating your first unit" />
     )
   }
 
@@ -124,13 +116,15 @@ export const UnitList: React.FC<UnitListProps> = ({
                 <td className="px-4 py-2">{unit.unitNumber}</td>
                 <td className="px-4 py-2">{unit.unitType}</td>
                 <td className="px-4 py-2">
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    unit.status === 'Available'
-                      ? 'bg-green-100 text-green-800'
-                      : unit.status === 'Occupied'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded text-sm ${
+                      unit.status === 'Available'
+                        ? 'bg-green-100 text-green-800'
+                        : unit.status === 'Occupied'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
                     {unit.status}
                   </span>
                 </td>
@@ -161,7 +155,8 @@ export const UnitList: React.FC<UnitListProps> = ({
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Showing {(page - 1) * limit + 1} to {Math.min(page * limit, data.total)} of {data.total} units
+          Showing {(page - 1) * limit + 1} to {Math.min(page * limit, data.total)} of {data.total}{' '}
+          units
         </div>
         <div className="flex gap-2">
           <Button

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useQuery } from '@tanstack/react-query'
-import { FormField, TextField, NumberField, TextAreaField, SelectField } from '@/shared/components/form'
+import { TextField, NumberField, TextAreaField, SelectField } from '@/shared/components/form'
 import { Button } from '@/shared/components/ui/button'
 import { propertyService } from '@/shared/services'
 import { Loading } from '@/shared/components/ui/loading'
@@ -43,7 +43,11 @@ export const UnitForm: React.FC<UnitFormProps> = ({
   isLoading = false,
   submitLabel = 'Save Unit',
 }) => {
-  const { control, handleSubmit, formState: { errors } } = useForm<UnitFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UnitFormData>({
     resolver: zodResolver(unitFormSchema),
     defaultValues: {
       ...defaultValues,
@@ -150,12 +154,7 @@ export const UnitForm: React.FC<UnitFormProps> = ({
           control={control}
           error={errors.bathrooms?.message}
         />
-        <NumberField
-          name="area"
-          label="Area"
-          control={control}
-          error={errors.area?.message}
-        />
+        <NumberField name="area" label="Area" control={control} error={errors.area?.message} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

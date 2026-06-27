@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, fireEvent } from '@testing-library/react'
-import React from 'react'
 import { PropertyList } from '../components/property-list'
 import { propertyService } from '@/shared/services'
 
@@ -46,7 +45,7 @@ describe('PropertyList Component', () => {
     )
 
     // Loading state should be shown
-    expect(document.body.textContent).toContain('Loading')
+    expect(screen.getByRole('status', { name: /loading/i })).toBeInTheDocument()
   })
 
   it('should render empty state when no properties found', async () => {
@@ -77,7 +76,7 @@ describe('PropertyList Component', () => {
       code: 'PROP-001',
       description: 'A test property',
       propertyType: 'Apartment',
-      status: 'ACTIVE',
+      status: 'ACTIVE' as const,
       address: '123 Main St',
       city: 'New York',
       state: 'NY',
@@ -118,7 +117,7 @@ describe('PropertyList Component', () => {
       code: 'PROP-001',
       description: 'A test property',
       propertyType: 'Apartment',
-      status: 'ACTIVE',
+      status: 'ACTIVE' as const,
       address: '123 Main St',
       city: 'New York',
       state: 'NY',

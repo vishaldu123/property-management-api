@@ -1,4 +1,3 @@
-import { hasPermission, hasAnyPermission, hasAllPermissions } from '@/shared/utils/rbac'
 import { useAuth } from './use-auth'
 
 /**
@@ -10,10 +9,10 @@ export const usePermissionGate = () => {
 
   const getUserPermissions = (): string[] => {
     if (!user) return []
-    
+
     // Aggregate permissions from all roles in current organization
     const permissionSet = new Set<string>()
-    
+
     user.roles?.forEach(userRole => {
       if (userRole.role?.permissions) {
         userRole.role.permissions.forEach(permission => {
@@ -21,7 +20,7 @@ export const usePermissionGate = () => {
         })
       }
     })
-    
+
     return Array.from(permissionSet)
   }
 

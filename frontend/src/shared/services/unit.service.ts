@@ -129,9 +129,7 @@ export const unitService = {
   },
 
   getPropertyUnitStatistics: async (propertyId: string): Promise<UnitStatistics> => {
-    const response = await apiClient.get<UnitStatistics>(
-      `/properties/${propertyId}/units/stats`
-    )
+    const response = await apiClient.get<UnitStatistics>(`/properties/${propertyId}/units/stats`)
     return response.data
   },
 }

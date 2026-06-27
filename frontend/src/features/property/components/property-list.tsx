@@ -14,14 +14,9 @@ interface PropertyListProps {
   onView?: (id: string) => void
 }
 
-export const PropertyList: React.FC<PropertyListProps> = ({
-  onEdit,
-  onDelete,
-  onRestore,
-  onView,
-}) => {
+export const PropertyList: React.FC<PropertyListProps> = ({ onEdit, onDelete, onView }) => {
   const [page, setPage] = React.useState(1)
-  const [limit, setLimit] = React.useState(10)
+  const [limit] = React.useState(10)
   const [search, setSearch] = React.useState('')
   const [status, setStatus] = React.useState<string>('')
   const [propertyType, setPropertyType] = React.useState<string>('')
@@ -46,7 +41,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
     return (
       <ErrorState
         title="Error loading properties"
-        description={error instanceof Error ? error.message : 'An error occurred'}
+        message={error instanceof Error ? error.message : 'An error occurred'}
       />
     )
   }
@@ -125,42 +120,32 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                 <td className="px-4 py-2">{property.propertyType}</td>
                 <td className="px-4 py-2">{property.city}</td>
                 <td className="px-4 py-2">
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    property.status === 'ACTIVE'
-                      ? 'bg-green-100 text-green-800'
-                      : property.status === 'DRAFT'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded text-sm ${
+                      property.status === 'ACTIVE'
+                        ? 'bg-green-100 text-green-800'
+                        : property.status === 'DRAFT'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
                     {property.status}
                   </span>
                 </td>
                 <td className="px-4 py-2">{property.totalUnits || '-'}</td>
                 <td className="px-4 py-2 text-right space-x-1">
                   {onView && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onView(property.id)}
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => onView(property.id)}>
                       View
                     </Button>
                   )}
                   {canPerform('property:update') && onEdit && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onEdit(property.id)}
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => onEdit(property.id)}>
                       Edit
                     </Button>
                   )}
                   {canPerform('property:delete') && onDelete && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onDelete(property.id)}
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => onDelete(property.id)}>
                       Delete
                     </Button>
                   )}
@@ -174,7 +159,8 @@ export const PropertyList: React.FC<PropertyListProps> = ({
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Showing {(page - 1) * limit + 1} to {Math.min(page * limit, data.total)} of {data.total} properties
+          Showing {(page - 1) * limit + 1} to {Math.min(page * limit, data.total)} of {data.total}{' '}
+          properties
         </div>
         <div className="flex gap-2">
           <Button

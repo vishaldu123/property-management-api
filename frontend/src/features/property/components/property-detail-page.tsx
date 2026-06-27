@@ -14,7 +14,12 @@ export const PropertyDetailPage: React.FC = () => {
   const queryClient = useQueryClient()
   const { canPerform } = usePermissionGate()
 
-  const { data: property, isLoading, isError, error } = useQuery({
+  const {
+    data: property,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['property', id],
     queryFn: () => propertyService.getProperty(id!),
     enabled: !!id,
@@ -48,7 +53,7 @@ export const PropertyDetailPage: React.FC = () => {
     return (
       <ErrorState
         title="Error loading property"
-        description={error instanceof Error ? error.message : 'An error occurred'}
+        message={error instanceof Error ? error.message : 'An error occurred'}
       />
     )
   }
@@ -57,7 +62,7 @@ export const PropertyDetailPage: React.FC = () => {
     return (
       <ErrorState
         title="Property not found"
-        description="The property you're looking for doesn't exist"
+        message="The property you're looking for doesn't exist"
       />
     )
   }
@@ -71,9 +76,7 @@ export const PropertyDetailPage: React.FC = () => {
         </div>
         <div className="flex gap-2">
           {canPerform('property:update') && (
-            <Button onClick={() => navigate(`/properties/${id}/edit`)}>
-              Edit
-            </Button>
+            <Button onClick={() => navigate(`/properties/${id}/edit`)}>Edit</Button>
           )}
           {canPerform('property:delete') && !property.deletedAt && (
             <Button
@@ -138,7 +141,9 @@ export const PropertyDetailPage: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">City/State</p>
-              <p className="font-medium">{property.city}, {property.state}</p>
+              <p className="font-medium">
+                {property.city}, {property.state}
+              </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Country</p>
@@ -171,11 +176,7 @@ export const PropertyDetailPage: React.FC = () => {
         <p>Last Updated: {new Date(property.updatedAt).toLocaleString()}</p>
       </div>
 
-      <Button
-        variant="outline"
-        className="mt-6"
-        onClick={() => navigate('/properties')}
-      >
+      <Button variant="outline" className="mt-6" onClick={() => navigate('/properties')}>
         Back to Properties
       </Button>
     </div>

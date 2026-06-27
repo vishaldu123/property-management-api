@@ -4,7 +4,6 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { tenantService } from '@/shared/services'
 import { toastService } from '@/shared/services'
 import { TenantForm, TenantFormData } from './tenant-form'
-import { Button } from '@/shared/components/ui/button'
 import { Loading } from '@/shared/components/ui/loading'
 import { ErrorState } from '@/shared/components/ui/error-state'
 
@@ -16,7 +15,12 @@ export const TenantFormPage: React.FC<TenantFormPageProps> = ({ mode }) => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
 
-  const { data: tenant, isLoading, isError, error } = useQuery({
+  const {
+    data: tenant,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['tenant', id],
     queryFn: () => tenantService.getTenant(id!),
     enabled: mode === 'edit' && !!id,
@@ -58,7 +62,7 @@ export const TenantFormPage: React.FC<TenantFormPageProps> = ({ mode }) => {
     return (
       <ErrorState
         title="Error loading tenant"
-        description={error instanceof Error ? error.message : 'An error occurred'}
+        message={error instanceof Error ? error.message : 'An error occurred'}
       />
     )
   }
@@ -70,31 +74,33 @@ export const TenantFormPage: React.FC<TenantFormPageProps> = ({ mode }) => {
           {mode === 'create' ? 'Create Tenant' : 'Edit Tenant'}
         </h1>
         <p className="text-muted-foreground mt-2">
-          {mode === 'create'
-            ? 'Add a new tenant to your organization'
-            : 'Update tenant details'}
+          {mode === 'create' ? 'Add a new tenant to your organization' : 'Update tenant details'}
         </p>
       </div>
 
       <TenantForm
         onSubmit={onSubmit}
         onCancel={() => navigate('/tenants')}
-        defaultValues={tenant ? {
-          firstName: tenant.firstName,
-          lastName: tenant.lastName,
-          email: tenant.email,
-          phone: tenant.phone,
-          dateOfBirth: tenant.dateOfBirth,
-          governmentIdType: tenant.governmentIdType,
-          governmentIdNumber: tenant.governmentIdNumber,
-          emergencyContactName: tenant.emergencyContactName,
-          emergencyContactPhone: tenant.emergencyContactPhone,
-          occupation: tenant.occupation,
-          employer: tenant.employer,
-          unitId: tenant.unitId,
-          status: tenant.status,
-          notes: tenant.notes,
-        } : undefined}
+        defaultValues={
+          tenant
+            ? {
+                firstName: tenant.firstName,
+                lastName: tenant.lastName,
+                email: tenant.email,
+                phone: tenant.phone,
+                dateOfBirth: tenant.dateOfBirth,
+                governmentIdType: tenant.governmentIdType,
+                governmentIdNumber: tenant.governmentIdNumber,
+                emergencyContactName: tenant.emergencyContactName,
+                emergencyContactPhone: tenant.emergencyContactPhone,
+                occupation: tenant.occupation,
+                employer: tenant.employer,
+                unitId: tenant.unitId,
+                status: tenant.status,
+                notes: tenant.notes,
+              }
+            : undefined
+        }
         isLoading={createMutation.isPending || updateMutation.isPending}
         submitLabel={mode === 'create' ? 'Create Tenant' : 'Update Tenant'}
       />

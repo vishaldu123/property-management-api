@@ -23,41 +23,30 @@ export const TenantListPage: React.FC = () => {
     },
   })
 
-  const restoreMutation = useMutation({
-    mutationFn: (id: string) => tenantService.restoreTenant(id),
-    onSuccess: () => {
-      toastService.success('Tenant restored successfully')
-      queryClient.invalidateQueries({ queryKey: ['tenants'] })
-    },
-    onError: (error: Error) => {
-      toastService.error(`Failed to restore tenant: ${error.message}`)
-    },
-  })
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold">Tenants</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage all tenants in your organization
-          </p>
+          <p className="text-muted-foreground mt-2">Manage all tenants in your organization</p>
         </div>
         {canPerform('tenant:create') && (
-          <Button onClick={() => navigate('/tenants/create')}>
-            + New Tenant
-          </Button>
+          <Button onClick={() => navigate('/tenants/create')}>+ New Tenant</Button>
         )}
       </div>
 
       <TenantList
-        onView={(id) => navigate(`/tenants/${id}`)}
-        onEdit={canPerform('tenant:update') ? (id) => navigate(`/tenants/${id}/edit`) : undefined}
-        onDelete={canPerform('tenant:delete') ? (id) => {
-          if (confirm('Are you sure you want to delete this tenant?')) {
-            deleteMutation.mutate(id)
-          }
-        } : undefined}
+        onView={id => navigate(`/tenants/${id}`)}
+        onEdit={canPerform('tenant:update') ? id => navigate(`/tenants/${id}/edit`) : undefined}
+        onDelete={
+          canPerform('tenant:delete')
+            ? id => {
+                if (confirm('Are you sure you want to delete this tenant?')) {
+                  deleteMutation.mutate(id)
+                }
+              }
+            : undefined
+        }
       />
     </div>
   )

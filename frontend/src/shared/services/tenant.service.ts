@@ -125,9 +125,7 @@ export const tenantService = {
   },
 
   getUnitTenantStatistics: async (unitId: string): Promise<TenantStatistics> => {
-    const response = await apiClient.get<TenantStatistics>(
-      `/units/${unitId}/tenants/stats`
-    )
+    const response = await apiClient.get<TenantStatistics>(`/units/${unitId}/tenants/stats`)
     return response.data
   },
 }

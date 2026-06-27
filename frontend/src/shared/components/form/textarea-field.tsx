@@ -2,7 +2,10 @@ import * as React from 'react'
 import { FormField } from './form-field'
 import { cn } from '@/utils/cn'
 
-interface TextAreaFieldProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'name'> {
+interface TextAreaFieldProps extends Omit<
+  React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+  'name'
+> {
   name: string
   control?: any
   label?: string

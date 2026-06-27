@@ -14,7 +14,12 @@ export const UnitDetailPage: React.FC = () => {
   const queryClient = useQueryClient()
   const { canPerform } = usePermissionGate()
 
-  const { data: unit, isLoading, isError, error } = useQuery({
+  const {
+    data: unit,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['unit', id],
     queryFn: () => unitService.getUnit(id!),
     enabled: !!id,
@@ -48,18 +53,13 @@ export const UnitDetailPage: React.FC = () => {
     return (
       <ErrorState
         title="Error loading unit"
-        description={error instanceof Error ? error.message : 'An error occurred'}
+        message={error instanceof Error ? error.message : 'An error occurred'}
       />
     )
   }
 
   if (!unit) {
-    return (
-      <ErrorState
-        title="Unit not found"
-        description="The unit you're looking for doesn't exist"
-      />
-    )
+    return <ErrorState title="Unit not found" message="The unit you're looking for doesn't exist" />
   }
 
   return (
@@ -71,9 +71,7 @@ export const UnitDetailPage: React.FC = () => {
         </div>
         <div className="flex gap-2">
           {canPerform('unit:update') && (
-            <Button onClick={() => navigate(`/units/${id}/edit`)}>
-              Edit
-            </Button>
+            <Button onClick={() => navigate(`/units/${id}/edit`)}>Edit</Button>
           )}
           {canPerform('unit:delete') && !unit.deletedAt && (
             <Button
@@ -180,11 +178,7 @@ export const UnitDetailPage: React.FC = () => {
         <p>Last Updated: {new Date(unit.updatedAt).toLocaleString()}</p>
       </div>
 
-      <Button
-        variant="outline"
-        className="mt-6"
-        onClick={() => navigate('/units')}
-      >
+      <Button variant="outline" className="mt-6" onClick={() => navigate('/units')}>
         Back to Units
       </Button>
     </div>

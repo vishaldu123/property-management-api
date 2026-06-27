@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import React from 'react'
 import { UnitList } from '../components/unit-list'
 import { unitService } from '@/shared/services'
 
@@ -85,7 +84,7 @@ describe('UnitList Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('101')).toBeInTheDocument()
-      expect(screen.getByText('Apartment')).toBeInTheDocument()
+      expect(screen.getByRole('cell', { name: 'Apartment' })).toBeInTheDocument()
     })
   })
 })

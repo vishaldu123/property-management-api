@@ -14,7 +14,12 @@ export const TenantDetailPage: React.FC = () => {
   const queryClient = useQueryClient()
   const { canPerform } = usePermissionGate()
 
-  const { data: tenant, isLoading, isError, error } = useQuery({
+  const {
+    data: tenant,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['tenant', id],
     queryFn: () => tenantService.getTenant(id!),
     enabled: !!id,
@@ -48,17 +53,14 @@ export const TenantDetailPage: React.FC = () => {
     return (
       <ErrorState
         title="Error loading tenant"
-        description={error instanceof Error ? error.message : 'An error occurred'}
+        message={error instanceof Error ? error.message : 'An error occurred'}
       />
     )
   }
 
   if (!tenant) {
     return (
-      <ErrorState
-        title="Tenant not found"
-        description="The tenant you're looking for doesn't exist"
-      />
+      <ErrorState title="Tenant not found" message="The tenant you're looking for doesn't exist" />
     )
   }
 
@@ -66,14 +68,14 @@ export const TenantDetailPage: React.FC = () => {
     <div className="max-w-2xl mx-auto">
       <div className="mb-6 flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold">{tenant.firstName} {tenant.lastName}</h1>
+          <h1 className="text-3xl font-bold">
+            {tenant.firstName} {tenant.lastName}
+          </h1>
           <p className="text-muted-foreground mt-2">{tenant.email}</p>
         </div>
         <div className="flex gap-2">
           {canPerform('tenant:update') && (
-            <Button onClick={() => navigate(`/tenants/${id}/edit`)}>
-              Edit
-            </Button>
+            <Button onClick={() => navigate(`/tenants/${id}/edit`)}>Edit</Button>
           )}
           {canPerform('tenant:delete') && !tenant.deletedAt && (
             <Button
@@ -182,11 +184,7 @@ export const TenantDetailPage: React.FC = () => {
         <p>Last Updated: {new Date(tenant.updatedAt).toLocaleString()}</p>
       </div>
 
-      <Button
-        variant="outline"
-        className="mt-6"
-        onClick={() => navigate('/tenants')}
-      >
+      <Button variant="outline" className="mt-6" onClick={() => navigate('/tenants')}>
         Back to Tenants
       </Button>
     </div>

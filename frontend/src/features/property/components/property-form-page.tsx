@@ -4,7 +4,6 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { propertyService } from '@/shared/services'
 import { toastService } from '@/shared/services'
 import { PropertyForm, PropertyFormData } from './property-form'
-import { Button } from '@/shared/components/ui/button'
 import { Loading } from '@/shared/components/ui/loading'
 import { ErrorState } from '@/shared/components/ui/error-state'
 
@@ -16,7 +15,12 @@ export const PropertyFormPage: React.FC<PropertyFormPageProps> = ({ mode }) => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
 
-  const { data: property, isLoading, isError, error } = useQuery({
+  const {
+    data: property,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['property', id],
     queryFn: () => propertyService.getProperty(id!),
     enabled: mode === 'edit' && !!id,
@@ -58,7 +62,7 @@ export const PropertyFormPage: React.FC<PropertyFormPageProps> = ({ mode }) => {
     return (
       <ErrorState
         title="Error loading property"
-        description={error instanceof Error ? error.message : 'An error occurred'}
+        message={error instanceof Error ? error.message : 'An error occurred'}
       />
     )
   }
@@ -79,21 +83,25 @@ export const PropertyFormPage: React.FC<PropertyFormPageProps> = ({ mode }) => {
       <PropertyForm
         onSubmit={onSubmit}
         onCancel={() => navigate('/properties')}
-        defaultValues={property ? {
-          name: property.name,
-          code: property.code,
-          description: property.description,
-          propertyType: property.propertyType,
-          address: property.address,
-          city: property.city,
-          state: property.state,
-          country: property.country,
-          postalCode: property.postalCode,
-          timezone: property.timezone,
-          totalUnits: property.totalUnits,
-          yearBuilt: property.yearBuilt,
-          notes: property.notes,
-        } : undefined}
+        defaultValues={
+          property
+            ? {
+                name: property.name,
+                code: property.code,
+                description: property.description,
+                propertyType: property.propertyType,
+                address: property.address,
+                city: property.city,
+                state: property.state,
+                country: property.country,
+                postalCode: property.postalCode,
+                timezone: property.timezone,
+                totalUnits: property.totalUnits,
+                yearBuilt: property.yearBuilt,
+                notes: property.notes,
+              }
+            : undefined
+        }
         isLoading={createMutation.isPending || updateMutation.isPending}
         submitLabel={mode === 'create' ? 'Create Property' : 'Update Property'}
       />
