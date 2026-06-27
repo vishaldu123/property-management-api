@@ -1,6 +1,7 @@
 import { Lease } from '@prisma/client';
 import { leaseRepository, CreateLeaseInput, UpdateLeaseInput, PaginationOptions, LeaseFilter } from '../repositories/lease.repository';
 import { propertyRepository } from '../repositories/property.repository';
+import { organizationRepository } from '../repositories/organization.repository';
 import { unitRepository } from '../repositories/unit.repository';
 import { tenantRepository } from '../repositories/tenant.repository';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../utils/errors';
@@ -32,7 +33,7 @@ export class LeaseService {
    */
   async createLease(ctx: ActorContext, input: CreateLeaseInput): Promise<Lease> {
     // Validate organization exists
-    const organization = await propertyRepository.findOrganizationById(ctx.organizationId);
+    const organization = await organizationRepository.findByIdAndOrganizationId(ctx.organizationId, ctx.organizationId);
     if (!organization) {
       throw new ForbiddenError('Organization not found');
     }
@@ -158,18 +159,16 @@ export class LeaseService {
       }
 
       // Check for overlapping leases if dates are being changed
-      if (input.startDate || input.endDate) {
-        const hasOverlapping = await leaseRepository.hasOverlappingLease(
-          lease.unitId,
-          ctx.organizationId,
-          startDate,
-          endDate,
-          leaseId
-        );
+      const hasOverlapping = await leaseRepository.hasOverlappingLease(
+        lease.unitId,
+        ctx.organizationId,
+        startDate,
+        endDate,
+        leaseId
+      );
 
-        if (hasOverlapping) {
-          throw new ConflictError('Lease dates conflict with an existing lease for this unit');
-        }
+      if (hasOverlapping) {
+        throw new ConflictError('Lease dates conflict with an existing lease for this unit');
       }
     }
 
@@ -318,7 +317,7 @@ export class LeaseService {
         status: 'Renewed',
         startDate: renewalInput.newStartDate,
         endDate: renewalInput.newEndDate,
-      },
+      } as UpdateLeaseInput,
       ctx.userId
     );
 
@@ -355,7 +354,7 @@ export class LeaseService {
       ctx.organizationId,
       {
         status: 'Terminated',
-        notes: terminationReason || lease.notes,
+        notes: terminationReason ?? lease.notes,
       },
       ctx.userId
     );

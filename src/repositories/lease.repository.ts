@@ -23,6 +23,8 @@ export interface CreateLeaseInput {
 
 export interface UpdateLeaseInput {
   leaseNumber?: string;
+  startDate?: Date;
+  endDate?: Date;
   moveInDate?: Date | null;
   moveOutDate?: Date | null;
   monthlyRent?: number;
@@ -33,7 +35,7 @@ export interface UpdateLeaseInput {
   renewalOption?: boolean;
   autoRenewal?: boolean;
   noticePeriod?: number;
-  notes?: string;
+  notes?: string | null;
 }
 
 export interface PaginationOptions {
