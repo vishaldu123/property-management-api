@@ -85,8 +85,7 @@ client.interceptors.response.use(
           }
         )
 
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-          response.data
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data
         localStorage.setItem('accessToken', newAccessToken)
         localStorage.setItem('refreshToken', newRefreshToken)
 
@@ -111,8 +110,7 @@ client.interceptors.response.use(
 )
 
 export const apiClient = {
-  get: <T>(url: string, config?: Parameters<typeof client.get>[1]) =>
-    client.get<T>(url, config),
+  get: <T>(url: string, config?: Parameters<typeof client.get>[1]) => client.get<T>(url, config),
   post: <T>(url: string, data?: unknown, config?: Parameters<typeof client.post>[2]) =>
     client.post<T>(url, data, config),
   put: <T>(url: string, data?: unknown, config?: Parameters<typeof client.put>[2]) =>

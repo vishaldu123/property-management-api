@@ -1,8 +1,20 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/shared/components'
 import { useAuth } from '@/shared/hooks'
-import { ArrowLongRightIcon, ShieldCheckIcon, BoltIcon, UsersIcon } from '@heroicons/react/24/outline'
+import {
+  ArrowLongRightIcon,
+  ShieldCheckIcon,
+  BoltIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline'
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -23,9 +35,7 @@ export const HomePage: React.FC = () => {
             <Button variant="ghost" onClick={() => navigate('/login')}>
               Sign In
             </Button>
-            <Button onClick={() => navigate('/register')}>
-              Get Started
-            </Button>
+            <Button onClick={() => navigate('/register')}>Get Started</Button>
           </div>
         </div>
       </header>
@@ -33,9 +43,7 @@ export const HomePage: React.FC = () => {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center space-y-6">
-          <h2 className="text-5xl font-bold tracking-tight">
-            Enterprise Property Management
-          </h2>
+          <h2 className="text-5xl font-bold tracking-tight">Enterprise Property Management</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             A complete platform for managing your properties, tenants, leases, and payments
           </p>
@@ -63,7 +71,8 @@ export const HomePage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Role-based access control, multi-tenant architecture, and advanced security features
+                  Role-based access control, multi-tenant architecture, and advanced security
+                  features
                 </CardDescription>
               </CardContent>
             </Card>

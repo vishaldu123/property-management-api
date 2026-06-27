@@ -41,6 +41,7 @@ model Organization {
   settings        OrganizationSettings?
   branding        OrganizationBranding?
   preferences     OrganizationPreferences?
+  properties      Property[]         @relation("OrganizationProperties")
 
   @@index([deletedAt])
   @@index([createdBy])
@@ -298,3 +299,49 @@ model PasswordResetToken {
   @@index([userId])
   @@index([expiresAt])
 }
+
+// Property Model (Sprint 5)
+model Property {
+  id              String             @id @default(uuid())
+  organizationId  String
+  name            String
+  code            String             // Property identifier code
+  description     String?
+  propertyType    String             // Apartment, Villa, Commercial, etc.
+  status          String             @default("DRAFT") // DRAFT, ACTIVE, INACTIVE, ARCHIVED
+  address         String
+  city            String
+  state           String
+  country         String
+  postalCode      String
+  latitude        Decimal?
+  longitude       Decimal?
+  timezone        String             @default("UTC")
+  totalUnits      Int?               // Number of units in the property
+  yearBuilt       Int?
+  notes           String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?          // Soft delete
+  createdBy       String?
+  updatedBy       String?
+  
+  organization    Organization       @relation("OrganizationProperties", fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Indexes for common queries
+  @@unique([organizationId, code]) // Code must be unique per organization
+  @@index([organizationId])
+  @@index([status])
+  @@index([propertyType])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([createdBy])
+  // Full-text search indexes
+  @@index([name])
+  @@index([city])
+  @@index([country])
+}
+
+// Extend Organization model to include properties relationship
+// Add this line to the Organization model above:
+// properties     Property[]         @relation("OrganizationProperties")

@@ -1,101 +1,147 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteProperty = exports.updateProperty = exports.createProperty = exports.getProperty = exports.listProperties = void 0;
-const prisma_1 = __importDefault(require("../config/prisma"));
-const response_1 = require("../shared/core/response");
-const logger_1 = __importDefault(require("../utils/logger"));
-const listProperties = async (req, res, next) => {
-    try {
-        const properties = await prisma_1.default.property.findMany({
-            where: { organizationId: req.user.organizationId },
-            include: { units: true },
-        });
-        response_1.ApiResponse.success(res, properties, 'Properties retrieved successfully');
-    }
-    catch (error) {
-        logger_1.default.error('listProperties error', error);
-        next(error);
-    }
-};
-exports.listProperties = listProperties;
-const getProperty = async (req, res, next) => {
-    try {
-        const propertyId = req.params.propertyId;
-        const property = await prisma_1.default.property.findFirst({
-            where: { id: propertyId, organizationId: req.user.organizationId },
-            include: { units: true },
-        });
-        if (!property) {
-            response_1.ApiResponse.error(res, 'Property not found', 404);
-            return;
-        }
-        response_1.ApiResponse.success(res, property, 'Property retrieved successfully');
-    }
-    catch (error) {
-        logger_1.default.error('getProperty error', error);
-        next(error);
-    }
-};
-exports.getProperty = getProperty;
-const createProperty = async (req, res, next) => {
-    try {
-        const { name, address, city, state } = req.body;
-        const property = await prisma_1.default.property.create({
-            data: {
-                name,
-                address,
-                city,
-                state,
-                organizationId: req.user.organizationId,
-            },
-        });
-        response_1.ApiResponse.created(res, property, 'Property created successfully');
-    }
-    catch (error) {
-        logger_1.default.error('createProperty error', error);
-        next(error);
-    }
-};
 exports.createProperty = createProperty;
-const updateProperty = async (req, res, next) => {
-    try {
-        const propertyId = req.params.propertyId;
-        const { name, address, city, state } = req.body;
-        const property = await prisma_1.default.property.updateMany({
-            where: { id: propertyId, organizationId: req.user.organizationId },
-            data: { name, address, city, state },
-        });
-        if (property.count === 0) {
-            response_1.ApiResponse.error(res, 'Property not found', 404);
-            return;
-        }
-        const updated = await prisma_1.default.property.findUnique({ where: { id: propertyId } });
-        response_1.ApiResponse.success(res, updated, 'Property updated successfully');
-    }
-    catch (error) {
-        logger_1.default.error('updateProperty error', error);
-        next(error);
-    }
-};
 exports.updateProperty = updateProperty;
-const deleteProperty = async (req, res, next) => {
+exports.getProperty = getProperty;
+exports.listProperties = listProperties;
+exports.deleteProperty = deleteProperty;
+exports.restoreProperty = restoreProperty;
+exports.getPropertyStatistics = getPropertyStatistics;
+const property_service_1 = require("../services/property.service");
+const response_1 = require("../shared/core/response");
+/**
+ * Get actor context from request
+ */
+function getActorContext(req) {
+    if (!req.user) {
+        throw new Error('User context not found');
+    }
+    return {
+        userId: req.user.userId,
+        organizationId: req.user.organizationId,
+    };
+}
+/**
+ * Safely extract param as string
+ */
+function getParam(param) {
+    if (Array.isArray(param)) {
+        return param[0];
+    }
+    return param || '';
+}
+/**
+ * Create Property Endpoint
+ * POST /api/v1/properties
+ */
+async function createProperty(req, res, next) {
     try {
-        const propertyId = req.params.propertyId;
-        const property = await prisma_1.default.property.deleteMany({
-            where: { id: propertyId, organizationId: req.user.organizationId },
-        });
-        if (property.count === 0) {
-            response_1.ApiResponse.error(res, 'Property not found', 404);
-            return;
-        }
-        response_1.ApiResponse.success(res, null, 'Property deleted successfully', 204);
+        const ctx = getActorContext(req);
+        const input = req.body;
+        const property = await property_service_1.propertyService.createProperty(ctx, input);
+        return response_1.ApiResponse.created(res, property, 'Property created successfully');
     }
     catch (error) {
-        logger_1.default.error('deleteProperty error', error);
         next(error);
     }
-};
-exports.deleteProperty = deleteProperty;
+}
+/**
+ * Update Property Endpoint
+ * PUT /api/v1/properties/:id
+ */
+async function updateProperty(req, res, next) {
+    try {
+        const ctx = getActorContext(req);
+        const id = getParam(req.params.id);
+        const input = req.body;
+        const property = await property_service_1.propertyService.updateProperty(ctx, id, input);
+        return response_1.ApiResponse.success(res, property, 'Property updated successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+}
+/**
+ * Get Property Endpoint
+ * GET /api/v1/properties/:id
+ */
+async function getProperty(req, res, next) {
+    try {
+        const ctx = getActorContext(req);
+        const id = getParam(req.params.id);
+        const property = await property_service_1.propertyService.getProperty(ctx, id);
+        return response_1.ApiResponse.success(res, property, 'Property retrieved successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+}
+/**
+ * List Properties Endpoint
+ * GET /api/v1/properties
+ */
+async function listProperties(req, res, next) {
+    try {
+        const ctx = getActorContext(req);
+        const query = {
+            page: req.query.page ? parseInt(getParam(req.query.page)) : undefined,
+            limit: req.query.limit ? parseInt(getParam(req.query.limit)) : undefined,
+            status: getParam(req.query.status) || undefined,
+            propertyType: getParam(req.query.propertyType) || undefined,
+            city: getParam(req.query.city) || undefined,
+            country: getParam(req.query.country) || undefined,
+            search: getParam(req.query.search) || undefined,
+            sortBy: getParam(req.query.sortBy) || undefined,
+            sortOrder: (getParam(req.query.sortOrder) || undefined),
+        };
+        const result = await property_service_1.propertyService.listProperties(ctx, query);
+        return response_1.ApiResponse.paginated(res, result.data, result.meta, 'Properties retrieved successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+}
+/**
+ * Delete Property Endpoint (Soft Delete)
+ * DELETE /api/v1/properties/:id
+ */
+async function deleteProperty(req, res, next) {
+    try {
+        const ctx = getActorContext(req);
+        const id = getParam(req.params.id);
+        const property = await property_service_1.propertyService.deleteProperty(ctx, id);
+        return response_1.ApiResponse.success(res, property, 'Property deleted successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+}
+/**
+ * Restore Property Endpoint
+ * PATCH /api/v1/properties/:id/restore
+ */
+async function restoreProperty(req, res, next) {
+    try {
+        const ctx = getActorContext(req);
+        const id = getParam(req.params.id);
+        const property = await property_service_1.propertyService.restoreProperty(ctx, id);
+        return response_1.ApiResponse.success(res, property, 'Property restored successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+}
+/**
+ * Get Property Statistics Endpoint
+ * GET /api/v1/properties/stats
+ */
+async function getPropertyStatistics(req, res, next) {
+    try {
+        const ctx = getActorContext(req);
+        const stats = await property_service_1.propertyService.getPropertyStatistics(ctx);
+        return response_1.ApiResponse.success(res, stats, 'Property statistics retrieved successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+}

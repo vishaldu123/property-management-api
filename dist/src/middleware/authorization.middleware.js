@@ -122,7 +122,10 @@ const organizationScope = (orgIdParamName = 'organizationId') => {
             if (!req.user) {
                 throw new errors_1.ForbiddenError('User context not found');
             }
-            const requestedOrgId = req.params[orgIdParamName] || req.user.organizationId;
+            const requestedOrgId = req.params[orgIdParamName];
+            if (!requestedOrgId) {
+                throw new errors_1.ForbiddenError(`Organization ID parameter '${orgIdParamName}' not found`);
+            }
             const userOrgId = req.user.organizationId;
             if (requestedOrgId !== userOrgId) {
                 logger_1.default.warn('Cross-organization access attempt', {

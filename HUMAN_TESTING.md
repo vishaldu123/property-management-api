@@ -1172,3 +1172,354 @@ curl -X POST http://localhost:5000/api/v1/rbac/roles \
 ```
 
 Expected response shows error about role key already existing.
+
+---
+
+## Section 8: Property Domain Testing (Sprint 5)
+
+### Setup: Authenticate and Get Tokens
+```bash
+# Register user (if not already registered)
+curl -X POST http://localhost:5000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "property-test@example.com",
+    "password": "SecurePass123!",
+    "organizationName": "Test Property Company"
+  }'
+
+# Login to get token
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "property-test@example.com",
+    "password": "SecurePass123!"
+  }'
+
+# Extract token from response and save as YOUR_TOKEN
+```
+
+### Test 8.1: Create Property
+**Endpoint:** `POST /api/v1/properties`  
+**Auth:** Required  
+**Expected:** `201 Created`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/properties \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Downtown Office Tower",
+    "code": "DT-OFFICE-001",
+    "description": "Modern office building with 24/7 security",
+    "propertyType": "Commercial",
+    "status": "Active",
+    "address": "123 Main Street",
+    "city": "New York",
+    "state": "NY",
+    "country": "USA",
+    "postalCode": "10001",
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "timezone": "America/New_York",
+    "totalUnits": 150,
+    "yearBuilt": 2020,
+    "notes": "Premium location in financial district"
+  }'
+```
+
+**Validation:**
+- ✓ Response status: `201 Created`
+- ✓ Response includes property `id` (UUID)
+- ✓ All fields are returned in response
+- ✓ `organizationId` matches authenticated user's organization
+- ✓ `createdBy` is set to authenticated user's ID
+- ✓ `deletedAt` is null
+- ✓ `status` defaults to "Draft" if not provided
+
+### Test 8.2: Get Property by ID
+**Endpoint:** `GET /api/v1/properties/{id}`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+# Use the property ID from Test 8.1 response
+curl -X GET "http://localhost:5000/api/v1/properties/PROPERTY_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Returns complete property object
+- ✓ All fields match created property
+- ✓ Cannot access properties from other organizations
+
+### Test 8.3: Update Property
+**Endpoint:** `PUT /api/v1/properties/{id}`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X PUT "http://localhost:5000/api/v1/properties/PROPERTY_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "Inactive",
+    "totalUnits": 160,
+    "notes": "Recently renovated units"
+  }'
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Returns updated property object
+- ✓ Only specified fields are updated
+- ✓ `updatedBy` is set to current user
+- ✓ `updatedAt` timestamp is current
+
+### Test 8.4: List Properties with Pagination
+**Endpoint:** `GET /api/v1/properties?page=1&limit=10`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET "http://localhost:5000/api/v1/properties?page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Returns array of properties in `data` field
+- ✓ `meta` object includes: `page`, `limit`, `total`, `totalPages`, `hasNextPage`, `hasPreviousPage`
+- ✓ Properties are organization-scoped
+- ✓ Soft-deleted properties not included (unless specifically requested)
+
+### Test 8.5: Search Properties
+**Endpoint:** `GET /api/v1/properties?search=Downtown`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET "http://localhost:5000/api/v1/properties?search=Downtown&page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Searches by property name, code, and city
+- ✓ Returns only matching properties
+- ✓ Search is case-insensitive
+
+### Test 8.6: Filter by Property Status
+**Endpoint:** `GET /api/v1/properties?status=Active`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET "http://localhost:5000/api/v1/properties?status=Active&page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Returns only properties with matching status
+- ✓ Valid statuses: Draft, Active, Inactive, Archived
+
+### Test 8.7: Filter by Property Type
+**Endpoint:** `GET /api/v1/properties?propertyType=Commercial`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET "http://localhost:5000/api/v1/properties?propertyType=Commercial&page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Returns only properties matching type
+- ✓ Valid types: Apartment, Villa, Commercial, Office, Retail, Warehouse, Mixed Use, Land
+
+### Test 8.8: Filter by Country
+**Endpoint:** `GET /api/v1/properties?country=USA`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET "http://localhost:5000/api/v1/properties?country=USA&page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Returns only properties from specified country
+
+### Test 8.9: Sort Properties
+**Endpoint:** `GET /api/v1/properties?sortBy=name&sortOrder=asc`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET "http://localhost:5000/api/v1/properties?sortBy=name&sortOrder=asc&page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Valid sortBy values: createdAt, name, status, propertyType
+- ✓ Valid sortOrder: asc, desc
+- ✓ Properties returned in correct order
+
+### Test 8.10: Get Property Statistics
+**Endpoint:** `GET /api/v1/properties/stats`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X GET "http://localhost:5000/api/v1/properties/stats" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Returns `total` count of properties
+- ✓ Returns `byStatus` breakdown (e.g., {Draft: 2, Active: 5})
+- ✓ Returns `byType` breakdown (e.g., {Commercial: 3, Apartment: 4})
+- ✓ Statistics are organization-scoped
+
+### Test 8.11: Delete Property (Soft Delete)
+**Endpoint:** `DELETE /api/v1/properties/{id}`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X DELETE "http://localhost:5000/api/v1/properties/PROPERTY_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Property is soft-deleted (deletedAt set to current timestamp)
+- ✓ GET request to deleted property returns `404`
+- ✓ Property still exists in database but not visible in queries
+
+### Test 8.12: Restore Deleted Property
+**Endpoint:** `PATCH /api/v1/properties/{id}/restore`  
+**Auth:** Required  
+**Expected:** `200 OK`
+
+```bash
+curl -X PATCH "http://localhost:5000/api/v1/properties/DELETED_PROPERTY_ID/restore" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Returns restored property object
+- ✓ `deletedAt` is set back to null
+- ✓ Property is now visible in list queries again
+
+### Test 8.13: Validation - Duplicate Code
+**Endpoint:** `POST /api/v1/properties`  
+**Auth:** Required  
+**Expected:** `409 Conflict`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/properties \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Another Office",
+    "code": "DT-OFFICE-001",
+    "propertyType": "Commercial",
+    "address": "456 Oak Ave",
+    "city": "Boston",
+    "state": "MA",
+    "country": "USA",
+    "postalCode": "02101"
+  }'
+```
+
+**Validation:**
+- ✓ Response status: `409 Conflict`
+- ✓ Error message indicates code already exists
+- ✓ Error is organization-scoped (same code allowed in different org)
+
+### Test 8.14: Validation - Invalid Coordinates
+**Endpoint:** `POST /api/v1/properties`  
+**Auth:** Required  
+**Expected:** `400 Bad Request`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/properties \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Invalid Coordinates",
+    "code": "INVALID-001",
+    "propertyType": "Commercial",
+    "address": "789 Elm St",
+    "city": "Chicago",
+    "state": "IL",
+    "country": "USA",
+    "postalCode": "60601",
+    "latitude": 95.0,
+    "longitude": -74.0
+  }'
+```
+
+**Validation:**
+- ✓ Response status: `400 Bad Request`
+- ✓ Error indicates latitude must be between -90 and 90
+- ✓ Validation errors include field names and messages
+
+### Test 8.15: Validation - Invalid Property Type
+**Endpoint:** `POST /api/v1/properties`  
+**Auth:** Required  
+**Expected:** `400 Bad Request`
+
+```bash
+curl -X POST http://localhost:5000/api/v1/properties \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Bad Type",
+    "code": "BAD-001",
+    "propertyType": "Mansion",
+    "address": "000 Zero Ln",
+    "city": "Lost",
+    "state": "LA",
+    "country": "USA",
+    "postalCode": "00000"
+  }'
+```
+
+**Validation:**
+- ✓ Response status: `400 Bad Request`
+- ✓ Error indicates "Mansion" is not a valid property type
+- ✓ Valid types listed in error message: Apartment, Villa, Commercial, Office, Retail, Warehouse, Mixed Use, Land
+
+### Test 8.16: Organization Isolation
+**Endpoint:** `GET /api/v1/properties`  
+**Auth:** Required (as different user in different org)  
+**Expected:** `200 OK` (empty list or different properties)
+
+```bash
+# Login as user from different organization
+curl -X GET "http://localhost:5000/api/v1/properties" \
+  -H "Authorization: Bearer OTHER_ORG_TOKEN"
+```
+
+**Validation:**
+- ✓ Response status: `200 OK`
+- ✓ Returns only properties from user's organization
+- ✓ Cannot see properties from other organizations
+- ✓ Cannot access other org's property directly by ID
+
+---
+
+## Testing Complete
+
+All Property domain functionality is now verified. Property management module is ready for integration with other domains (Units, Tenants, Leases, Payments).
+

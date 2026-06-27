@@ -2,7 +2,17 @@ import React from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Alert, AlertDescription, TextField } from '@/shared/components'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Alert,
+  AlertDescription,
+  TextField,
+} from '@/shared/components'
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/utils/validation'
 import { authService, isApiError } from '@/shared/services'
 
@@ -14,7 +24,11 @@ export const ResetPasswordPage: React.FC = () => {
 
   const token = searchParams.get('token')
 
-  const { control, handleSubmit, formState: { errors } } = useForm<ResetPasswordFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema) as any,
     defaultValues: {
       password: '',
@@ -55,10 +69,7 @@ export const ResetPasswordPage: React.FC = () => {
             <Alert variant="destructive">
               <AlertDescription>Invalid or missing reset token</AlertDescription>
             </Alert>
-            <Button
-              onClick={() => navigate('/forgot-password')}
-              className="w-full mt-4"
-            >
+            <Button onClick={() => navigate('/forgot-password')} className="w-full mt-4">
               Request New Reset Link
             </Button>
           </CardContent>

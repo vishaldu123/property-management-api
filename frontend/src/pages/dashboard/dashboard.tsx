@@ -1,5 +1,13 @@
 import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, DashboardLayout, SkeletonCard } from '@/shared/components'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  DashboardLayout,
+  SkeletonCard,
+} from '@/shared/components'
 import { useAuth } from '@/shared/hooks'
 
 export const DashboardPage: React.FC = () => {
@@ -29,7 +37,9 @@ export const DashboardPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Welcome, {user?.firstName}!</h1>
           <p className="text-muted-foreground mt-2">
-            {currentOrganization ? `Organization: ${currentOrganization.name}` : 'Property management dashboard'}
+            {currentOrganization
+              ? `Organization: ${currentOrganization.name}`
+              : 'Property management dashboard'}
           </p>
         </div>
 

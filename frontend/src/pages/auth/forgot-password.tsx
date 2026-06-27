@@ -2,7 +2,17 @@ import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Alert, AlertDescription, TextField } from '@/shared/components'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Alert,
+  AlertDescription,
+  TextField,
+} from '@/shared/components'
 import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/utils/validation'
 import { authService, isApiError } from '@/shared/services'
 
@@ -12,7 +22,11 @@ export const ForgotPasswordPage: React.FC = () => {
   const [success, setSuccess] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
 
-  const { control, handleSubmit, formState: { errors } } = useForm<ForgotPasswordFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema) as any,
     defaultValues: {
       email: '',
@@ -47,14 +61,12 @@ export const ForgotPasswordPage: React.FC = () => {
           <CardContent className="space-y-4">
             <Alert>
               <AlertDescription>
-                We&apos;ve sent a password reset link to your email. Please check your inbox and follow the instructions.
+                We&apos;ve sent a password reset link to your email. Please check your inbox and
+                follow the instructions.
               </AlertDescription>
             </Alert>
 
-            <Button
-              onClick={() => navigate('/login')}
-              className="w-full"
-            >
+            <Button onClick={() => navigate('/login')} className="w-full">
               Back to Sign In
             </Button>
           </CardContent>

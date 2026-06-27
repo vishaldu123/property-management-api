@@ -22,9 +22,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
         {/* Content */}
         <main className={cn('flex-1 overflow-auto', sidebarOpen ? 'lg:ml-0' : '')}>
-          <div className="p-6 max-w-7xl mx-auto">
-            {children}
-          </div>
+          <div className="p-6 max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>

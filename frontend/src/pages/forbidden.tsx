@@ -10,11 +10,7 @@ export const ForbiddenPage: React.FC = () => {
       <EmptyState
         title="Access Denied"
         description="You don't have permission to access this resource."
-        action={
-          <Button onClick={() => navigate('/')}>
-            Go to Home
-          </Button>
-        }
+        action={<Button onClick={() => navigate('/')}>Go to Home</Button>}
       />
     </div>
   )

@@ -72,8 +72,13 @@ export const useCreateRole = () => {
 
   return useMutationWithToast(
     {
-      mutationFn: ({ organizationId, data }: { organizationId: string; data: Parameters<typeof rbacService.createRole>[1] }) =>
-        rbacService.createRole(organizationId, data),
+      mutationFn: ({
+        organizationId,
+        data,
+      }: {
+        organizationId: string
+        data: Parameters<typeof rbacService.createRole>[1]
+      }) => rbacService.createRole(organizationId, data),
       onSuccess: (_data, variables) => {
         queryClient.invalidateQueries({ queryKey: [...ROLES_KEY, variables.organizationId] })
       },
@@ -87,9 +92,14 @@ export const useUpdateRole = () => {
 
   return useMutationWithToast(
     {
-      mutationFn: ({ roleId, data }: { roleId: string; data: Parameters<typeof rbacService.updateRole>[1] }) =>
-        rbacService.updateRole(roleId, data),
-      onSuccess: (data) => {
+      mutationFn: ({
+        roleId,
+        data,
+      }: {
+        roleId: string
+        data: Parameters<typeof rbacService.updateRole>[1]
+      }) => rbacService.updateRole(roleId, data),
+      onSuccess: data => {
         queryClient.invalidateQueries({ queryKey: ROLES_KEY })
         queryClient.setQueryData([...ROLES_KEY, data.id], data)
       },
@@ -119,7 +129,7 @@ export const useAssignPermissionToRole = () => {
     {
       mutationFn: ({ roleId, permissionId }: { roleId: string; permissionId: string }) =>
         rbacService.assignPermissionToRole(roleId, permissionId),
-      onSuccess: (data) => {
+      onSuccess: data => {
         queryClient.invalidateQueries({ queryKey: [...ROLES_KEY, data.id] })
       },
     },
@@ -134,7 +144,7 @@ export const useAssignPermissionsToRole = () => {
     {
       mutationFn: ({ roleId, permissionIds }: { roleId: string; permissionIds: string[] }) =>
         rbacService.assignPermissionsToRole(roleId, permissionIds),
-      onSuccess: (data) => {
+      onSuccess: data => {
         queryClient.invalidateQueries({ queryKey: [...ROLES_KEY, data.id] })
       },
     },
@@ -149,7 +159,7 @@ export const useRemovePermissionFromRole = () => {
     {
       mutationFn: ({ roleId, permissionId }: { roleId: string; permissionId: string }) =>
         rbacService.removePermissionFromRole(roleId, permissionId),
-      onSuccess: (data) => {
+      onSuccess: data => {
         queryClient.invalidateQueries({ queryKey: [...ROLES_KEY, data.id] })
       },
     },
@@ -162,9 +172,16 @@ export const useAssignRoleToUser = () => {
 
   return useMutationWithToast(
     {
-      mutationFn: ({ userId, organizationId, roleId }: { userId: string; organizationId: string; roleId: string }) =>
-        rbacService.assignRoleToUser(userId, organizationId, roleId),
-      onSuccess: (data) => {
+      mutationFn: ({
+        userId,
+        organizationId,
+        roleId,
+      }: {
+        userId: string
+        organizationId: string
+        roleId: string
+      }) => rbacService.assignRoleToUser(userId, organizationId, roleId),
+      onSuccess: data => {
         queryClient.invalidateQueries({ queryKey: [...RBAC_QUERY_KEY, 'user-roles', data.userId] })
         queryClient.invalidateQueries({ queryKey: [...USER_PERMISSIONS_KEY, data.userId] })
       },
@@ -178,10 +195,19 @@ export const useRemoveRoleFromUser = () => {
 
   return useMutationWithToast(
     {
-      mutationFn: ({ userId, organizationId, roleId }: { userId: string; organizationId: string; roleId: string }) =>
-        rbacService.removeRoleFromUser(userId, organizationId, roleId),
+      mutationFn: ({
+        userId,
+        organizationId,
+        roleId,
+      }: {
+        userId: string
+        organizationId: string
+        roleId: string
+      }) => rbacService.removeRoleFromUser(userId, organizationId, roleId),
       onSuccess: (_data, variables) => {
-        queryClient.invalidateQueries({ queryKey: [...RBAC_QUERY_KEY, 'user-roles', variables.userId] })
+        queryClient.invalidateQueries({
+          queryKey: [...RBAC_QUERY_KEY, 'user-roles', variables.userId],
+        })
         queryClient.invalidateQueries({ queryKey: [...USER_PERMISSIONS_KEY, variables.userId] })
       },
     },
@@ -194,10 +220,19 @@ export const useReplaceUserRoles = () => {
 
   return useMutationWithToast(
     {
-      mutationFn: ({ userId, organizationId, roleIds }: { userId: string; organizationId: string; roleIds: string[] }) =>
-        rbacService.replaceUserRoles(userId, organizationId, roleIds),
+      mutationFn: ({
+        userId,
+        organizationId,
+        roleIds,
+      }: {
+        userId: string
+        organizationId: string
+        roleIds: string[]
+      }) => rbacService.replaceUserRoles(userId, organizationId, roleIds),
       onSuccess: (_data, variables) => {
-        queryClient.invalidateQueries({ queryKey: [...RBAC_QUERY_KEY, 'user-roles', variables.userId] })
+        queryClient.invalidateQueries({
+          queryKey: [...RBAC_QUERY_KEY, 'user-roles', variables.userId],
+        })
         queryClient.invalidateQueries({ queryKey: [...USER_PERMISSIONS_KEY, variables.userId] })
       },
     },

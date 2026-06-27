@@ -2,7 +2,17 @@ import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Alert, AlertDescription, TextField } from '@/shared/components'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Alert,
+  AlertDescription,
+  TextField,
+} from '@/shared/components'
 import { useAuth } from '@/shared/hooks'
 import { registerSchema, type RegisterFormData } from '@/utils/validation'
 import { isApiError } from '@/shared/services'
@@ -13,7 +23,11 @@ export const RegisterPage: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null)
   const [isLoading, setIsLoading] = React.useState(false)
 
-  const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema) as any,
     defaultValues: {
       email: '',

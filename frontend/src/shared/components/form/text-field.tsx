@@ -29,12 +29,7 @@ const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
       required={required}
     >
       {({ field }) => (
-        <Input
-          ref={ref}
-          {...field}
-          {...inputProps}
-          className={cn('mt-2', className)}
-        />
+        <Input ref={ref} {...field} {...inputProps} className={cn('mt-2', className)} />
       )}
     </FormField>
   )

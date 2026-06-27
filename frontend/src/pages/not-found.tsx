@@ -10,11 +10,7 @@ export const NotFoundPage: React.FC = () => {
       <EmptyState
         title="Page Not Found"
         description="The page you're looking for doesn't exist or has been moved."
-        action={
-          <Button onClick={() => navigate('/')}>
-            Go to Home
-          </Button>
-        }
+        action={<Button onClick={() => navigate('/')}>Go to Home</Button>}
       />
     </div>
   )
