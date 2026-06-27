@@ -24,7 +24,9 @@ const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
     return (
       <div ref={ref}>
         {label && (
-          <Label className={cn(required && 'after:content-[\'*\'] after:ml-0.5 after:text-destructive')}>
+          <Label
+            className={cn(required && "after:content-['*'] after:ml-0.5 after:text-destructive")}
+          >
             {label}
           </Label>
         )}
@@ -39,7 +41,9 @@ const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
               <div>
                 {children ? children({ field, fieldState }) : null}
                 {(error || fieldState.error) && (
-                  <p className="mt-1 text-sm text-destructive">{error || fieldState.error?.message}</p>
+                  <p className="mt-1 text-sm text-destructive">
+                    {error || fieldState.error?.message}
+                  </p>
                 )}
               </div>
             )

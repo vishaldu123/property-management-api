@@ -8,7 +8,12 @@ export interface AuthContextType {
   isLoading: boolean
   isAuthenticated: boolean
   login: (_email: string, _password: string) => Promise<void> // eslint-disable-line @typescript-eslint/no-unused-vars
-  register: (_email: string, _password: string, _firstName: string, _lastName: string) => Promise<void> // eslint-disable-line @typescript-eslint/no-unused-vars
+  register: (
+    _email: string,
+    _password: string,
+    _firstName: string,
+    _lastName: string
+  ) => Promise<void> // eslint-disable-line @typescript-eslint/no-unused-vars
   logout: () => Promise<void>
   refresh: () => Promise<void>
   setCurrentOrganization: (_org: Organization) => void // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -80,12 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const register = async (
-    email: string,
-    password: string,
-    firstName: string,
-    lastName: string
-  ) => {
+  const register = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
       const response = await authService.register({ email, password, firstName, lastName })
       setUser(response.user)

@@ -1,5 +1,12 @@
 import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, DashboardLayout } from '@/shared/components'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  DashboardLayout,
+} from '@/shared/components'
 import { useAuth } from '@/shared/hooks'
 
 export const ProfilePage: React.FC = () => {

@@ -15,9 +15,7 @@ export const UnauthorizedPage: React.FC = () => {
         description="You need to be logged in to access this resource."
         action={
           <div className="flex gap-2">
-            <Button onClick={() => navigate('/login')}>
-              Sign In
-            </Button>
+            <Button onClick={() => navigate('/login')}>Sign In</Button>
             <Button variant="outline" onClick={() => navigate('/')}>
               Go to Home
             </Button>

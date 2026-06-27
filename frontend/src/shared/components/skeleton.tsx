@@ -8,13 +8,7 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {}
  * Displays animated placeholder while data is loading
  */
 export const Skeleton: React.FC<SkeletonProps> = ({ className, ...props }) => (
-  <div
-    className={cn(
-      'animate-pulse rounded-md bg-muted',
-      className
-    )}
-    {...props}
-  />
+  <div className={cn('animate-pulse rounded-md bg-muted', className)} {...props} />
 )
 
 export const SkeletonText: React.FC<{ lines?: number }> = ({ lines = 3 }) => (
@@ -33,7 +27,10 @@ export const SkeletonCard: React.FC = () => (
   </div>
 )
 
-export const SkeletonTable: React.FC<{ rows?: number; columns?: number }> = ({ rows = 5, columns = 4 }) => (
+export const SkeletonTable: React.FC<{ rows?: number; columns?: number }> = ({
+  rows = 5,
+  columns = 4,
+}) => (
   <div className="space-y-3">
     {Array.from({ length: rows }).map((_, i) => (
       <div key={i} className="flex gap-4">
@@ -50,13 +47,20 @@ export const SkeletonChart: React.FC = () => (
     <Skeleton className="h-8 w-1/4 rounded" />
     <div className="flex gap-2 h-40">
       {Array.from({ length: 12 }).map((_, i) => (
-        <Skeleton key={i} className="flex-1 rounded-sm" style={{ height: `${30 + Math.random() * 70}%` }} />
+        <Skeleton
+          key={i}
+          className="flex-1 rounded-sm"
+          style={{ height: `${30 + Math.random() * 70}%` }}
+        />
       ))}
     </div>
   </div>
 )
 
-export const SkeletonGrid: React.FC<{ items?: number; columns?: number }> = ({ items = 4, columns = 2 }) => (
+export const SkeletonGrid: React.FC<{ items?: number; columns?: number }> = ({
+  items = 4,
+  columns = 2,
+}) => (
   <div className={`grid gap-4 grid-cols-${columns}`}>
     {Array.from({ length: items }).map((_, i) => (
       <SkeletonCard key={i} />

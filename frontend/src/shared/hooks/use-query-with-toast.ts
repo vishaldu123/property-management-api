@@ -1,4 +1,10 @@
-import { useQuery, useMutation, UseQueryOptions, UseMutationOptions, UseQueryResult } from '@tanstack/react-query'
+import {
+  useQuery,
+  useMutation,
+  UseQueryOptions,
+  UseMutationOptions,
+  UseQueryResult,
+} from '@tanstack/react-query'
 import { toastService } from '@/shared/services'
 import { AxiosError } from 'axios'
 import { ApiError } from '@/types'
@@ -23,11 +29,7 @@ export function useQueryWithToast<TData>(
 /**
  * Custom hook for mutations with error handling and notifications
  */
-export function useMutationWithToast<
-  TData = unknown,
-  TVariables = unknown,
-  TContext = unknown
->(
+export function useMutationWithToast<TData = unknown, TVariables = unknown, TContext = unknown>(
   options: UseMutationOptions<TData, AxiosError<ApiError>, TVariables, TContext>,
   {
     successMessage,

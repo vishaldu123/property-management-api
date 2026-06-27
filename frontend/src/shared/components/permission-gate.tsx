@@ -54,9 +54,10 @@ export const PermissionGate: React.FC<PermissionGateProps> = ({
   if (requires === 'all') {
     hasAccess = hasAllPermissions(userPermissions, permissionList)
   } else {
-    hasAccess = permissionList.length === 1
-      ? hasPermission(userPermissions, permissionList[0])
-      : hasAnyPermission(userPermissions, permissionList)
+    hasAccess =
+      permissionList.length === 1
+        ? hasPermission(userPermissions, permissionList[0])
+        : hasAnyPermission(userPermissions, permissionList)
   }
 
   if (!hasAccess) {

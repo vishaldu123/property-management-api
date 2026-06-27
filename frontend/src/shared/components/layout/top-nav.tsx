@@ -31,11 +31,7 @@ export const TopNav: React.FC = () => {
 
           {/* Theme toggle */}
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {theme === 'dark' ? (
-              <SunIcon className="w-5 h-5" />
-            ) : (
-              <MoonIcon className="w-5 h-5" />
-            )}
+            {theme === 'dark' ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
           </Button>
 
           {/* User menu */}
@@ -49,7 +45,9 @@ export const TopNav: React.FC = () => {
                 <span className="text-sm font-medium">{user?.displayName}</span>
                 <span className="text-xs text-muted-foreground">{user?.email}</span>
               </div>
-              <ChevronDownIcon className={cn('w-4 h-4 transition-transform', userMenuOpen && 'rotate-180')} />
+              <ChevronDownIcon
+                className={cn('w-4 h-4 transition-transform', userMenuOpen && 'rotate-180')}
+              />
             </Button>
 
             {userMenuOpen && (

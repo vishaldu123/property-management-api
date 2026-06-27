@@ -82,11 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onOpenChange }) => {
     <>
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-40">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onOpenChange?.(!open)}
-        >
+        <Button variant="outline" size="icon" onClick={() => onOpenChange?.(!open)}>
           {open ? <XMarkIcon className="w-4 h-4" /> : <Bars3Icon className="w-4 h-4" />}
         </Button>
       </div>
@@ -115,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onOpenChange }) => {
           {/* Organization Switcher */}
           {currentOrganization && (
             <div className="mb-6 pb-6 border-b border-border">
-              <OrganizationSwitcher 
+              <OrganizationSwitcher
                 currentOrganizationId={currentOrganization.id}
                 onOrganizationChange={() => onOpenChange?.(false)}
               />

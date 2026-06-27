@@ -1,13 +1,9 @@
 import { apiClient } from './api-client'
-import {
-  OrganizationSettings,
-  OrganizationBranding,
-  OrganizationPreferences,
-} from '@/types'
+import { OrganizationSettings, OrganizationBranding, OrganizationPreferences } from '@/types'
 
 export const organizationSettingsService = {
   // ===== SETTINGS =====
-  
+
   getSettings: async (organizationId: string): Promise<OrganizationSettings> => {
     const response = await apiClient.get<OrganizationSettings>(
       `/organizations/${organizationId}/settings`
@@ -27,7 +23,7 @@ export const organizationSettingsService = {
   },
 
   // ===== BRANDING =====
-  
+
   getBranding: async (organizationId: string): Promise<OrganizationBranding> => {
     const response = await apiClient.get<OrganizationBranding>(
       `/organizations/${organizationId}/branding`
@@ -47,7 +43,7 @@ export const organizationSettingsService = {
   },
 
   // ===== PREFERENCES =====
-  
+
   getPreferences: async (organizationId: string): Promise<OrganizationPreferences> => {
     const response = await apiClient.get<OrganizationPreferences>(
       `/organizations/${organizationId}/preferences`

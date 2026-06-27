@@ -1,6 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { organizationService, organizationSettingsService } from '@/shared/services'
-import { Organization, OrganizationSettings, OrganizationBranding, OrganizationPreferences } from '@/types'
+import {
+  Organization,
+  OrganizationSettings,
+  OrganizationBranding,
+  OrganizationPreferences,
+} from '@/types'
 import { useMutationWithToast, useQueryWithToast } from './use-query-with-toast'
 
 const ORGANIZATION_QUERY_KEY = 'organizations'
@@ -49,9 +54,14 @@ export const useUpdateOrganization = () => {
 
   return useMutationWithToast(
     {
-      mutationFn: ({ organizationId, data }: { organizationId: string; data: Partial<Organization> }) =>
-        organizationService.update(organizationId, data),
-      onSuccess: (data) => {
+      mutationFn: ({
+        organizationId,
+        data,
+      }: {
+        organizationId: string
+        data: Partial<Organization>
+      }) => organizationService.update(organizationId, data),
+      onSuccess: data => {
         queryClient.invalidateQueries({ queryKey: [ORGANIZATION_QUERY_KEY] })
         queryClient.setQueryData([ORGANIZATION_QUERY_KEY, data.id], data)
       },
@@ -65,8 +75,13 @@ export const useUpdateOrganizationSettings = () => {
 
   return useMutationWithToast(
     {
-      mutationFn: ({ organizationId, settings }: { organizationId: string; settings: Partial<OrganizationSettings> }) =>
-        organizationSettingsService.updateSettings(organizationId, settings),
+      mutationFn: ({
+        organizationId,
+        settings,
+      }: {
+        organizationId: string
+        settings: Partial<OrganizationSettings>
+      }) => organizationSettingsService.updateSettings(organizationId, settings),
       onSuccess: (data, variables) => {
         queryClient.setQueryData(
           [ORGANIZATION_QUERY_KEY, variables.organizationId, 'settings'],
@@ -83,8 +98,13 @@ export const useUpdateOrganizationBranding = () => {
 
   return useMutationWithToast(
     {
-      mutationFn: ({ organizationId, branding }: { organizationId: string; branding: Partial<OrganizationBranding> }) =>
-        organizationSettingsService.updateBranding(organizationId, branding),
+      mutationFn: ({
+        organizationId,
+        branding,
+      }: {
+        organizationId: string
+        branding: Partial<OrganizationBranding>
+      }) => organizationSettingsService.updateBranding(organizationId, branding),
       onSuccess: (data, variables) => {
         queryClient.setQueryData(
           [ORGANIZATION_QUERY_KEY, variables.organizationId, 'branding'],
@@ -101,8 +121,13 @@ export const useUpdateOrganizationPreferences = () => {
 
   return useMutationWithToast(
     {
-      mutationFn: ({ organizationId, preferences }: { organizationId: string; preferences: Partial<OrganizationPreferences> }) =>
-        organizationSettingsService.updatePreferences(organizationId, preferences),
+      mutationFn: ({
+        organizationId,
+        preferences,
+      }: {
+        organizationId: string
+        preferences: Partial<OrganizationPreferences>
+      }) => organizationSettingsService.updatePreferences(organizationId, preferences),
       onSuccess: (data, variables) => {
         queryClient.setQueryData(
           [ORGANIZATION_QUERY_KEY, variables.organizationId, 'preferences'],

@@ -52,7 +52,9 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
           <BuildingOffice2Icon className="w-4 h-4 flex-shrink-0" />
           <span className="truncate">{currentOrg?.name || 'Select organization'}</span>
         </div>
-        <ChevronDownIcon className={cn('w-4 h-4 flex-shrink-0 transition-transform', isOpen && 'rotate-180')} />
+        <ChevronDownIcon
+          className={cn('w-4 h-4 flex-shrink-0 transition-transform', isOpen && 'rotate-180')}
+        />
       </Button>
 
       {isOpen && (
@@ -60,7 +62,9 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
           {isLoading ? (
             <div className="px-4 py-2 text-sm text-muted-foreground">Loading organizations...</div>
           ) : organizations.length === 0 ? (
-            <div className="px-4 py-2 text-sm text-muted-foreground">No organizations available</div>
+            <div className="px-4 py-2 text-sm text-muted-foreground">
+              No organizations available
+            </div>
           ) : (
             organizations.map(org => (
               <button
@@ -72,9 +76,7 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
                 )}
               >
                 {org.name}
-                {currentOrganizationId === org.id && (
-                  <span className="ml-2 text-primary">✓</span>
-                )}
+                {currentOrganizationId === org.id && <span className="ml-2 text-primary">✓</span>}
               </button>
             ))
           )}

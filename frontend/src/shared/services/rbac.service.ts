@@ -1,10 +1,5 @@
 import { apiClient } from './api-client'
-import {
-  Role,
-  Permission,
-  PaginatedResponse,
-  UserRole,
-} from '@/types'
+import { Role, Permission, PaginatedResponse, UserRole } from '@/types'
 
 export interface CreateRoleRequest {
   name: string
@@ -45,7 +40,7 @@ export interface ReplaceUserRolesRequest {
 
 export const rbacService = {
   // ===== PERMISSION MANAGEMENT =====
-  
+
   listPermissions: async (
     organizationId: string,
     page = 1,
@@ -67,9 +62,7 @@ export const rbacService = {
   },
 
   getPermission: async (permissionId: string): Promise<Permission> => {
-    const response = await apiClient.get<Permission>(
-      `/rbac/permissions/${permissionId}`
-    )
+    const response = await apiClient.get<Permission>(`/rbac/permissions/${permissionId}`)
     return response.data
   },
 
@@ -91,13 +84,10 @@ export const rbacService = {
     name?: string,
     description?: string
   ): Promise<Permission> => {
-    const response = await apiClient.put<Permission>(
-      `/rbac/permissions/${permissionId}`,
-      {
-        name,
-        description,
-      }
-    )
+    const response = await apiClient.put<Permission>(`/rbac/permissions/${permissionId}`, {
+      name,
+      description,
+    })
     return response.data
   },
 
@@ -106,7 +96,7 @@ export const rbacService = {
   },
 
   // ===== ROLE MANAGEMENT =====
-  
+
   listRoles: async (
     organizationId: string,
     page = 1,
@@ -132,10 +122,7 @@ export const rbacService = {
     return response.data
   },
 
-  createRole: async (
-    organizationId: string,
-    data: CreateRoleRequest
-  ): Promise<Role> => {
+  createRole: async (organizationId: string, data: CreateRoleRequest): Promise<Role> => {
     const response = await apiClient.post<Role>('/rbac/roles', {
       organizationId,
       ...data,
@@ -143,10 +130,7 @@ export const rbacService = {
     return response.data
   },
 
-  updateRole: async (
-    roleId: string,
-    data: UpdateRoleRequest
-  ): Promise<Role> => {
+  updateRole: async (roleId: string, data: UpdateRoleRequest): Promise<Role> => {
     const response = await apiClient.put<Role>(`/rbac/roles/${roleId}`, data)
     return response.data
   },
@@ -163,33 +147,22 @@ export const rbacService = {
   },
 
   // ===== ROLE PERMISSION MANAGEMENT =====
-  
-  assignPermissionToRole: async (
-    roleId: string,
-    permissionId: string
-  ): Promise<Role> => {
-    const response = await apiClient.post<Role>(
-      `/rbac/roles/${roleId}/permissions`,
-      { permissionId }
-    )
+
+  assignPermissionToRole: async (roleId: string, permissionId: string): Promise<Role> => {
+    const response = await apiClient.post<Role>(`/rbac/roles/${roleId}/permissions`, {
+      permissionId,
+    })
     return response.data
   },
 
-  assignPermissionsToRole: async (
-    roleId: string,
-    permissionIds: string[]
-  ): Promise<Role> => {
-    const response = await apiClient.put<Role>(
-      `/rbac/roles/${roleId}/permissions`,
-      { permissionIds }
-    )
+  assignPermissionsToRole: async (roleId: string, permissionIds: string[]): Promise<Role> => {
+    const response = await apiClient.put<Role>(`/rbac/roles/${roleId}/permissions`, {
+      permissionIds,
+    })
     return response.data
   },
 
-  removePermissionFromRole: async (
-    roleId: string,
-    permissionId: string
-  ): Promise<Role> => {
+  removePermissionFromRole: async (roleId: string, permissionId: string): Promise<Role> => {
     const response = await apiClient.delete<Role>(
       `/rbac/roles/${roleId}/permissions/${permissionId}`
     )
@@ -197,7 +170,7 @@ export const rbacService = {
   },
 
   // ===== USER ROLE ASSIGNMENT =====
-  
+
   assignRoleToUser: async (
     userId: string,
     organizationId: string,
@@ -230,14 +203,11 @@ export const rbacService = {
     organizationId: string,
     roleIds: string[]
   ): Promise<UserRole[]> => {
-    const response = await apiClient.put<UserRole[]>(
-      '/rbac/users/roles/replace',
-      {
-        userId,
-        organizationId,
-        roleIds,
-      }
-    )
+    const response = await apiClient.put<UserRole[]>('/rbac/users/roles/replace', {
+      userId,
+      organizationId,
+      roleIds,
+    })
     return response.data
   },
 
@@ -247,14 +217,12 @@ export const rbacService = {
   },
 
   getUserPermissions: async (userId: string): Promise<Permission[]> => {
-    const response = await apiClient.get<Permission[]>(
-      `/rbac/users/${userId}/permissions`
-    )
+    const response = await apiClient.get<Permission[]>(`/rbac/users/${userId}/permissions`)
     return response.data
   },
 
   // ===== PERMISSION CHECKING UTILITIES =====
-  
+
   hasPermission: async (userId: string, permission: string): Promise<boolean> => {
     try {
       const permissions = await rbacService.getUserPermissions(userId)
@@ -264,10 +232,7 @@ export const rbacService = {
     }
   },
 
-  hasAnyPermission: async (
-    userId: string,
-    permissions: string[]
-  ): Promise<boolean> => {
+  hasAnyPermission: async (userId: string, permissions: string[]): Promise<boolean> => {
     try {
       const userPermissions = await rbacService.getUserPermissions(userId)
       const userPermissionNames = userPermissions.map(p => p.name)
@@ -277,10 +242,7 @@ export const rbacService = {
     }
   },
 
-  hasAllPermissions: async (
-    userId: string,
-    permissions: string[]
-  ): Promise<boolean> => {
+  hasAllPermissions: async (userId: string, permissions: string[]): Promise<boolean> => {
     try {
       const userPermissions = await rbacService.getUserPermissions(userId)
       const userPermissionNames = userPermissions.map(p => p.name)

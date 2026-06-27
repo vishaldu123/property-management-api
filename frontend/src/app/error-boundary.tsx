@@ -30,12 +30,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         <div className="h-screen flex items-center justify-center bg-background">
           <ErrorState
             title="Application Error"
-            message={this.state.error?.message || 'An unexpected error occurred. Please refresh the page.'}
-            action={
-              <Button onClick={() => window.location.href = '/'}>
-                Go to Home
-              </Button>
+            message={
+              this.state.error?.message || 'An unexpected error occurred. Please refresh the page.'
             }
+            action={<Button onClick={() => (window.location.href = '/')}>Go to Home</Button>}
           />
         </div>
       )
