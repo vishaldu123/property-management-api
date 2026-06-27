@@ -3,7 +3,7 @@ import request from 'supertest';
 import app from '../../app';
 import prisma from '../../config/prisma';
 
-const DAYS_AFTER_EXISTING_ACTIVE_LEASE = 366;
+const LEASE_RENEWAL_OFFSET_DAYS = 366;
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 describe('Lease Domain E2E Tests', () => {
@@ -364,7 +364,7 @@ describe('Lease Domain E2E Tests', () => {
     });
 
     it('should renew lease with new dates', async () => {
-      const newStartDate = new Date(Date.now() + DAYS_AFTER_EXISTING_ACTIVE_LEASE * MILLISECONDS_PER_DAY);
+      const newStartDate = new Date(Date.now() + LEASE_RENEWAL_OFFSET_DAYS * MILLISECONDS_PER_DAY);
       const newEndDate = new Date(newStartDate.getTime() + 365 * MILLISECONDS_PER_DAY);
 
       const res = await request(app)

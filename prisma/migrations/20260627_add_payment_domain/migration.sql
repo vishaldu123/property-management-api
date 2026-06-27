@@ -1,4 +1,6 @@
 -- CreateTable
+-- Payment foreign keys are intentionally deferred to 20260628_add_lease_model because
+-- Unit, Tenant, and Lease are recreated later in the migration order.
 CREATE TABLE "Payment" (
     "id" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
