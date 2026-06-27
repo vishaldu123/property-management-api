@@ -10,7 +10,6 @@ import { usePermissionGate } from '@/shared/hooks'
 interface PropertyListProps {
   onEdit?: (id: string) => void
   onDelete?: (id: string) => void
-  onRestore?: (id: string) => void
   onView?: (id: string) => void
 }
 

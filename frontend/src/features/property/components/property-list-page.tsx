@@ -23,17 +23,6 @@ export const PropertyListPage: React.FC = () => {
     },
   })
 
-  const restoreMutation = useMutation({
-    mutationFn: (id: string) => propertyService.restoreProperty(id),
-    onSuccess: () => {
-      toastService.success('Property restored successfully')
-      queryClient.invalidateQueries({ queryKey: ['properties'] })
-    },
-    onError: (error: Error) => {
-      toastService.error(`Failed to restore property: ${error.message}`)
-    },
-  })
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
@@ -60,7 +49,6 @@ export const PropertyListPage: React.FC = () => {
               }
             : undefined
         }
-        onRestore={canPerform('property:delete') ? id => restoreMutation.mutate(id) : undefined}
       />
     </div>
   )
