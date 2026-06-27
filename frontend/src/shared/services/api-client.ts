@@ -2,10 +2,11 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'
 import { AuthTokens, ApiError } from '@/types'
 
-const API_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3000'
+const API_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:5000'
 const API_BASE_PATH = (import.meta.env.VITE_API_BASE_PATH as string) || '/api/v1'
 
-let refreshToken: string | null = null
+// Initialize refreshToken from localStorage
+let refreshToken: string | null = localStorage.getItem('refreshToken') || null
 let isRefreshing = false
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let failedQueue: Array<{
@@ -50,16 +51,19 @@ client.interceptors.response.use(
   async error => {
     const originalRequest = error.config
 
-    // If refresh token is not available, reject the request
-    if (!refreshToken) {
-      // Clear tokens and redirect to login
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
-      window.location.href = '/login'
-      return Promise.reject(error)
-    }
-
+    // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // If no refresh token available, redirect to login
+      if (!refreshToken) {
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+        return Promise.reject(error)
+      }
+
+      // If already refreshing, queue this request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -86,6 +90,7 @@ client.interceptors.response.use(
         )
 
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data
+        refreshToken = newRefreshToken
         localStorage.setItem('accessToken', newAccessToken)
         localStorage.setItem('refreshToken', newRefreshToken)
 
@@ -96,9 +101,12 @@ client.interceptors.response.use(
         return client(originalRequest)
       } catch (err) {
         processQueue(err, null)
+        refreshToken = null
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
-        window.location.href = '/login'
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
         return Promise.reject(err)
       } finally {
         isRefreshing = false

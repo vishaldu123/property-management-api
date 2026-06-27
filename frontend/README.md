@@ -80,7 +80,7 @@ src/
 ### Prerequisites
 
 - Node.js 18+ or npm 9+
-- Backend API running on `http://localhost:3000`
+- Backend API running on `http://localhost:5000`
 
 ### Installation
 
@@ -92,7 +92,7 @@ npm install
 cp .env.example .env
 
 # Update .env with your backend URL
-# VITE_API_URL=http://localhost:3000
+# VITE_API_URL=http://localhost:5000
 # VITE_API_BASE_PATH=/api/v1
 ```
 
@@ -306,6 +306,27 @@ npm run test:coverage
 ```
 
 ## Deployment
+
+### Sprint UI-4 - Enterprise Admin Application (Latest)
+
+**New Features & Pages:**
+- ✅ Organization Team Members page (`/organization/members`)
+- ✅ Roles & Permissions page (`/rbac`)
+- ✅ Leases management page (`/leases`)
+- ✅ Payments tracking page (`/payments`)
+- ✅ Maintenance requests page (`/maintenance`)
+- ✅ Enhanced TopNav with user profile dropdown
+- ✅ Improved Sidebar with complete navigation
+- ✅ Mobile-responsive admin layout
+- ✅ Fixed authentication flow with proper token refresh
+- ✅ RBAC-aware navigation (role-based menu visibility)
+
+**Authentication Improvements:**
+- Fixed API URL configuration (localhost:5000)
+- Improved token refresh interceptor
+- Better session persistence
+- Enhanced error handling for 401 responses
+- Proper redirection on logout
 
 ### Production Build
 

@@ -9,6 +9,11 @@ import {
   DashboardPage,
   ProfilePage,
   SettingsPage,
+  OrganizationMembersPage,
+  RbacPage,
+  LeasesPage,
+  PaymentsPage,
+  MaintenancePage,
   NotFoundPage,
   ForbiddenPage,
 } from '@/pages'
@@ -213,6 +218,61 @@ const router = createBrowserRouter([
       <ErrorBoundary>
         <ProtectedRoute>
           <TenantFormPage mode="edit" />
+        </ProtectedRoute>
+      </ErrorBoundary>
+    ),
+  },
+  // Organization Routes
+  {
+    path: '/organization/members',
+    element: (
+      <ErrorBoundary>
+        <ProtectedRoute>
+          <OrganizationMembersPage />
+        </ProtectedRoute>
+      </ErrorBoundary>
+    ),
+  },
+  // RBAC Routes
+  {
+    path: '/rbac',
+    element: (
+      <ErrorBoundary>
+        <ProtectedRoute>
+          <RbacPage />
+        </ProtectedRoute>
+      </ErrorBoundary>
+    ),
+  },
+  // Leases Routes
+  {
+    path: '/leases',
+    element: (
+      <ErrorBoundary>
+        <ProtectedRoute>
+          <LeasesPage />
+        </ProtectedRoute>
+      </ErrorBoundary>
+    ),
+  },
+  // Payments Routes
+  {
+    path: '/payments',
+    element: (
+      <ErrorBoundary>
+        <ProtectedRoute>
+          <PaymentsPage />
+        </ProtectedRoute>
+      </ErrorBoundary>
+    ),
+  },
+  // Maintenance Routes
+  {
+    path: '/maintenance',
+    element: (
+      <ErrorBoundary>
+        <ProtectedRoute>
+          <MaintenancePage />
         </ProtectedRoute>
       </ErrorBoundary>
     ),

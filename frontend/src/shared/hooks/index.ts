@@ -31,3 +31,4 @@ export {
 } from './use-rbac'
 export { useToast } from './use-toast'
 export { usePermissionGate } from './use-permission-gate'
+export { useRbac } from './use-rbac-checks'
