@@ -46,6 +46,7 @@ model Organization {
   tenants         Tenant[]           @relation("OrganizationTenants")
   leases          Lease[]            @relation("OrganizationLeases")
   payments        Payment[]          @relation("OrganizationPayments")
+  maintenanceRequests MaintenanceRequest[] @relation("OrganizationMaintenanceRequests")
 
   @@index([deletedAt])
   @@index([createdBy])
@@ -132,6 +133,8 @@ model User {
   userRoles       UserRole[]         @relation(name: "UserRoles")
   refreshTokens   RefreshToken[]
   passwordResets  PasswordResetToken[]
+  maintenanceReportedBy MaintenanceRequest[] @relation("MaintenanceReportedBy")
+  maintenanceAssignedTo MaintenanceRequest[] @relation("MaintenanceAssignedTo")
 
   @@index([deletedAt])
   @@index([createdBy])
@@ -334,6 +337,7 @@ model Property {
   units           Unit[]              @relation("PropertyUnits")
   leases          Lease[]             @relation("PropertyLeases")
   payments        Payment[]           @relation("PropertyPayments")
+  maintenanceRequests MaintenanceRequest[] @relation("PropertyMaintenanceRequests")
   
   // Indexes for common queries
   @@unique([organizationId, code]) // Code must be unique per organization
@@ -379,6 +383,7 @@ model Unit {
   tenants           Tenant[]           @relation("UnitTenants")
   leases            Lease[]            @relation("UnitLeases")
   payments          Payment[]          @relation("UnitPayments")
+  maintenanceRequests MaintenanceRequest[] @relation("UnitMaintenanceRequests")
   
   // Indexes for common queries
   @@unique([propertyId, unitNumber]) // Unit number must be unique per property
@@ -423,6 +428,7 @@ model Tenant {
   unit                  Unit?              @relation("UnitTenants", fields: [unitId], references: [id], onDelete: SetNull)
   leases                Lease[]            @relation("TenantLeases")
   payments              Payment[]          @relation("TenantPayments")
+  maintenanceRequests   MaintenanceRequest[] @relation("TenantMaintenanceRequests")
   
   // Indexes for common queries
   @@unique([organizationId, email]) // Email unique per organization
@@ -544,3 +550,59 @@ model Payment {
 
 // Extend Organization model to include payments relationship
 // payments        Payment[]          @relation("OrganizationPayments")
+
+// Maintenance Request Model (Sprint 10)
+model MaintenanceRequest {
+  id                String             @id @default(uuid())
+  organizationId    String             // Organization this request belongs to
+  propertyId        String             // Property this request is for
+  unitId            String?            // Optional: Unit this request is for
+  tenantId          String?            // Optional: Tenant who reported the issue
+  reportedBy        String             // User ID who reported the issue
+  assignedTo        String?            // User ID of assigned technician
+  requestNumber     String             // Request identifier/number (unique per organization)
+  title             String             // Brief title of the maintenance issue
+  description       String             // Detailed description of the issue
+  category          String             // Category (Plumbing, Electrical, HVAC, Structural, Cleaning, Pest Control, Other)
+  priority          String             @default("Medium") // Low, Medium, High, Urgent, Emergency
+  status            String             @default("Open") // Open, Assigned, Scheduled, In Progress, On Hold, Completed, Cancelled
+  requestedDate     DateTime           // When the request was made
+  scheduledDate     DateTime?          // When the maintenance is scheduled
+  startedDate       DateTime?          // When the maintenance started
+  completedDate     DateTime?          // When the maintenance was completed
+  estimatedCost     Decimal?           // Estimated cost of the maintenance
+  actualCost        Decimal?           // Actual cost incurred
+  vendor            String?            // Vendor/contractor name
+  notes             String?            // Additional notes
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?          // Soft delete
+  createdBy         String?
+  updatedBy         String?
+  
+  organization      Organization      @relation("OrganizationMaintenanceRequests", fields: [organizationId], references: [id], onDelete: Cascade)
+  property          Property           @relation("PropertyMaintenanceRequests", fields: [propertyId], references: [id], onDelete: Cascade)
+  unit              Unit?              @relation("UnitMaintenanceRequests", fields: [unitId], references: [id], onDelete: SetNull)
+  tenant            Tenant?            @relation("TenantMaintenanceRequests", fields: [tenantId], references: [id], onDelete: SetNull)
+  reportedByUser    User               @relation("MaintenanceReportedBy", fields: [reportedBy], references: [id], onDelete: Restrict)
+  assignedToUser    User?              @relation("MaintenanceAssignedTo", fields: [assignedTo], references: [id], onDelete: SetNull)
+  
+  // Indexes for common queries
+  @@unique([organizationId, requestNumber]) // Request number unique per organization
+  @@index([organizationId])
+  @@index([propertyId])
+  @@index([unitId])
+  @@index([tenantId])
+  @@index([reportedBy])
+  @@index([assignedTo])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([requestNumber])
+  @@index([requestedDate])
+  @@index([scheduledDate])
+  @@index([completedDate])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([createdBy])
+}

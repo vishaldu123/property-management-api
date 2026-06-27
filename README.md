@@ -18,15 +18,16 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - ✅ Phase 7: Tenant Domain Implementation (CRUD, Search, Filtering, Pagination, Statistics)
 - ✅ Phase 8: Lease Domain Implementation (CRUD, Lease Management, Status Transitions)
 - ✅ Sprint 9: Payment Domain Implementation (CRUD, Multiple Payment Methods, Partial Payments, Receipt Generation)
+- ✅ Sprint 10: Maintenance Domain Implementation (Request Management, Status Workflow, Priority/Category, Statistics)
 
 **Completed Phases - Frontend:**
 - ✅ Sprint UI-1: Enterprise React Foundation (React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui)
 - ✅ Sprint UI-3: Property, Unit & Tenant Management (CRUD Operations, Search, Filtering, Pagination, RBAC Integration)
+- ✅ Sprint UI-4: Enterprise Admin Application (Authentication Fix, Admin Layout, Team Management, RBAC, Resources Dashboard)
 
 **Upcoming:**
-- Sprint UI-4: Lease Management UI
-- Sprint UI-5: Payment & Financial Management UI
-- Sprint UI-6: Maintenance & Issue Tracking UI
+- Sprint UI-5: Enhanced Dashboard with Real Data
+- Sprint UI-6: Settings & Profile Management UI
 - Sprint UI-7: Reports & Analytics UI
 
 ## Key Features
@@ -908,6 +909,124 @@ curl -X POST http://localhost:3000/api/v1/payments/payment-123/generate-receipt 
 - All payments scoped to organization
 - Payment numbers unique per organization
 - Lease/tenant/property verification enforced
+- Multi-tenant isolation guaranteed
+
+### 🔧 Maintenance Domain (Sprint 10)
+Complete maintenance request management system with support for tracking, assignment, scheduling, and completion workflows:
+
+#### Core Features
+- **Full CRUD Operations**: Create, retrieve, update, delete, and restore maintenance requests
+- **Soft Delete & Restore**: All deleted requests remain recoverable
+- **Status Workflow**: Multi-state workflow (Open → Assigned → Scheduled → In Progress → Completed)
+- **Priority Levels**: Low, Medium, High, Urgent, Emergency
+- **Categories**: Plumbing, Electrical, HVAC, Structural, Cleaning, Pest Control, Other
+- **Assignment**: Assign technicians to maintenance requests
+- **Cost Tracking**: Estimate and actual costs with vendor tracking
+- **Statistics**: Organization and property-level maintenance metrics
+
+#### Key Operations
+- **Create Request**: Submit maintenance requests with property, unit, tenant, and priority
+- **Assign Technician**: Assign maintenance work to available technicians
+- **Change Status**: Track workflow through defined status transitions
+- **Add Notes**: Append progress notes and status updates
+- **Soft Delete**: Archive old requests while preserving data
+- **Get Statistics**: Track maintenance volume, costs, and completion rates
+
+#### Status Transitions
+- **Open**: Initial state for new requests
+- **Assigned**: Technician assigned to the request
+- **Scheduled**: Maintenance scheduled for specific date/time
+- **In Progress**: Work actively being performed
+- **On Hold**: Request temporarily paused
+- **Completed**: Work finished and verified
+- **Cancelled**: Request cancelled or duplicate
+
+#### API Endpoints
+- `POST /api/v1/maintenance` - Create maintenance request
+- `GET /api/v1/maintenance` - List requests (with filters, search, pagination, sorting)
+- `GET /api/v1/maintenance/stats/organization` - Get organization statistics
+- `GET /api/v1/maintenance/:maintenanceId` - Get request by ID
+- `PUT /api/v1/maintenance/:maintenanceId` - Update request
+- `PATCH /api/v1/maintenance/:maintenanceId/assign` - Assign technician
+- `PATCH /api/v1/maintenance/:maintenanceId/change-status` - Change status
+- `PATCH /api/v1/maintenance/:maintenanceId/notes` - Add notes
+- `DELETE /api/v1/maintenance/:maintenanceId` - Soft delete request
+- `PATCH /api/v1/maintenance/:maintenanceId/restore` - Restore deleted request
+- `GET /api/v1/maintenance/properties/:propertyId/stats` - Get property statistics
+
+#### Request Example
+```bash
+# Create maintenance request
+curl -X POST http://localhost:3000/api/v1/maintenance \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "propertyId": "property-123",
+    "unitId": "unit-123",
+    "tenantId": "tenant-123",
+    "requestNumber": "MR-001",
+    "title": "Plumbing Issue",
+    "description": "Water leak in bathroom",
+    "category": "Plumbing",
+    "priority": "High",
+    "status": "Open",
+    "requestedDate": "2026-06-27T00:00:00Z",
+    "scheduledDate": "2026-06-28T00:00:00Z",
+    "estimatedCost": "500.00",
+    "vendor": "Local Plumber"
+  }'
+
+# Assign technician
+curl -X PATCH http://localhost:3000/api/v1/maintenance/maint-123/assign \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"assignedTo": "tech-123"}'
+
+# Change status
+curl -X PATCH http://localhost:3000/api/v1/maintenance/maint-123/change-status \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "In Progress"}'
+
+# Get organization statistics
+curl http://localhost:3000/api/v1/maintenance/stats/organization \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Response Format
+```json
+{
+  "success": true,
+  "message": "Maintenance request created successfully",
+  "data": {
+    "id": "maint-123",
+    "organizationId": "org-123",
+    "propertyId": "property-123",
+    "unitId": "unit-123",
+    "tenantId": "tenant-123",
+    "requestNumber": "MR-001",
+    "title": "Plumbing Issue",
+    "description": "Water leak in bathroom",
+    "category": "Plumbing",
+    "priority": "High",
+    "status": "Open",
+    "reportedBy": "user-123",
+    "assignedTo": null,
+    "requestedDate": "2026-06-27T00:00:00Z",
+    "scheduledDate": "2026-06-28T00:00:00Z",
+    "estimatedCost": "500.00",
+    "actualCost": null,
+    "vendor": "Local Plumber",
+    "createdAt": "2026-06-27T12:34:56Z",
+    "createdBy": "user-123"
+  }
+}
+```
+
+#### Organization Isolation
+- All maintenance requests scoped to organization
+- Request numbers unique per organization
+- Property, unit, tenant verification enforced
 - Multi-tenant isolation guaranteed
 
 ## Troubleshooting

@@ -10,6 +10,7 @@ import unitRoutes from './routes/unit.routes';
 import tenantRoutes from './routes/tenant.routes';
 import leaseRoutes from './routes/lease.routes';
 import paymentRoutes from './routes/payment.routes';
+import maintenanceRoutes from './routes/maintenance.routes';
 import { globalErrorHandler } from './middleware/errorHandler';
 import { createHelmetMiddleware } from './middleware/helmet.middleware';
 import { createCorsMiddleware } from './middleware/cors.middleware';
@@ -91,6 +92,7 @@ apiV1Router.use('/units', unitRoutes);
 apiV1Router.use('/tenants', tenantRoutes);
 apiV1Router.use('/leases', leaseRoutes);
 apiV1Router.use('/payments', paymentRoutes);
+apiV1Router.use('/maintenance', maintenanceRoutes);
 
 // Mount versioned routes
 app.use('/api/v1', apiV1Router);

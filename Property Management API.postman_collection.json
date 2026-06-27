@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Property Management API v1",
-    "description": "Postman collection for Property Management API v1 - Complete testing for Auth, Organizations, Properties, Units, Tenants, and Leases (Sprint 8)",
+    "description": "Postman collection for Property Management API v1 - Complete testing for Auth, Organizations, Properties, Units, Tenants, Leases, Payments (Sprint 9), and Maintenance (Sprint 10)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

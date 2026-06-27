@@ -36,22 +36,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       try {
         const tokens = authService.getTokens()
-        if (tokens) {
+        if (tokens && tokens.accessToken && tokens.refreshToken) {
           setIsAuthenticated(true)
-          const currentUser = await authService.getCurrentUser()
-          setUser(currentUser)
+          try {
+            const currentUser = await authService.getCurrentUser()
+            setUser(currentUser)
 
-          // Try to load previously selected organization or select first one
-          const savedOrgId = organizationService.getCurrentOrganization()
-          if (savedOrgId && currentUser.organizations.some(o => o.organizationId === savedOrgId)) {
-            const org = await organizationService.get(savedOrgId)
-            setCurrentOrganizationState(org)
-          } else if (currentUser.organizations.length > 0) {
-            // Select first organization
-            const org = await organizationService.get(currentUser.organizations[0].organizationId)
-            organizationService.setCurrentOrganization(org.id)
-            setCurrentOrganizationState(org)
+            // Try to load previously selected organization or select first one
+            const savedOrgId = organizationService.getCurrentOrganization()
+            if (
+              savedOrgId &&
+              currentUser.organizations.some(o => o.organizationId === savedOrgId)
+            ) {
+              const org = await organizationService.get(savedOrgId)
+              setCurrentOrganizationState(org)
+            } else if (currentUser.organizations.length > 0) {
+              // Select first organization
+              const org = await organizationService.get(currentUser.organizations[0].organizationId)
+              organizationService.setCurrentOrganization(org.id)
+              setCurrentOrganizationState(org)
+            }
+          } catch (userError) {
+            console.error('Failed to fetch current user:', userError)
+            // If we can't fetch the user, clear auth
+            authService.clearSession()
+            setIsAuthenticated(false)
+            setUser(null)
+            setCurrentOrganizationState(null)
           }
+        } else {
+          setIsAuthenticated(false)
+          setUser(null)
+          setCurrentOrganizationState(null)
         }
       } catch (error) {
         console.error('Failed to initialize auth:', error)
