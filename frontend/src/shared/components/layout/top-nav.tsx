@@ -1,6 +1,14 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BellIcon, MoonIcon, SunIcon, ChevronDownIcon, ArrowLeftOnRectangleIcon, UserIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
+import {
+  BellIcon,
+  MoonIcon,
+  SunIcon,
+  ChevronDownIcon,
+  ArrowLeftOnRectangleIcon,
+  UserIcon,
+  Cog6ToothIcon,
+} from '@heroicons/react/24/outline'
 import { Button } from '@/shared/components/ui'
 import { useAuth, useTheme } from '@/shared/hooks'
 import { cn } from '@/utils/cn'
@@ -39,7 +47,9 @@ export const TopNav: React.FC = () => {
       <div className="flex items-center justify-between h-16 px-6">
         {/* Left side */}
         <div className="hidden lg:flex items-center gap-4">
-          <h2 className="text-sm font-medium text-foreground">Welcome back, {user?.firstName || 'User'}</h2>
+          <h2 className="text-sm font-medium text-foreground">
+            Welcome back, {user?.firstName || 'User'}
+          </h2>
         </div>
 
         {/* Right side */}
@@ -51,7 +61,12 @@ export const TopNav: React.FC = () => {
           </Button>
 
           {/* Theme toggle */}
-          <Button variant="ghost" size="icon" onClick={toggleTheme} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
             {theme === 'dark' ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
           </Button>
 
@@ -68,7 +83,9 @@ export const TopNav: React.FC = () => {
                   <span className="text-sm font-semibold">{user?.firstName?.charAt(0) || 'U'}</span>
                 </div>
                 <div className="hidden sm:flex flex-col items-start gap-0.5">
-                  <span className="text-sm font-medium">{user?.firstName} {user?.lastName}</span>
+                  <span className="text-sm font-medium">
+                    {user?.firstName} {user?.lastName}
+                  </span>
                   <span className="text-xs text-muted-foreground">{user?.email}</span>
                 </div>
               </div>
@@ -83,7 +100,7 @@ export const TopNav: React.FC = () => {
                   <p className="text-xs text-muted-foreground">Signed in as</p>
                   <p className="text-sm font-medium truncate">{user?.email}</p>
                 </div>
-                
+
                 <button
                   onClick={handleProfileClick}
                   className="w-full px-4 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2 text-left"
@@ -91,7 +108,7 @@ export const TopNav: React.FC = () => {
                   <UserIcon className="w-4 h-4" />
                   Profile
                 </button>
-                
+
                 <button
                   onClick={handleSettingsClick}
                   className="w-full px-4 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2 text-left"
@@ -99,7 +116,7 @@ export const TopNav: React.FC = () => {
                   <Cog6ToothIcon className="w-4 h-4" />
                   Settings
                 </button>
-                
+
                 <div className="border-t border-border mt-2 pt-2">
                   <button
                     onClick={handleLogout}

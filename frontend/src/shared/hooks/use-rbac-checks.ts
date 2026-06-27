@@ -32,7 +32,9 @@ export const useRbac = () => {
   }
 
   const canManageProperties = (): boolean => {
-    return canPerform('manage_properties') || hasAnyRole(['organization_owner', 'organization_admin'])
+    return (
+      canPerform('manage_properties') || hasAnyRole(['organization_owner', 'organization_admin'])
+    )
   }
 
   const canViewReport = (): boolean => {

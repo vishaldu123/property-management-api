@@ -32,7 +32,14 @@ export const OrganizationMembersPage: React.FC = () => {
   }
 
   // Get current user's organization membership
-  const currentUserMembership = user?.organizations.find(o => o.organizationId === currentOrganization.id)
+  const currentUserMembership = user?.organizations.find(
+    o => o.organizationId === currentOrganization.id
+  )
+
+  // Get current user's role for this organization
+  const currentUserOrgRole = user?.roles?.find(
+    r => r.organizationId === currentOrganization.id
+  )?.role
 
   return (
     <DashboardLayout>
@@ -74,13 +81,15 @@ export const OrganizationMembersPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {currentUserMembership.role && (
-                    <Badge variant="secondary">{currentUserMembership.role.name}</Badge>
+                  {currentUserOrgRole && (
+                    <Badge variant="secondary">{currentUserOrgRole.name}</Badge>
                   )}
                 </div>
               </div>
             ) : (
-              <p className="text-muted-foreground text-center py-8">Not a member of this organization</p>
+              <p className="text-muted-foreground text-center py-8">
+                Not a member of this organization
+              </p>
             )}
           </CardContent>
         </Card>
@@ -92,7 +101,8 @@ export const OrganizationMembersPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Team member management interface will be available in the next update. Currently, you can view your own membership information above.
+              Team member management interface will be available in the next update. Currently, you
+              can view your own membership information above.
             </p>
           </CardContent>
         </Card>
@@ -101,9 +111,7 @@ export const OrganizationMembersPage: React.FC = () => {
           <Card className="border-primary">
             <CardHeader>
               <CardTitle>Invite New Member</CardTitle>
-              <CardDescription>
-                Invite a new team member to join your organization
-              </CardDescription>
+              <CardDescription>Invite a new team member to join your organization</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">Invite feature coming soon</p>

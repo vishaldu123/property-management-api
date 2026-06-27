@@ -44,7 +44,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             // Try to load previously selected organization or select first one
             const savedOrgId = organizationService.getCurrentOrganization()
-            if (savedOrgId && currentUser.organizations.some(o => o.organizationId === savedOrgId)) {
+            if (
+              savedOrgId &&
+              currentUser.organizations.some(o => o.organizationId === savedOrgId)
+            ) {
               const org = await organizationService.get(savedOrgId)
               setCurrentOrganizationState(org)
             } else if (currentUser.organizations.length > 0) {

@@ -5,7 +5,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  Button,
   DashboardLayout,
   Badge,
   Tabs,
@@ -66,7 +65,9 @@ export const RbacPage: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{currentUserRole.name}</p>
-                        <p className="text-sm text-muted-foreground">{currentUserRole.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {currentUserRole.description}
+                        </p>
                       </div>
                       <Badge variant="secondary">{currentUserRole.name}</Badge>
                     </div>
@@ -99,7 +100,9 @@ export const RbacPage: React.FC = () => {
                 <CardDescription>Permissions granted by your role</CardDescription>
               </CardHeader>
               <CardContent>
-                {currentUserRole && currentUserRole.permissions && currentUserRole.permissions.length > 0 ? (
+                {currentUserRole &&
+                currentUserRole.permissions &&
+                currentUserRole.permissions.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {currentUserRole.permissions.map(permission => (
                       <div

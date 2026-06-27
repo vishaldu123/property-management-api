@@ -5,8 +5,8 @@ import {
   Cog6ToothIcon,
   UsersIcon,
   KeyIcon,
-  BuildingIcon,
-  DocumentsIcon,
+  BuildingOfficeIcon,
+  DocumentIcon,
   CreditCardIcon,
   WrenchIcon,
 } from '@heroicons/react/24/outline'
@@ -33,12 +33,12 @@ const navItems: NavItem[] = [
   {
     label: 'Properties',
     href: '/properties',
-    icon: <BuildingIcon className="w-5 h-5" />,
+    icon: <BuildingOfficeIcon className="w-5 h-5" />,
   },
   {
     label: 'Leases',
     href: '/leases',
-    icon: <DocumentsIcon className="w-5 h-5" />,
+    icon: <DocumentIcon className="w-5 h-5" />,
   },
   {
     label: 'Payments',
@@ -97,11 +97,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onOpenChange }) => {
         <Button variant="outline" size="icon" onClick={() => onOpenChange?.(!open)}>
           {open ? (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           ) : (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           )}
         </Button>
@@ -141,7 +151,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onOpenChange }) => {
           {/* Navigation */}
           <nav className="flex-1 space-y-2 overflow-y-auto">
             {visibleNavItems.map(item => {
-              const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+              const isActive =
+                location.pathname === item.href || location.pathname.startsWith(item.href + '/')
               return (
                 <Link
                   key={item.href}
