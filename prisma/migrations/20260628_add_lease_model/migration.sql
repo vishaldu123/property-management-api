@@ -76,6 +76,8 @@ ALTER TABLE "Lease" ADD CONSTRAINT "Lease_unitId_fkey" FOREIGN KEY ("unitId") RE
 -- AddForeignKey "Lease_tenantId_fkey"
 ALTER TABLE "Lease" ADD CONSTRAINT "Lease_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- Payment foreign keys are added here because this is the first point in the migration
+-- order where Property, Unit, Tenant, and Lease have all been recreated.
 -- AddForeignKey "Payment_organizationId_fkey"
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
