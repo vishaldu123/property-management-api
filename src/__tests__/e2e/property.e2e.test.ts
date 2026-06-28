@@ -2,6 +2,7 @@ process.env.NODE_ENV = 'test';
 import request from 'supertest';
 import app from '../../app';
 import prisma from '../../config/prisma';
+import { getAccessToken, getOrganizationId } from '../helpers/auth.helpers';
 
 describe('Property CRUD E2E Tests', () => {
   const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -23,7 +24,7 @@ describe('Property CRUD E2E Tests', () => {
       .send(user);
 
     expect(registerRes.status).toBe(201);
-    organizationId = registerRes.body.data.organization.id;
+    organizationId = getOrganizationId(registerRes.body);
 
     // Login
     const loginRes = await request(app)
@@ -31,7 +32,7 @@ describe('Property CRUD E2E Tests', () => {
       .send({ email: user.email, password: user.password });
 
     expect(loginRes.status).toBe(200);
-    authToken = loginRes.body.data.token;
+    authToken = getAccessToken(loginRes.body);
   });
 
   afterAll(async () => {
@@ -406,13 +407,13 @@ describe('Property CRUD E2E Tests', () => {
         .post('/api/v1/auth/register')
         .send(otherUser);
 
-      otherOrgId = registerRes.body.data.organization.id;
+      otherOrgId = getOrganizationId(registerRes.body);
 
       const loginRes = await request(app)
         .post('/api/v1/auth/login')
         .send({ email: otherUser.email, password: otherUser.password });
 
-      otherOrgToken = loginRes.body.data.token;
+      otherOrgToken = getAccessToken(loginRes.body);
     });
 
     it('should not allow access to properties from other organizations', async () => {

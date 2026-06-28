@@ -2,6 +2,7 @@ process.env.NODE_ENV = 'test';
 import request from 'supertest';
 import app from '../../app';
 import prisma from '../../config/prisma';
+import { getAccessToken, getOrganizationId } from '../helpers/auth.helpers';
 
 const LEASE_RENEWAL_OFFSET_DAYS = 366;
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -27,8 +28,8 @@ describe('Lease Domain E2E Tests', () => {
       });
 
     userId = registerRes.body.data.user.id;
-    organizationId = registerRes.body.data.organization.id;
-    authToken = registerRes.body.data.token;
+    organizationId = getOrganizationId(registerRes.body);
+    authToken = getAccessToken(registerRes.body);
 
     // Create property
     const propertyRes = await request(app)
@@ -489,7 +490,7 @@ describe('Lease Domain E2E Tests', () => {
           organizationName: `Other Org ${Date.now()}`,
         });
 
-      otherToken = registerRes.body.data.token;
+      otherToken = getAccessToken(registerRes.body);
 
       // For simplicity, we'll try to access a lease from this org
     });

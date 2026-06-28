@@ -2,6 +2,7 @@ process.env.NODE_ENV = 'test';
 
 import request from 'supertest';
 import app from '../../app';
+import { getAccessToken, getOrganizationId } from '../helpers/auth.helpers';
 
 describe('Organization Module E2E', () => {
   const seed = Date.now();
@@ -52,9 +53,9 @@ describe('Organization Module E2E', () => {
       .send({ email: secondaryUser.email, password: secondaryUser.password })
       .expect(200);
 
-    authToken = loginPrimary.body.data.token;
-    ownOrganizationId = loginPrimary.body.data.organization.id;
-    otherOrganizationId = loginSecondary.body.data.organization.id;
+    authToken = getAccessToken(loginPrimary.body);
+    ownOrganizationId = getOrganizationId(loginPrimary.body);
+    otherOrganizationId = getOrganizationId(loginSecondary.body);
   });
 
   it('lists organizations with pagination metadata', async () => {
@@ -163,7 +164,7 @@ describe('Organization Module E2E', () => {
         .send({ email: secondaryUser.email, password: secondaryUser.password })
         .expect(200);
 
-      const secondaryToken = loginSecondary.body.data.token;
+      const secondaryToken = getAccessToken(loginSecondary.body);
 
       await request(app)
         .get(`/api/v1/organizations/${ownOrganizationId}/settings`)
@@ -244,7 +245,7 @@ describe('Organization Module E2E', () => {
         .send({ email: secondaryUser.email, password: secondaryUser.password })
         .expect(200);
 
-      const secondaryToken = loginSecondary.body.data.token;
+      const secondaryToken = getAccessToken(loginSecondary.body);
 
       await request(app)
         .get(`/api/v1/organizations/${ownOrganizationId}/branding`)
@@ -308,7 +309,7 @@ describe('Organization Module E2E', () => {
         .send({ email: secondaryUser.email, password: secondaryUser.password })
         .expect(200);
 
-      const secondaryToken = loginSecondary.body.data.token;
+      const secondaryToken = getAccessToken(loginSecondary.body);
 
       await request(app)
         .get(`/api/v1/organizations/${ownOrganizationId}/preferences`)
