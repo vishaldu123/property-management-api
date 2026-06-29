@@ -465,7 +465,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
         });
 
       expect(res.status).toBe(201);
-      expect(res.body.data).toHaveProperty('token');
+      expect(res.body.data).toHaveProperty('accessToken');
 
       // Cleanup
       const user = await userRepository.findByEmail(res.body.data.user.email);
@@ -516,7 +516,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
           });
 
         if (res.status === 201) {
-          expect(res.body.data).toHaveProperty('token');
+          expect(res.body.data).toHaveProperty('accessToken');
           // Cleanup
           const user = await userRepository.findByEmail(email);
           if (user) {
