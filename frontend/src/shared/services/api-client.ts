@@ -1,6 +1,8 @@
 /// <reference types="vite/client" />
-import axios, { AxiosInstance, AxiosError } from 'axios'
+import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios'
 import { AuthTokens, ApiError } from '@/types'
+import type { ApiResponse } from '@/types/api'
+import { unwrapApiResponse } from './api-response'
 
 const API_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:5000'
 const API_BASE_PATH = (import.meta.env.VITE_API_BASE_PATH as string) || '/api/v1'
@@ -33,11 +35,16 @@ const client: AxiosInstance = axios.create({
   },
 })
 
+function unwrapAxiosResponse<T>(response: AxiosResponse): AxiosResponse<T> {
+  response.data = unwrapApiResponse<T>(response.data)
+  return response as AxiosResponse<T>
+}
+
 // Request interceptor to add auth token
 client.interceptors.request.use(
   config => {
     const token = localStorage.getItem('accessToken')
-    if (token) {
+    if (token && token !== 'undefined') {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -45,16 +52,16 @@ client.interceptors.request.use(
   error => Promise.reject(error)
 )
 
-// Response interceptor to handle token refresh
+// Response interceptor: unwrap API envelope and handle token refresh
 client.interceptors.response.use(
-  response => response,
+  response => unwrapAxiosResponse(response),
   async error => {
     const originalRequest = error.config
 
     // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
       // If no refresh token available, redirect to login
-      if (!refreshToken) {
+      if (!refreshToken || refreshToken === 'undefined') {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
         if (window.location.pathname !== '/login') {
@@ -79,8 +86,8 @@ client.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const response = await axios.post<AuthTokens>(
-          `${API_URL}${API_BASE_PATH}/auth/refresh`,
+        const response = await axios.post<ApiResponse<AuthTokens>>(
+          `${API_URL}${API_BASE_PATH}/auth/refresh-token`,
           { refreshToken },
           {
             headers: {
@@ -89,7 +96,8 @@ client.interceptors.response.use(
           }
         )
 
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data
+        const tokens = unwrapApiResponse<AuthTokens>(response.data)
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = tokens
         refreshToken = newRefreshToken
         localStorage.setItem('accessToken', newAccessToken)
         localStorage.setItem('refreshToken', newRefreshToken)

@@ -7,6 +7,7 @@ process.env.NODE_ENV = 'test';
 const supertest_1 = __importDefault(require("supertest"));
 const app_1 = __importDefault(require("../../app"));
 const prisma_1 = __importDefault(require("../../config/prisma"));
+const auth_helpers_1 = require("../helpers/auth.helpers");
 describe('Tenant Domain E2E Tests', () => {
     let authToken;
     let userId;
@@ -25,8 +26,8 @@ describe('Tenant Domain E2E Tests', () => {
             organizationName: 'Tenant Test Org',
         });
         userId = registerRes.body.data.user.id;
-        organizationId = registerRes.body.data.organization.id;
-        authToken = registerRes.body.data.token;
+        organizationId = (0, auth_helpers_1.getOrganizationId)(registerRes.body);
+        authToken = (0, auth_helpers_1.getAccessToken)(registerRes.body);
         // Create property
         const propertyRes = await (0, supertest_1.default)(app_1.default)
             .post('/api/v1/properties')
@@ -367,8 +368,8 @@ describe('Tenant Domain E2E Tests', () => {
                 password: 'TestPassword123!',
                 organizationName: 'Other Org',
             });
-            otherToken = registerRes.body.data.token;
-            otherOrgId = registerRes.body.data.organization.id;
+            otherToken = (0, auth_helpers_1.getAccessToken)(registerRes.body);
+            otherOrgId = (0, auth_helpers_1.getOrganizationId)(registerRes.body);
             // Create tenant in other organization
             const tenantRes = await (0, supertest_1.default)(app_1.default)
                 .post('/api/v1/tenants')

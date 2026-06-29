@@ -10,6 +10,7 @@ const user_repository_1 = require("../../repositories/user.repository");
 const password_reset_token_repository_1 = require("../../repositories/password-reset-token.repository");
 const prisma_1 = __importDefault(require("../../config/prisma"));
 const crypto_1 = __importDefault(require("crypto"));
+const auth_helpers_1 = require("../helpers/auth.helpers");
 describe('Auth E2E Tests - Complete Authentication Module', () => {
     const testUser = {
         name: 'Test User',
@@ -44,19 +45,19 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     .post('/api/v1/auth/register')
                     .send(testUser);
                 expect(res.status).toBe(201);
-                expect(res.body.data).toHaveProperty('token');
+                expect(res.body.data).toHaveProperty('accessToken');
                 expect(res.body.data).toHaveProperty('refreshToken');
                 expect(res.body.data.user).toMatchObject({
-                    name: testUser.name,
+                    displayName: testUser.name,
                     email: testUser.email,
                 });
-                expect(res.body.data.organization).toMatchObject({
+                expect(res.body.data.user.organizations[0].organization).toMatchObject({
                     name: testUser.organizationName,
                 });
-                authToken = res.body.data.token;
+                authToken = (0, auth_helpers_1.getAccessToken)(res.body);
                 refreshToken = res.body.data.refreshToken;
                 userId = res.body.data.user.id;
-                organizationId = res.body.data.organization.id;
+                organizationId = (0, auth_helpers_1.getOrganizationId)(res.body);
             });
             it('should reject registration with invalid email', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -96,7 +97,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     password: testUser.password,
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.data).toHaveProperty('token');
+                expect(res.body.data).toHaveProperty('accessToken');
                 expect(res.body.data).toHaveProperty('refreshToken');
                 expect(res.body.data.user.email).toBe(testUser.email);
             });
@@ -127,11 +128,11 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     .get('/api/v1/auth/me')
                     .set('Authorization', `Bearer ${authToken}`);
                 expect(res.status).toBe(200);
-                expect(res.body.data.user).toMatchObject({
+                expect(res.body.data).toMatchObject({
                     id: userId,
                     email: testUser.email,
                 });
-                expect(res.body.data.organization.id).toBe(organizationId);
+                expect(res.body.data.organizations[0].organizationId).toBe(organizationId);
             });
             it('should reject without authentication', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -151,11 +152,11 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     .post('/api/v1/auth/refresh-token')
                     .send({ refreshToken });
                 expect(res.status).toBe(200);
-                expect(res.body.data).toHaveProperty('token');
+                expect(res.body.data).toHaveProperty('accessToken');
                 expect(res.body.data).toHaveProperty('refreshToken');
-                expect(res.body.data.token).not.toBe(authToken); // Should be new token
+                expect(res.body.data.accessToken).not.toBe(authToken); // Should be new token
                 // Update tokens for subsequent tests
-                authToken = res.body.data.token;
+                authToken = res.body.data.accessToken;
                 refreshToken = res.body.data.refreshToken;
             });
             it('should reject with invalid refresh token', async () => {
@@ -179,7 +180,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     .send({ refreshToken: oldToken });
                 expect(res2.status).toBe(401);
                 // Update for next test
-                authToken = res1.body.data.token;
+                authToken = res1.body.data.accessToken;
                 refreshToken = newToken;
             });
         });
@@ -336,7 +337,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     password: testUser.password,
                 });
                 logoutRefreshToken = res.body.data.refreshToken;
-                authToken = res.body.data.token;
+                authToken = (0, auth_helpers_1.getAccessToken)(res.body);
             });
             it('should logout and invalidate refresh token', async () => {
                 const res = await (0, supertest_1.default)(app_1.default)
@@ -391,7 +392,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                 organizationName: `Strong Org ${Math.random()}`,
             });
             expect(res.status).toBe(201);
-            expect(res.body.data).toHaveProperty('token');
+            expect(res.body.data).toHaveProperty('accessToken');
             // Cleanup
             const user = await user_repository_1.userRepository.findByEmail(res.body.data.user.email);
             if (user) {
@@ -435,7 +436,7 @@ describe('Auth E2E Tests - Complete Authentication Module', () => {
                     organizationName: `Test Org ${Math.random()}`,
                 });
                 if (res.status === 201) {
-                    expect(res.body.data).toHaveProperty('token');
+                    expect(res.body.data).toHaveProperty('accessToken');
                     // Cleanup
                     const user = await user_repository_1.userRepository.findByEmail(email);
                     if (user) {

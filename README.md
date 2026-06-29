@@ -24,6 +24,7 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - ✅ Sprint UI-1: Enterprise React Foundation (React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui)
 - ✅ Sprint UI-3: Property, Unit & Tenant Management (CRUD Operations, Search, Filtering, Pagination, RBAC Integration)
 - ✅ Sprint UI-4: Enterprise Admin Application (Authentication Fix, Admin Layout, Team Management, RBAC, Resources Dashboard)
+- ✅ Sprint QA-2: API Contract Alignment (Frontend `{ success, message, data }` envelope unwrapping, auth flow fixes)
 
 **Upcoming:**
 - Sprint UI-5: Enhanced Dashboard with Real Data

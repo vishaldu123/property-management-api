@@ -5,6 +5,7 @@ const auth_middleware_1 = require("../middleware/auth.middleware");
 const validation_1 = require("../utils/validation");
 const tenant_validator_1 = require("../validators/tenant.validator");
 const tenant_controller_1 = require("../controllers/tenant.controller");
+const lease_controller_1 = require("../controllers/lease.controller");
 const zod_1 = require("zod");
 /**
  * Tenant Routes
@@ -55,6 +56,15 @@ router.delete('/:id', (0, validation_1.validate)({ params: tenant_validator_1.te
  * @access Private
  */
 router.patch('/:id/restore', (0, validation_1.validate)({ params: tenant_validator_1.tenantIdSchema }), tenant_controller_1.restoreTenant);
+/**
+ * @route GET /api/v1/tenants/:tenantId/leases/stats
+ * @desc Get tenant lease statistics
+ * @access Private
+ */
+const tenantLeaseStatsSchema = zod_1.z.object({
+    tenantId: zod_1.z.string().uuid(),
+});
+router.get('/:tenantId/leases/stats', (0, validation_1.validate)({ params: tenantLeaseStatsSchema }), lease_controller_1.getTenantLeaseStatistics);
 /**
  * @route GET /api/v1/units/:unitId/tenants/stats
  * @desc Get unit tenant statistics

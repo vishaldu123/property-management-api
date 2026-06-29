@@ -5,6 +5,7 @@ const auth_middleware_1 = require("../middleware/auth.middleware");
 const validation_1 = require("../utils/validation");
 const unit_validator_1 = require("../validators/unit.validator");
 const unit_controller_1 = require("../controllers/unit.controller");
+const lease_controller_1 = require("../controllers/lease.controller");
 const zod_1 = require("zod");
 /**
  * Unit Routes
@@ -55,6 +56,15 @@ router.delete('/:id', (0, validation_1.validate)({ params: unit_validator_1.unit
  * @access Private
  */
 router.patch('/:id/restore', (0, validation_1.validate)({ params: unit_validator_1.unitIdSchema }), unit_controller_1.restoreUnit);
+/**
+ * @route GET /api/v1/units/:unitId/leases/stats
+ * @desc Get unit lease statistics
+ * @access Private
+ */
+const unitLeaseStatsSchema = zod_1.z.object({
+    unitId: zod_1.z.string().uuid(),
+});
+router.get('/:unitId/leases/stats', (0, validation_1.validate)({ params: unitLeaseStatsSchema }), lease_controller_1.getUnitLeaseStatistics);
 /**
  * @route GET /api/v1/properties/:propertyId/units/stats
  * @desc Get property unit statistics

@@ -14,4 +14,30 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ForbiddenError = exports.ConflictError = exports.NotFoundError = exports.ValidationError = void 0;
 __exportStar(require("./app.exception"), exports);
+const app_exception_1 = require("./app.exception");
+class ValidationError extends app_exception_1.AppException {
+    constructor(message = 'Validation failed', details) {
+        super(message, 400, 'VALIDATION_ERROR', details);
+    }
+}
+exports.ValidationError = ValidationError;
+class NotFoundError extends app_exception_1.AppException {
+    constructor(message = 'Resource not found', details) {
+        super(message, 404, 'NOT_FOUND', details);
+    }
+}
+exports.NotFoundError = NotFoundError;
+class ConflictError extends app_exception_1.AppException {
+    constructor(message = 'Conflict', details) {
+        super(message, 409, 'CONFLICT', details);
+    }
+}
+exports.ConflictError = ConflictError;
+class ForbiddenError extends app_exception_1.AppException {
+    constructor(message = 'Forbidden', details) {
+        super(message, 403, 'FORBIDDEN', details);
+    }
+}
+exports.ForbiddenError = ForbiddenError;

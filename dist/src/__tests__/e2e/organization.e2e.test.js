@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 process.env.NODE_ENV = 'test';
 const supertest_1 = __importDefault(require("supertest"));
 const app_1 = __importDefault(require("../../app"));
+const auth_helpers_1 = require("../helpers/auth.helpers");
 describe('Organization Module E2E', () => {
     const seed = Date.now();
     const primaryUser = {
@@ -48,9 +49,9 @@ describe('Organization Module E2E', () => {
             .post('/api/v1/auth/login')
             .send({ email: secondaryUser.email, password: secondaryUser.password })
             .expect(200);
-        authToken = loginPrimary.body.data.token;
-        ownOrganizationId = loginPrimary.body.data.organization.id;
-        otherOrganizationId = loginSecondary.body.data.organization.id;
+        authToken = (0, auth_helpers_1.getAccessToken)(loginPrimary.body);
+        ownOrganizationId = (0, auth_helpers_1.getOrganizationId)(loginPrimary.body);
+        otherOrganizationId = (0, auth_helpers_1.getOrganizationId)(loginSecondary.body);
     });
     it('lists organizations with pagination metadata', async () => {
         const response = await (0, supertest_1.default)(app_1.default)
@@ -141,7 +142,7 @@ describe('Organization Module E2E', () => {
                 .post('/api/v1/auth/login')
                 .send({ email: secondaryUser.email, password: secondaryUser.password })
                 .expect(200);
-            const secondaryToken = loginSecondary.body.data.token;
+            const secondaryToken = (0, auth_helpers_1.getAccessToken)(loginSecondary.body);
             await (0, supertest_1.default)(app_1.default)
                 .get(`/api/v1/organizations/${ownOrganizationId}/settings`)
                 .set('Authorization', `Bearer ${secondaryToken}`)
@@ -210,7 +211,7 @@ describe('Organization Module E2E', () => {
                 .post('/api/v1/auth/login')
                 .send({ email: secondaryUser.email, password: secondaryUser.password })
                 .expect(200);
-            const secondaryToken = loginSecondary.body.data.token;
+            const secondaryToken = (0, auth_helpers_1.getAccessToken)(loginSecondary.body);
             await (0, supertest_1.default)(app_1.default)
                 .get(`/api/v1/organizations/${ownOrganizationId}/branding`)
                 .set('Authorization', `Bearer ${secondaryToken}`)
@@ -265,7 +266,7 @@ describe('Organization Module E2E', () => {
                 .post('/api/v1/auth/login')
                 .send({ email: secondaryUser.email, password: secondaryUser.password })
                 .expect(200);
-            const secondaryToken = loginSecondary.body.data.token;
+            const secondaryToken = (0, auth_helpers_1.getAccessToken)(loginSecondary.body);
             await (0, supertest_1.default)(app_1.default)
                 .get(`/api/v1/organizations/${ownOrganizationId}/preferences`)
                 .set('Authorization', `Bearer ${secondaryToken}`)
