@@ -37,7 +37,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         console.log('[AuthProvider] Initializing auth...')
         const tokens = authService.getTokens()
-        console.log('[AuthProvider] Tokens from storage:', !!tokens?.accessToken, !!tokens?.refreshToken)
+        console.log(
+          '[AuthProvider] Tokens from storage:',
+          !!tokens?.accessToken,
+          !!tokens?.refreshToken
+        )
         if (tokens && tokens.accessToken && tokens.refreshToken) {
           setIsAuthenticated(true)
           try {
@@ -48,7 +52,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             // Try to load previously selected organization or select first one
             const savedOrgId = organizationService.getCurrentOrganization()
-            console.log('[AuthProvider] Organizations count:', currentUser.organizations.length, 'Saved org ID:', savedOrgId)
+            console.log(
+              '[AuthProvider] Organizations count:',
+              currentUser.organizations.length,
+              'Saved org ID:',
+              savedOrgId
+            )
             if (
               savedOrgId &&
               currentUser.organizations.some(o => o.organizationId === savedOrgId)
@@ -64,8 +73,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             } else if (currentUser.organizations.length > 0) {
               // Select first organization
               try {
-                console.log('[AuthProvider] Loading first organization:', currentUser.organizations[0].organizationId)
-                const org = await organizationService.get(currentUser.organizations[0].organizationId)
+                console.log(
+                  '[AuthProvider] Loading first organization:',
+                  currentUser.organizations[0].organizationId
+                )
+                const org = await organizationService.get(
+                  currentUser.organizations[0].organizationId
+                )
                 console.log('[AuthProvider] First organization loaded:', org.name)
                 organizationService.setCurrentOrganization(org.id)
                 setCurrentOrganizationState(org)
@@ -113,7 +127,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Set first organization if available
       if (response.user.organizations.length > 0) {
         try {
-          console.log('[AuthProvider] Loading organization after login:', response.user.organizations[0].organizationId)
+          console.log(
+            '[AuthProvider] Loading organization after login:',
+            response.user.organizations[0].organizationId
+          )
           const org = await organizationService.get(response.user.organizations[0].organizationId)
           console.log('[AuthProvider] Organization loaded after login:', org.name)
           organizationService.setCurrentOrganization(org.id)
@@ -130,23 +147,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
-  const register = useCallback(async (email: string, password: string, firstName: string, lastName: string) => {
-    try {
-      const response = await authService.register({ email, password, firstName, lastName })
-      setUser(response.user)
-      setIsAuthenticated(true)
+  const register = useCallback(
+    async (email: string, password: string, firstName: string, lastName: string) => {
+      try {
+        const response = await authService.register({ email, password, firstName, lastName })
+        setUser(response.user)
+        setIsAuthenticated(true)
 
-      // Set first organization if available
-      if (response.user.organizations.length > 0) {
-        const org = await organizationService.get(response.user.organizations[0].organizationId)
-        organizationService.setCurrentOrganization(org.id)
-        setCurrentOrganizationState(org)
+        // Set first organization if available
+        if (response.user.organizations.length > 0) {
+          const org = await organizationService.get(response.user.organizations[0].organizationId)
+          organizationService.setCurrentOrganization(org.id)
+          setCurrentOrganizationState(org)
+        }
+      } catch (error) {
+        console.error('Registration failed:', error)
+        throw error
       }
-    } catch (error) {
-      console.error('Registration failed:', error)
-      throw error
-    }
-  }, [])
+    },
+    []
+  )
 
   const logout = useCallback(async () => {
     try {
@@ -195,7 +215,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       refresh,
       setCurrentOrganization,
     }),
-    [user, currentOrganization, isLoading, isAuthenticated, login, register, logout, refresh, setCurrentOrganization]
+    [
+      user,
+      currentOrganization,
+      isLoading,
+      isAuthenticated,
+      login,
+      register,
+      logout,
+      refresh,
+      setCurrentOrganization,
+    ]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
