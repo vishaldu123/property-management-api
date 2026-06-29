@@ -22,3 +22,22 @@ export {
   type CreateTenantRequest,
   type UpdateTenantRequest,
 } from './tenant.service'
+export {
+  leaseService,
+  type Lease,
+  type LeaseStatistics,
+  type ListLeasesParams,
+} from './lease.service'
+export {
+  paymentService,
+  type Payment,
+  type PaymentStatistics,
+  type PaymentListResult,
+  type ListPaymentsParams,
+} from './payment.service'
+export {
+  maintenanceService,
+  type MaintenanceRequest,
+  type MaintenanceStatistics,
+  type ListMaintenanceParams,
+} from './maintenance.service'

@@ -49,6 +49,7 @@ src/
 │       ├── auth.service.ts    # Auth API calls
 │       ├── organization.service.ts  # Organization API calls
 │       └── index.ts           # Export services
+├── features/                     # Feature modules (property, unit, tenant, dashboard)
 ├── pages/                       # Page components
 │   ├── home.tsx               # Home page
 │   ├── auth/                  # Auth pages
@@ -56,7 +57,7 @@ src/
 │   │   ├── register.tsx
 │   │   ├── forgot-password.tsx
 │   │   └── reset-password.tsx
-│   ├── dashboard/             # Dashboard pages
+│   ├── dashboard/             # Dashboard page shell
 │   │   ├── dashboard.tsx
 │   │   ├── profile.tsx
 │   │   └── settings.tsx
@@ -203,6 +204,17 @@ await authService.logout()
 - Empty state
 - Error state
 
+### ✅ Executive Dashboard (Sprint UI-5)
+
+- Eight KPI cards with loading, error, empty states, and click-through navigation
+- Recharts analytics: occupancy, monthly revenue, payment status, maintenance status
+- Activity feed for tenants, leases, payments, and maintenance
+- Widgets: upcoming lease expirations, recent payments, open maintenance, recent tenants
+- RBAC-gated quick actions (new property, unit, tenant, lease, payment, maintenance)
+- Auto-refresh every 60 seconds with manual refresh
+- Responsive layout (desktop grid, tablet, mobile stacked)
+- Accessible charts with ARIA labels and keyboard-navigable KPI cards
+
 ### ✅ Pages
 
 - Home page (public landing)
@@ -210,7 +222,7 @@ await authService.logout()
 - Register page
 - Forgot password page
 - Reset password page
-- Dashboard (protected)
+- Dashboard (protected, live executive metrics)
 - Profile page (protected)
 - Settings page (protected)
 - 404 Not Found
