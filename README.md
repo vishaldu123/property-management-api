@@ -25,9 +25,9 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - ✅ Sprint UI-3: Property, Unit & Tenant Management (CRUD Operations, Search, Filtering, Pagination, RBAC Integration)
 - ✅ Sprint UI-4: Enterprise Admin Application (Authentication Fix, Admin Layout, Team Management, RBAC, Resources Dashboard)
 - ✅ Sprint QA-2: API Contract Alignment (Frontend `{ success, message, data }` envelope unwrapping, auth flow fixes)
+- ✅ Sprint UI-5: Enterprise Executive Dashboard (KPI cards, Recharts analytics, activity feed, widgets, RBAC quick actions)
 
 **Upcoming:**
-- Sprint UI-5: Enhanced Dashboard with Real Data
 - Sprint UI-6: Settings & Profile Management UI
 - Sprint UI-7: Reports & Analytics UI
 

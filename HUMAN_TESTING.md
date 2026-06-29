@@ -130,15 +130,42 @@ The frontend will be available at `http://localhost:5173`
 
 ### Section 0.6: Dashboard & Protected Pages
 
-#### Test 0.6.1: Dashboard Access
+#### Test 0.6.1: Executive Dashboard Access
 - **URL:** `http://localhost:5173/dashboard` (when logged in)
-- **Expected:** Dashboard displays with user information and stats
+- **Expected:** Executive dashboard displays live organization metrics
 - **Validation:**
-  - ✓ Sidebar navigation is visible
-  - ✓ Top navigation shows theme switcher and user menu
-  - ✓ Welcome message displays user's first name
-  - ✓ Stats cards display (all show 0 initially)
-  - ✓ Quick start guide is visible
+  - ✓ Sidebar navigation and top navigation are visible
+  - ✓ Header shows organization name and welcome message
+  - ✓ Eight KPI cards render (properties, units, occupancy, tenants, leases, payments, maintenance)
+  - ✓ KPI cards show loading skeletons while data loads
+  - ✓ KPI values populate from backend stats APIs
+  - ✓ Clicking a KPI card navigates to the related module
+  - ✓ Manual **Refresh** button reloads dashboard data
+  - ✓ Dashboard auto-refreshes every 60 seconds
+
+#### Test 0.6.1a: Dashboard Charts
+- **Prerequisites:** Organization has properties, units, payments, and maintenance data
+- **Validation:**
+  - ✓ Occupancy pie chart shows occupied vs vacant units
+  - ✓ Monthly revenue bar chart shows last 6 months of paid revenue
+  - ✓ Payment status donut chart shows paid, pending, overdue, refunded
+  - ✓ Maintenance status horizontal bar chart shows workflow counts
+  - ✓ Charts include screen-reader summaries (`aria-label`)
+
+#### Test 0.6.1b: Dashboard Activity & Widgets
+- **Validation:**
+  - ✓ Activity feed shows recent tenant, lease, payment, and maintenance events
+  - ✓ Upcoming lease expirations widget lists active leases expiring within 90 days
+  - ✓ Recent payments widget lists latest transactions
+  - ✓ Open maintenance widget lists unresolved requests
+  - ✓ Recent tenants widget lists newly added tenants
+
+#### Test 0.6.1c: Dashboard Quick Actions & RBAC
+- **Validation:**
+  - ✓ Quick action buttons appear for permitted actions (`property:create`, `unit:create`, etc.)
+  - ✓ Quick action buttons are hidden when RBAC denies permission
+  - ✓ Empty dashboard state appears for new organizations with no data
+  - ✓ Error banner with retry appears if dashboard API calls fail
 
 #### Test 0.6.2: Sidebar Navigation
 - **Expected:** Sidebar shows all navigation items
