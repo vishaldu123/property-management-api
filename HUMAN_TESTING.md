@@ -89,7 +89,7 @@ The frontend will be available at `http://localhost:5173`
 - **Validation:**
   - ✓ Form validation prevents empty fields
   - ✓ Invalid credentials show error message
-  - ✓ Successful login stores tokens in localStorage
+  - ✓ Successful login stores `accessToken` and `refreshToken` in localStorage
   - ✓ User is redirected to dashboard
   - ✓ Dashboard displays logged-in user's name
 
@@ -352,6 +352,20 @@ curl -X POST http://localhost:5000/api/v1/auth/login \
     "email": "john@example.com",
     "password": "SecurePass123!"
   }'
+```
+
+**Response shape (all success endpoints):**
+
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "user": { "...": "..." },
+    "accessToken": "<jwt>",
+    "refreshToken": "<refresh-token>"
+  }
+}
 ```
 
 ### Test 2.3: Login with Invalid Credentials

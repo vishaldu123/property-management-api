@@ -148,18 +148,19 @@ npm run preview
 
 ### Authentication Flow
 
-1. **Login/Register** → Get access and refresh tokens
-2. **API Requests** → Tokens attached to Authorization header
-3. **Token Expiry** → Automatic refresh using refresh token
-4. **Session Persistence** → Tokens stored in localStorage
-5. **Logout** → Clear tokens and redirect to login
+1. **Login/Register** → Backend returns `{ success, message, data }`; the API client unwraps `data` automatically
+2. **Tokens** → `accessToken` and `refreshToken` are stored in localStorage
+3. **API Requests** → `Authorization: Bearer <accessToken>` attached to each request
+4. **Token Expiry** → Automatic refresh via `POST /api/v1/auth/refresh-token`
+5. **Session Persistence** → Tokens restored from localStorage on page reload
+6. **Logout** → Sends `refreshToken` to `POST /api/v1/auth/logout`, then clears local storage
 
 ### API Client Usage
 
 ```typescript
 import { apiClient, authService } from '@/shared/services'
 
-// Make authenticated requests
+// Responses are unwrapped — services receive the payload directly
 const response = await apiClient.get('/organizations')
 
 // Auth service
@@ -237,7 +238,7 @@ await authService.logout()
 
 ```env
 # API Configuration
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:5000
 VITE_API_BASE_PATH=/api/v1
 
 # App Configuration

@@ -7,12 +7,14 @@ process.env.NODE_ENV = 'test';
 const supertest_1 = __importDefault(require("supertest"));
 const app_1 = __importDefault(require("../../app"));
 const prisma_1 = __importDefault(require("../../config/prisma"));
+const auth_helpers_1 = require("../helpers/auth.helpers");
 describe('Property CRUD E2E Tests', () => {
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const user = {
         name: 'Property Manager',
-        email: 'property.manager@test.com',
+        email: `property.manager.${uniqueSuffix}@test.com`,
         password: 'Password123!@',
-        organizationName: 'Property Test Org',
+        organizationName: `Property Test Org ${uniqueSuffix}`,
     };
     let authToken;
     let organizationId;
@@ -23,13 +25,13 @@ describe('Property CRUD E2E Tests', () => {
             .post('/api/v1/auth/register')
             .send(user);
         expect(registerRes.status).toBe(201);
-        organizationId = registerRes.body.data.organization.id;
+        organizationId = (0, auth_helpers_1.getOrganizationId)(registerRes.body);
         // Login
         const loginRes = await (0, supertest_1.default)(app_1.default)
             .post('/api/v1/auth/login')
             .send({ email: user.email, password: user.password });
         expect(loginRes.status).toBe(200);
-        authToken = loginRes.body.data.token;
+        authToken = (0, auth_helpers_1.getAccessToken)(loginRes.body);
     });
     afterAll(async () => {
         // Cleanup: Delete test data only if organizationId was set
@@ -347,18 +349,18 @@ describe('Property CRUD E2E Tests', () => {
             // Create another organization
             const otherUser = {
                 name: 'Other User',
-                email: 'other.user@test.com',
+                email: `other.user.${uniqueSuffix}@test.com`,
                 password: 'Password123!@',
-                organizationName: 'Other Org',
+                organizationName: `Other Org ${uniqueSuffix}`,
             };
             const registerRes = await (0, supertest_1.default)(app_1.default)
                 .post('/api/v1/auth/register')
                 .send(otherUser);
-            otherOrgId = registerRes.body.data.organization.id;
+            otherOrgId = (0, auth_helpers_1.getOrganizationId)(registerRes.body);
             const loginRes = await (0, supertest_1.default)(app_1.default)
                 .post('/api/v1/auth/login')
                 .send({ email: otherUser.email, password: otherUser.password });
-            otherOrgToken = loginRes.body.data.token;
+            otherOrgToken = (0, auth_helpers_1.getAccessToken)(loginRes.body);
         });
         it('should not allow access to properties from other organizations', async () => {
             const res = await (0, supertest_1.default)(app_1.default)
