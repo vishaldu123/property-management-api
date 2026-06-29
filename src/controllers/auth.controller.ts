@@ -205,7 +205,7 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response, n
     }
 
     const result = await authService.getCurrentUser(req.user.userId, req.user.organizationId);
-    ApiResponse.success(res, result, 'User retrieved successfully');
+    ApiResponse.success(res, result.user, 'User retrieved successfully');
   } catch (error) {
     logger.error('Get current user endpoint error', error as Error);
     next(error);

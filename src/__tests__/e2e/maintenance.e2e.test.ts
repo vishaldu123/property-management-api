@@ -1,314 +1,340 @@
+process.env.NODE_ENV = 'test';
+
+import request from 'supertest';
+import app from '../../app';
 import prisma from '../../config/prisma';
-import { maintenanceService } from '../../services/maintenance.service';
-import { propertyRepository } from '../../repositories/property.repository';
-import { organizationRepository } from '../../repositories/organization.repository';
-import { userRepository } from '../../repositories/user.repository';
+import { getAccessToken, getOrganizationId, getUserId } from '../helpers/auth.helpers';
 
-describe('Maintenance Domain - E2E Tests', () => {
-  const mockCtx = {
-    userId: 'user-123',
-    organizationId: 'org-123',
-  };
+describe('Maintenance Domain E2E Tests', () => {
+  const seed = Date.now();
 
-  const mockMaintenanceInput = {
-    propertyId: 'property-123',
-    unitId: 'unit-123',
-    tenantId: 'tenant-123',
-    requestNumber: 'MR-E2E-001',
+  let authToken = '';
+  let userId = '';
+  let organizationId = '';
+  let propertyId = '';
+
+  const buildMaintenancePayload = (overrides: Record<string, unknown> = {}) => ({
+    propertyId,
+    requestNumber: `MR-E2E-${seed}-${Math.random().toString(36).slice(2, 8)}`,
     title: 'Plumbing Issue',
     description: 'Water leak in bathroom',
-    category: 'Plumbing' as const,
-    priority: 'High' as const,
-    status: 'Open' as const,
+    category: 'Plumbing',
+    priority: 'High',
+    status: 'Open',
     requestedDate: '2026-06-27T00:00:00Z',
     scheduledDate: '2026-06-28T00:00:00Z',
     estimatedCost: '500.00',
     vendor: 'Local Plumber',
     notes: 'Urgent repair',
-  };
+    ...overrides,
+  });
+
+  beforeAll(async () => {
+    const registerRes = await request(app)
+      .post('/api/v1/auth/register')
+      .send({
+        name: 'Maintenance Test User',
+        email: `maintenance-test-${seed}@example.com`,
+        password: 'TestPassword123!',
+        organizationName: `Maintenance Test Org ${seed}`,
+      })
+      .expect(201);
+
+    authToken = getAccessToken(registerRes.body);
+    userId = getUserId(registerRes.body);
+    organizationId = getOrganizationId(registerRes.body);
+
+    const propertyRes = await request(app)
+      .post('/api/v1/properties')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        name: 'Maintenance Test Property',
+        code: `PROP-MNT-${seed}`,
+        propertyType: 'Apartment',
+        address: '123 Main St',
+        city: 'Test City',
+        state: 'Test State',
+        country: 'Test Country',
+        postalCode: '12345',
+      })
+      .expect(201);
+
+    propertyId = propertyRes.body.data.id;
+  });
+
+  afterAll(async () => {
+    if (organizationId) {
+      await prisma.maintenanceRequest.deleteMany({ where: { organizationId } });
+      await prisma.property.deleteMany({ where: { organizationId } });
+      await prisma.organizationUser.deleteMany({ where: { organizationId } });
+      await prisma.organization.delete({ where: { id: organizationId } }).catch(() => undefined);
+    }
+    await prisma.$disconnect();
+  });
 
   describe('Complete maintenance workflow', () => {
     it('should create, assign, update status, and complete a maintenance request', async () => {
-      // Mock organization exists
-      const org = {
-        id: mockCtx.organizationId,
-        name: 'Test Org',
-        slug: 'test-org',
-        email: 'org@test.com',
-      };
+      const createRes = await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(buildMaintenancePayload({ requestNumber: `MR-WF-${seed}` }))
+        .expect(201);
 
-      // Create maintenance request
-      const maint = await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        mockMaintenanceInput,
-        mockCtx.userId
-      );
+      const maintenanceId = createRes.body.data.id;
+      expect(createRes.body.data.requestNumber).toBe(`MR-WF-${seed}`);
+      expect(createRes.body.data.status).toBe('Open');
 
-      expect(maint).toBeDefined();
-      expect(maint.requestNumber).toBe('MR-E2E-001');
-      expect(maint.status).toBe('Open');
-      expect(maint.organizationId).toBe(mockCtx.organizationId);
+      const getRes = await request(app)
+        .get(`/api/v1/maintenance/${maintenanceId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      // Get the request
-      const retrieved = await maintenanceService.getRequest(
-        maint.id,
-        mockCtx.organizationId
-      );
+      expect(getRes.body.data.id).toBe(maintenanceId);
+      expect(getRes.body.data.title).toBe('Plumbing Issue');
 
-      expect(retrieved.id).toBe(maint.id);
-      expect(retrieved.title).toBe(mockMaintenanceInput.title);
+      await request(app)
+        .patch(`/api/v1/maintenance/${maintenanceId}/change-status`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ status: 'Assigned' })
+        .expect(200);
 
-      // Update status to Assigned
-      const assigned = await maintenanceService.changeStatus(
-        maint.id,
-        mockCtx.organizationId,
-        'Assigned',
-        mockCtx.userId
-      );
+      const assignRes = await request(app)
+        .patch(`/api/v1/maintenance/${maintenanceId}/assign`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ assignedTo: userId })
+        .expect(200);
 
-      expect(assigned.status).toBe('Assigned');
+      expect(assignRes.body.data.assignedTo).toBe(userId);
+      expect(assignRes.body.data.status).toBe('Assigned');
 
-      // Assign technician
-      const withTech = await maintenanceService.assignTechnician(
-        maint.id,
-        mockCtx.organizationId,
-        'tech-123',
-        mockCtx.userId
-      );
+      await request(app)
+        .patch(`/api/v1/maintenance/${maintenanceId}/change-status`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ status: 'Scheduled' })
+        .expect(200);
 
-      expect(withTech.assignedTo).toBe('tech-123');
-      expect(withTech.status).toBe('Assigned');
+      await request(app)
+        .patch(`/api/v1/maintenance/${maintenanceId}/change-status`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ status: 'In Progress' })
+        .expect(200);
 
-      // Change to Scheduled
-      const scheduled = await maintenanceService.changeStatus(
-        maint.id,
-        mockCtx.organizationId,
-        'Scheduled',
-        mockCtx.userId
-      );
-
-      expect(scheduled.status).toBe('Scheduled');
-
-      // Update to In Progress
-      const inProgress = await maintenanceService.changeStatus(
-        maint.id,
-        mockCtx.organizationId,
-        'In Progress',
-        mockCtx.userId
-      );
-
-      expect(inProgress.status).toBe('In Progress');
-
-      // Complete the request
-      const completed = await maintenanceService.updateRequest(
-        maint.id,
-        mockCtx.organizationId,
-        {
+      const completeRes = await request(app)
+        .put(`/api/v1/maintenance/${maintenanceId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
           status: 'Completed',
           actualCost: '450.00',
           notes: 'Repair completed successfully',
-        },
-        mockCtx.userId
-      );
+        })
+        .expect(200);
 
-      expect(completed.status).toBe('Completed');
-      expect(completed.actualCost?.toString()).toBe('450');
+      expect(completeRes.body.data.status).toBe('Completed');
+      expect(completeRes.body.data.actualCost?.toString()).toBe('450');
     });
 
     it('should soft delete and restore a maintenance request', async () => {
-      // Create request
-      const maint = await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        mockMaintenanceInput,
-        mockCtx.userId
-      );
+      const createRes = await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(buildMaintenancePayload({ requestNumber: `MR-DEL-${seed}` }))
+        .expect(201);
 
-      // Delete the request
-      const deleted = await maintenanceService.deleteRequest(
-        maint.id,
-        mockCtx.organizationId,
-        mockCtx.userId
-      );
+      const maintenanceId = createRes.body.data.id;
 
-      expect(deleted.deletedAt).not.toBeNull();
+      await request(app)
+        .delete(`/api/v1/maintenance/${maintenanceId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      // Verify not in list
-      const list = await maintenanceService.listRequests(
-        mockCtx.organizationId,
-        { page: 1, limit: 20 }
-      );
+      const listAfterDelete = await request(app)
+        .get('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(list.requests.find(r => r.id === maint.id)).toBeUndefined();
+      const deletedItems = listAfterDelete.body.data.data as Array<{ id: string }>;
+      expect(deletedItems.find((item) => item.id === maintenanceId)).toBeUndefined();
 
-      // Restore the request
-      const restored = await maintenanceService.restoreRequest(
-        maint.id,
-        mockCtx.organizationId,
-        mockCtx.userId
-      );
+      const restoreRes = await request(app)
+        .patch(`/api/v1/maintenance/${maintenanceId}/restore`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(restored.deletedAt).toBeNull();
+      expect(restoreRes.body.data.deletedAt).toBeNull();
 
-      // Verify in list again
-      const listAfterRestore = await maintenanceService.listRequests(
-        mockCtx.organizationId,
-        { page: 1, limit: 20 }
-      );
+      const listAfterRestore = await request(app)
+        .get('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(listAfterRestore.requests.find(r => r.id === maint.id)).toBeDefined();
+      const restoredItems = listAfterRestore.body.data.data as Array<{ id: string }>;
+      expect(restoredItems.find((item) => item.id === maintenanceId)).toBeDefined();
     });
 
     it('should filter maintenance requests by status, priority, and category', async () => {
-      // Create multiple requests
-      const maint1 = await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        { ...mockMaintenanceInput, requestNumber: 'MR-FILTER-001', status: 'Open' },
-        mockCtx.userId
-      );
+      await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(buildMaintenancePayload({ requestNumber: `MR-FILTER-1-${seed}`, status: 'Open' }))
+        .expect(201);
 
-      const maint2 = await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        { ...mockMaintenanceInput, requestNumber: 'MR-FILTER-002', priority: 'Low', category: 'Electrical', status: 'Open' },
-        mockCtx.userId
-      );
+      await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(
+          buildMaintenancePayload({
+            requestNumber: `MR-FILTER-2-${seed}`,
+            priority: 'Low',
+            category: 'Electrical',
+            status: 'Open',
+          })
+        )
+        .expect(201);
 
-      // Filter by status
-      const byStatus = await maintenanceService.listRequests(
-        mockCtx.organizationId,
-        { page: 1, limit: 20 },
-        { status: 'Open' }
-      );
+      const byStatus = await request(app)
+        .get('/api/v1/maintenance?status=Open')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(byStatus.requests.length).toBeGreaterThan(0);
-      expect(byStatus.requests.every(r => r.status === 'Open')).toBe(true);
+      expect(byStatus.body.data.data.length).toBeGreaterThan(0);
+      expect(byStatus.body.data.data.every((item: { status: string }) => item.status === 'Open')).toBe(true);
 
-      // Filter by priority
-      const byPriority = await maintenanceService.listRequests(
-        mockCtx.organizationId,
-        { page: 1, limit: 20 },
-        { priority: 'High' }
-      );
+      const byPriority = await request(app)
+        .get('/api/v1/maintenance?priority=High')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(byPriority.requests.every(r => r.priority === 'High')).toBe(true);
+      expect(
+        byPriority.body.data.data.every((item: { priority: string }) => item.priority === 'High')
+      ).toBe(true);
 
-      // Filter by category
-      const byCategory = await maintenanceService.listRequests(
-        mockCtx.organizationId,
-        { page: 1, limit: 20 },
-        { category: 'Plumbing' }
-      );
+      const byCategory = await request(app)
+        .get('/api/v1/maintenance?category=Plumbing')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(byCategory.requests.every(r => r.category === 'Plumbing')).toBe(true);
+      expect(
+        byCategory.body.data.data.every((item: { category: string }) => item.category === 'Plumbing')
+      ).toBe(true);
     });
 
     it('should search maintenance requests by request number and title', async () => {
-      // Create request
-      const maint = await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        { ...mockMaintenanceInput, requestNumber: 'MR-SEARCH-001', title: 'Unique Title' },
-        mockCtx.userId
-      );
+      const createRes = await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(
+          buildMaintenancePayload({
+            requestNumber: `MR-SEARCH-${seed}`,
+            title: `Unique Title ${seed}`,
+          })
+        )
+        .expect(201);
 
-      // Search by request number
-      const searchByNumber = await maintenanceService.listRequests(
-        mockCtx.organizationId,
-        { page: 1, limit: 20 },
-        undefined,
-        { query: 'MR-SEARCH-001' }
-      );
+      const maintenanceId = createRes.body.data.id;
 
-      expect(searchByNumber.requests.find(r => r.id === maint.id)).toBeDefined();
+      const searchByNumber = await request(app)
+        .get(`/api/v1/maintenance?search=MR-SEARCH-${seed}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      // Search by title
-      const searchByTitle = await maintenanceService.listRequests(
-        mockCtx.organizationId,
-        { page: 1, limit: 20 },
-        undefined,
-        { query: 'Unique' }
-      );
+      expect(
+        searchByNumber.body.data.data.find((item: { id: string }) => item.id === maintenanceId)
+      ).toBeDefined();
 
-      expect(searchByTitle.requests.find(r => r.id === maint.id)).toBeDefined();
+      const searchByTitle = await request(app)
+        .get(`/api/v1/maintenance?search=${encodeURIComponent(`Unique Title ${seed}`)}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(
+        searchByTitle.body.data.data.find((item: { id: string }) => item.id === maintenanceId)
+      ).toBeDefined();
     });
 
     it('should sort maintenance requests by different fields', async () => {
-      // Create requests with different priorities
-      await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        { ...mockMaintenanceInput, requestNumber: 'MR-SORT-001', priority: 'Low' },
-        mockCtx.userId
-      );
+      await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(buildMaintenancePayload({ requestNumber: `MR-SORT-1-${seed}`, priority: 'Low' }))
+        .expect(201);
 
-      await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        { ...mockMaintenanceInput, requestNumber: 'MR-SORT-002', priority: 'High' },
-        mockCtx.userId
-      );
+      await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(buildMaintenancePayload({ requestNumber: `MR-SORT-2-${seed}`, priority: 'High' }))
+        .expect(201);
 
-      // Sort by priority descending
-      const sortedDesc = await maintenanceService.listRequests(
-        mockCtx.organizationId,
-        { page: 1, limit: 20, sortBy: 'priority', sortOrder: 'desc' }
-      );
+      const sortedDesc = await request(app)
+        .get('/api/v1/maintenance?sortBy=priority&sortOrder=desc')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(sortedDesc.requests).toBeDefined();
-      expect(sortedDesc.requests.length).toBeGreaterThan(0);
+      expect(sortedDesc.body.data.data.length).toBeGreaterThan(0);
 
-      // Sort by requested date ascending
-      const sortedAsc = await maintenanceService.listRequests(
-        mockCtx.organizationId,
-        { page: 1, limit: 20, sortBy: 'requestedDate', sortOrder: 'asc' }
-      );
+      const sortedAsc = await request(app)
+        .get('/api/v1/maintenance?sortBy=requestedDate&sortOrder=asc')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(sortedAsc.requests).toBeDefined();
+      expect(sortedAsc.body.data.data.length).toBeGreaterThan(0);
     });
 
     it('should enforce organization isolation', async () => {
-      // Create request in org-123
-      const maint = await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        mockMaintenanceInput,
-        mockCtx.userId
-      );
+      const createRes = await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(buildMaintenancePayload({ requestNumber: `MR-ISO-${seed}` }))
+        .expect(201);
 
-      // Try to access from different org
-      try {
-        await maintenanceService.getRequest(maint.id, 'different-org');
-        throw new Error('Should not find request in different organization');
-      } catch (error: any) {
-        expect(error.message).toContain('not found');
-      }
+      const maintenanceId = createRes.body.data.id;
 
-      // Verify list is scoped to organization
-      const list = await maintenanceService.listRequests(
-        'different-org',
-        { page: 1, limit: 20 }
-      );
+      const otherRegisterRes = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          name: 'Other Maintenance User',
+          email: `maintenance-other-${seed}@example.com`,
+          password: 'TestPassword123!',
+          organizationName: `Other Maintenance Org ${seed}`,
+        })
+        .expect(201);
 
-      expect(list.requests.find(r => r.id === maint.id)).toBeUndefined();
+      const otherToken = getAccessToken(otherRegisterRes.body);
+
+      await request(app)
+        .get(`/api/v1/maintenance/${maintenanceId}`)
+        .set('Authorization', `Bearer ${otherToken}`)
+        .expect(404);
     });
 
     it('should get organization statistics', async () => {
-      // Create multiple requests with different statuses
-      await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        { ...mockMaintenanceInput, requestNumber: 'MR-STAT-001', status: 'Open' },
-        mockCtx.userId
-      );
+      await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(buildMaintenancePayload({ requestNumber: `MR-STAT-1-${seed}`, status: 'Open' }))
+        .expect(201);
 
-      await maintenanceService.createRequest(
-        mockCtx.organizationId,
-        { ...mockMaintenanceInput, requestNumber: 'MR-STAT-002', status: 'Open', priority: 'High' },
-        mockCtx.userId
-      );
+      await request(app)
+        .post('/api/v1/maintenance')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(
+          buildMaintenancePayload({
+            requestNumber: `MR-STAT-2-${seed}`,
+            status: 'Open',
+            priority: 'High',
+          })
+        )
+        .expect(201);
 
-      // Get statistics
-      const stats = await maintenanceService.getOrganizationStatistics(mockCtx.organizationId);
+      const statsRes = await request(app)
+        .get('/api/v1/maintenance/stats/organization')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(stats.totalRequests).toBeGreaterThanOrEqual(2);
-      expect(stats.byStatus).toBeDefined();
-      expect(stats.byPriority).toBeDefined();
-      expect(stats.totalEstimatedCost).toBeDefined();
-      expect(stats.totalActualCost).toBeDefined();
+      expect(statsRes.body.data.totalRequests).toBeGreaterThanOrEqual(2);
+      expect(statsRes.body.data.byStatus).toBeDefined();
+      expect(statsRes.body.data.byPriority).toBeDefined();
+      expect(statsRes.body.data.totalEstimatedCost).toBeDefined();
+      expect(statsRes.body.data.totalActualCost).toBeDefined();
     });
   });
 });

@@ -15,6 +15,10 @@ import { Response } from 'express';
 
 jest.mock('../../services/maintenance.service');
 
+const PROPERTY_ID = '550e8400-e29b-41d4-a716-446655440010';
+const MAINTENANCE_ID = '550e8400-e29b-41d4-a716-446655440011';
+const TECHNICIAN_ID = '550e8400-e29b-41d4-a716-446655440012';
+
 describe('Maintenance Controller', () => {
   const mockCtx = {
     userId: 'user-123',
@@ -48,7 +52,7 @@ describe('Maintenance Controller', () => {
   describe('createMaintenance', () => {
     it('should create maintenance request on valid input', async () => {
       const mockMaintenance = {
-        id: 'maint-123',
+        id: MAINTENANCE_ID,
         organizationId: mockCtx.organizationId,
         requestNumber: 'MR-001',
         title: 'Plumbing Issue',
@@ -56,7 +60,7 @@ describe('Maintenance Controller', () => {
       };
 
       mockReq.body = {
-        propertyId: 'property-123',
+        propertyId: PROPERTY_ID,
         requestNumber: 'MR-001',
         title: 'Plumbing Issue',
         description: 'Water leak',
@@ -93,24 +97,24 @@ describe('Maintenance Controller', () => {
   describe('getMaintenance', () => {
     it('should retrieve maintenance request', async () => {
       const mockMaintenance = {
-        id: 'maint-123',
+        id: MAINTENANCE_ID,
         title: 'Plumbing Issue',
       };
 
-      mockReq.params.maintenanceId = 'maint-123';
+      mockReq.params.maintenanceId = MAINTENANCE_ID;
       (maintenanceService.getRequest as jest.Mock).mockResolvedValue(mockMaintenance);
 
       await getMaintenance(mockReq, mockRes, mockNext);
 
       expect(maintenanceService.getRequest).toHaveBeenCalledWith(
-        'maint-123',
+        MAINTENANCE_ID,
         mockCtx.organizationId
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
 
     it('should handle service errors', async () => {
-      mockReq.params.maintenanceId = 'invalid-123';
+      mockReq.params.maintenanceId = MAINTENANCE_ID;
       (maintenanceService.getRequest as jest.Mock).mockRejectedValue(new Error('Not found'));
 
       await getMaintenance(mockReq, mockRes, mockNext);
@@ -139,11 +143,11 @@ describe('Maintenance Controller', () => {
   describe('updateMaintenance', () => {
     it('should update maintenance request', async () => {
       const updatedMaintenance = {
-        id: 'maint-123',
+        id: MAINTENANCE_ID,
         title: 'Updated Title',
       };
 
-      mockReq.params.maintenanceId = 'maint-123';
+      mockReq.params.maintenanceId = MAINTENANCE_ID;
       mockReq.body = { title: 'Updated Title', priority: 'Medium' };
 
       (maintenanceService.updateRequest as jest.Mock).mockResolvedValue(updatedMaintenance);
@@ -158,22 +162,22 @@ describe('Maintenance Controller', () => {
   describe('assignTechnician', () => {
     it('should assign technician to maintenance request', async () => {
       const assignedMaintenance = {
-        id: 'maint-123',
-        assignedTo: 'tech-123',
+        id: MAINTENANCE_ID,
+        assignedTo: TECHNICIAN_ID,
         status: 'Assigned',
       };
 
-      mockReq.params.maintenanceId = 'maint-123';
-      mockReq.body = { assignedTo: 'tech-123' };
+      mockReq.params.maintenanceId = MAINTENANCE_ID;
+      mockReq.body = { assignedTo: TECHNICIAN_ID };
 
       (maintenanceService.assignTechnician as jest.Mock).mockResolvedValue(assignedMaintenance);
 
       await assignTechnician(mockReq, mockRes, mockNext);
 
       expect(maintenanceService.assignTechnician).toHaveBeenCalledWith(
-        'maint-123',
+        MAINTENANCE_ID,
         mockCtx.organizationId,
-        'tech-123',
+        TECHNICIAN_ID,
         mockCtx.userId
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -183,11 +187,11 @@ describe('Maintenance Controller', () => {
   describe('changeStatus', () => {
     it('should change maintenance request status', async () => {
       const updatedMaintenance = {
-        id: 'maint-123',
+        id: MAINTENANCE_ID,
         status: 'In Progress',
       };
 
-      mockReq.params.maintenanceId = 'maint-123';
+      mockReq.params.maintenanceId = MAINTENANCE_ID;
       mockReq.body = { status: 'In Progress' };
 
       (maintenanceService.changeStatus as jest.Mock).mockResolvedValue(updatedMaintenance);
@@ -220,13 +224,13 @@ describe('Maintenance Controller', () => {
 
   describe('deleteMaintenance', () => {
     it('should soft delete maintenance request', async () => {
-      mockReq.params.maintenanceId = 'maint-123';
+      mockReq.params.maintenanceId = MAINTENANCE_ID;
       (maintenanceService.deleteRequest as jest.Mock).mockResolvedValue(undefined);
 
       await deleteMaintenance(mockReq, mockRes, mockNext);
 
       expect(maintenanceService.deleteRequest).toHaveBeenCalledWith(
-        'maint-123',
+        MAINTENANCE_ID,
         mockCtx.organizationId,
         mockCtx.userId
       );
@@ -237,17 +241,17 @@ describe('Maintenance Controller', () => {
   describe('restoreMaintenance', () => {
     it('should restore deleted maintenance request', async () => {
       const restoredMaintenance = {
-        id: 'maint-123',
+        id: MAINTENANCE_ID,
         deletedAt: null,
       };
 
-      mockReq.params.maintenanceId = 'maint-123';
+      mockReq.params.maintenanceId = MAINTENANCE_ID;
       (maintenanceService.restoreRequest as jest.Mock).mockResolvedValue(restoredMaintenance);
 
       await restoreMaintenance(mockReq, mockRes, mockNext);
 
       expect(maintenanceService.restoreRequest).toHaveBeenCalledWith(
-        'maint-123',
+        MAINTENANCE_ID,
         mockCtx.organizationId,
         mockCtx.userId
       );

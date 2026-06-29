@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useEffect, useState, ReactNode, useCallback, useMemo } from 'react'
 import { User, Organization } from '@/types'
 import { authService, organizationService } from '@/shared/services'
 
@@ -35,29 +35,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        console.log('[AuthProvider] Initializing auth...')
         const tokens = authService.getTokens()
+        console.log(
+          '[AuthProvider] Tokens from storage:',
+          !!tokens?.accessToken,
+          !!tokens?.refreshToken
+        )
         if (tokens && tokens.accessToken && tokens.refreshToken) {
           setIsAuthenticated(true)
           try {
+            console.log('[AuthProvider] Fetching current user...')
             const currentUser = await authService.getCurrentUser()
+            console.log('[AuthProvider] Current user fetched:', currentUser?.email)
             setUser(currentUser)
 
             // Try to load previously selected organization or select first one
             const savedOrgId = organizationService.getCurrentOrganization()
+            console.log(
+              '[AuthProvider] Organizations count:',
+              currentUser.organizations.length,
+              'Saved org ID:',
+              savedOrgId
+            )
             if (
               savedOrgId &&
               currentUser.organizations.some(o => o.organizationId === savedOrgId)
             ) {
-              const org = await organizationService.get(savedOrgId)
-              setCurrentOrganizationState(org)
+              try {
+                console.log('[AuthProvider] Loading saved organization:', savedOrgId)
+                const org = await organizationService.get(savedOrgId)
+                console.log('[AuthProvider] Organization loaded:', org.name)
+                setCurrentOrganizationState(org)
+              } catch (orgError) {
+                console.error('[AuthProvider] Failed to load saved organization:', orgError)
+              }
             } else if (currentUser.organizations.length > 0) {
               // Select first organization
-              const org = await organizationService.get(currentUser.organizations[0].organizationId)
-              organizationService.setCurrentOrganization(org.id)
-              setCurrentOrganizationState(org)
+              try {
+                console.log(
+                  '[AuthProvider] Loading first organization:',
+                  currentUser.organizations[0].organizationId
+                )
+                const org = await organizationService.get(
+                  currentUser.organizations[0].organizationId
+                )
+                console.log('[AuthProvider] First organization loaded:', org.name)
+                organizationService.setCurrentOrganization(org.id)
+                setCurrentOrganizationState(org)
+              } catch (orgError) {
+                console.error('[AuthProvider] Failed to load first organization:', orgError)
+              }
             }
           } catch (userError) {
-            console.error('Failed to fetch current user:', userError)
+            console.error('[AuthProvider] Failed to fetch current user:', userError)
             // If we can't fetch the user, clear auth
             authService.clearSession()
             setIsAuthenticated(false)
@@ -65,17 +96,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setCurrentOrganizationState(null)
           }
         } else {
+          console.log('[AuthProvider] No tokens found, skipping auth initialization')
           setIsAuthenticated(false)
           setUser(null)
           setCurrentOrganizationState(null)
         }
       } catch (error) {
-        console.error('Failed to initialize auth:', error)
+        console.error('[AuthProvider] Failed to initialize auth:', error)
         authService.clearSession()
         setIsAuthenticated(false)
         setUser(null)
         setCurrentOrganizationState(null)
       } finally {
+        console.log('[AuthProvider] Auth initialization complete')
         setIsLoading(false)
       }
     }
@@ -83,43 +116,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth()
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
+      console.log('[AuthProvider] Login attempt for:', email)
       const response = await authService.login({ email, password })
+      console.log('[AuthProvider] Login successful for:', email)
       setUser(response.user)
       setIsAuthenticated(true)
 
       // Set first organization if available
       if (response.user.organizations.length > 0) {
-        const org = await organizationService.get(response.user.organizations[0].organizationId)
-        organizationService.setCurrentOrganization(org.id)
-        setCurrentOrganizationState(org)
+        try {
+          console.log(
+            '[AuthProvider] Loading organization after login:',
+            response.user.organizations[0].organizationId
+          )
+          const org = await organizationService.get(response.user.organizations[0].organizationId)
+          console.log('[AuthProvider] Organization loaded after login:', org.name)
+          organizationService.setCurrentOrganization(org.id)
+          setCurrentOrganizationState(org)
+        } catch (orgError) {
+          console.error('[AuthProvider] Failed to fetch organization after login:', orgError)
+          // Don't fail login if org fails - just skip setting org
+          // User will still be authenticated and can navigate
+        }
       }
     } catch (error) {
-      console.error('Login failed:', error)
+      console.error('[AuthProvider] Login failed:', error)
       throw error
     }
-  }
+  }, [])
 
-  const register = async (email: string, password: string, firstName: string, lastName: string) => {
-    try {
-      const response = await authService.register({ email, password, firstName, lastName })
-      setUser(response.user)
-      setIsAuthenticated(true)
+  const register = useCallback(
+    async (email: string, password: string, firstName: string, lastName: string) => {
+      try {
+        const response = await authService.register({ email, password, firstName, lastName })
+        setUser(response.user)
+        setIsAuthenticated(true)
 
-      // Set first organization if available
-      if (response.user.organizations.length > 0) {
-        const org = await organizationService.get(response.user.organizations[0].organizationId)
-        organizationService.setCurrentOrganization(org.id)
-        setCurrentOrganizationState(org)
+        // Set first organization if available
+        if (response.user.organizations.length > 0) {
+          const org = await organizationService.get(response.user.organizations[0].organizationId)
+          organizationService.setCurrentOrganization(org.id)
+          setCurrentOrganizationState(org)
+        }
+      } catch (error) {
+        console.error('Registration failed:', error)
+        throw error
       }
-    } catch (error) {
-      console.error('Registration failed:', error)
-      throw error
-    }
-  }
+    },
+    []
+  )
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await authService.logout()
       setUser(null)
@@ -131,9 +180,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(false)
       setCurrentOrganizationState(null)
     }
-  }
+  }, [])
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     try {
       await authService.refresh()
       const currentUser = await authService.getCurrentUser()
@@ -147,24 +196,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setCurrentOrganizationState(null)
       throw error
     }
-  }
+  }, [])
 
-  const setCurrentOrganization = (organization: Organization) => {
+  const setCurrentOrganization = useCallback((organization: Organization) => {
     organizationService.setCurrentOrganization(organization.id)
     setCurrentOrganizationState(organization)
-  }
+  }, [])
 
-  const value: AuthContextType = {
-    user,
-    currentOrganization,
-    isLoading,
-    isAuthenticated,
-    login,
-    register,
-    logout,
-    refresh,
-    setCurrentOrganization,
-  }
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      currentOrganization,
+      isLoading,
+      isAuthenticated,
+      login,
+      register,
+      logout,
+      refresh,
+      setCurrentOrganization,
+    }),
+    [
+      user,
+      currentOrganization,
+      isLoading,
+      isAuthenticated,
+      login,
+      register,
+      logout,
+      refresh,
+      setCurrentOrganization,
+    ]
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

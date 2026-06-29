@@ -2,6 +2,7 @@ process.env.NODE_ENV = 'test';
 import request from 'supertest';
 import app from '../../app';
 import prisma from '../../config/prisma';
+import { getAccessToken, getOrganizationId } from '../helpers/auth.helpers';
 
 describe('Tenant Domain E2E Tests', () => {
   let authToken: string;
@@ -23,8 +24,8 @@ describe('Tenant Domain E2E Tests', () => {
       });
 
     userId = registerRes.body.data.user.id;
-    organizationId = registerRes.body.data.organization.id;
-    authToken = registerRes.body.data.token;
+    organizationId = getOrganizationId(registerRes.body);
+    authToken = getAccessToken(registerRes.body);
 
     // Create property
     const propertyRes = await request(app)
@@ -425,8 +426,8 @@ describe('Tenant Domain E2E Tests', () => {
           organizationName: 'Other Org',
         });
 
-      otherToken = registerRes.body.data.token;
-      otherOrgId = registerRes.body.data.organization.id;
+      otherToken = getAccessToken(registerRes.body);
+      otherOrgId = getOrganizationId(registerRes.body);
 
       // Create tenant in other organization
       const tenantRes = await request(app)
