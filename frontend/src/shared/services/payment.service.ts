@@ -1,4 +1,5 @@
 import { apiClient } from './api-client'
+import { PaginatedResponse } from '@/types'
 
 export interface Payment {
   id: string
@@ -32,11 +33,7 @@ export interface PaymentStatistics {
   paidCount: number
 }
 
-export interface PaymentListResult {
-  data: Payment[]
-  total: number
-  pages: number
-}
+export interface PaymentListResult extends PaginatedResponse<Payment> {}
 
 export interface ListPaymentsParams {
   page?: number
@@ -56,7 +53,7 @@ export interface ListPaymentsParams {
 }
 
 export const paymentService = {
-  listPayments: async (params: ListPaymentsParams = {}): Promise<PaymentListResult> => {
+  listPayments: async (params: ListPaymentsParams = {}): Promise<PaginatedResponse<Payment>> => {
     const searchParams = new URLSearchParams()
 
     if (params.page) searchParams.append('page', params.page.toString())
@@ -74,7 +71,9 @@ export const paymentService = {
     if (params.sortBy) searchParams.append('sortBy', params.sortBy)
     if (params.sortOrder) searchParams.append('sortOrder', params.sortOrder)
 
-    const response = await apiClient.get<PaymentListResult>(`/payments?${searchParams.toString()}`)
+    const response = await apiClient.get<PaginatedResponse<Payment>>(
+      `/payments?${searchParams.toString()}`
+    )
     return response.data
   },
 

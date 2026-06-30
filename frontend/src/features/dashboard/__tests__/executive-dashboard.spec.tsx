@@ -105,6 +105,7 @@ vi.mock('../hooks/use-dashboard', () => ({
         openMaintenanceRequests: [],
         recentTenants: [],
       },
+      failedRequests: [],
     },
     isLoading: false,
     isFetching: false,

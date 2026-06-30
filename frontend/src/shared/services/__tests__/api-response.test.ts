@@ -91,6 +91,32 @@ describe('unwrapApiResponse', () => {
     })
   })
 
+  it('normalizes flat paginated payment list responses', () => {
+    const result = unwrapApiResponse<{
+      data: Array<{ id: string }>
+      total: number
+      page: number
+      limit: number
+      totalPages: number
+    }>({
+      success: true,
+      message: 'Payments retrieved successfully',
+      data: {
+        data: [{ id: 'payment-1' }],
+        total: 1,
+        pages: 1,
+      },
+    })
+
+    expect(result).toEqual({
+      data: [{ id: 'payment-1' }],
+      total: 1,
+      page: 1,
+      limit: 1,
+      totalPages: 1,
+    })
+  })
+
   it('returns non-envelope bodies unchanged', () => {
     const body = { hello: 'world' }
     expect(unwrapApiResponse(body)).toBe(body)

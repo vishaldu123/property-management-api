@@ -32,6 +32,20 @@ function isNestedPaginatedPayload<T>(value: unknown): value is NestedPaginatedPa
   )
 }
 
+function isFlatPaginatedPayload<T>(value: unknown): value is {
+  data: T[]
+  total: number
+  pages?: number
+  page?: number
+  limit?: number
+} {
+  if (!isRecord(value) || !Array.isArray(value.data) || typeof value.total !== 'number') {
+    return false
+  }
+
+  return !isRecord(value.pagination)
+}
+
 /**
  * Unwraps the backend API envelope into the payload consumed by frontend services.
  */
@@ -53,6 +67,17 @@ export function unwrapApiResponse<T>(body: unknown): T {
       limit: data.pagination.limit,
       total: data.pagination.total,
       totalPages: data.pagination.totalPages ?? data.pagination.pages,
+    }) as T
+  }
+
+  if (isFlatPaginatedPayload(data)) {
+    const limit = (data.limit ?? data.data.length) || 10
+    const page = data.page ?? 1
+    return toPaginatedResult(data.data, {
+      page,
+      limit,
+      total: data.total,
+      totalPages: data.pages ?? Math.ceil(data.total / Math.max(limit, 1)),
     }) as T
   }
 

@@ -165,6 +165,7 @@ describe('dashboard.utils', () => {
           openMaintenanceRequests: [],
           recentTenants: [],
         },
+        failedRequests: [],
       })
     ).toBe(true)
   })

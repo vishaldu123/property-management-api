@@ -29,6 +29,7 @@ import {
   TenantFormPage,
 } from '@/features'
 import { ProtectedRoute } from './protected-route'
+import { AppLayout } from './app-layout'
 import { ErrorBoundary } from '../error-boundary'
 
 const router = createBrowserRouter([
@@ -70,212 +71,35 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: '/dashboard',
     element: (
       <ErrorBoundary>
         <ProtectedRoute>
-          <DashboardPage />
+          <AppLayout />
         </ProtectedRoute>
       </ErrorBoundary>
     ),
-  },
-  {
-    path: '/profile',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <ProfilePage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/settings',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <SettingsPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  // Property Routes
-  {
-    path: '/properties',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <PropertyListPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/properties/create',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <PropertyFormPage mode="create" />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/properties/:id',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <PropertyDetailPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/properties/:id/edit',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <PropertyFormPage mode="edit" />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  // Unit Routes
-  {
-    path: '/units',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <UnitListPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/units/create',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <UnitFormPage mode="create" />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/units/:id',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <UnitDetailPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/units/:id/edit',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <UnitFormPage mode="edit" />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  // Tenant Routes
-  {
-    path: '/tenants',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <TenantListPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/tenants/create',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <TenantFormPage mode="create" />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/tenants/:id',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <TenantDetailPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  {
-    path: '/tenants/:id/edit',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <TenantFormPage mode="edit" />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  // Organization Routes
-  {
-    path: '/organization/members',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <OrganizationMembersPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  // RBAC Routes
-  {
-    path: '/rbac',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <RbacPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  // Leases Routes
-  {
-    path: '/leases',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <LeasesPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  // Payments Routes
-  {
-    path: '/payments',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <PaymentsPage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
-  },
-  // Maintenance Routes
-  {
-    path: '/maintenance',
-    element: (
-      <ErrorBoundary>
-        <ProtectedRoute>
-          <MaintenancePage />
-        </ProtectedRoute>
-      </ErrorBoundary>
-    ),
+    children: [
+      { path: '/dashboard', element: <DashboardPage /> },
+      { path: '/profile', element: <ProfilePage /> },
+      { path: '/settings', element: <SettingsPage /> },
+      { path: '/properties', element: <PropertyListPage /> },
+      { path: '/properties/create', element: <PropertyFormPage mode="create" /> },
+      { path: '/properties/:id', element: <PropertyDetailPage /> },
+      { path: '/properties/:id/edit', element: <PropertyFormPage mode="edit" /> },
+      { path: '/units', element: <UnitListPage /> },
+      { path: '/units/create', element: <UnitFormPage mode="create" /> },
+      { path: '/units/:id', element: <UnitDetailPage /> },
+      { path: '/units/:id/edit', element: <UnitFormPage mode="edit" /> },
+      { path: '/tenants', element: <TenantListPage /> },
+      { path: '/tenants/create', element: <TenantFormPage mode="create" /> },
+      { path: '/tenants/:id', element: <TenantDetailPage /> },
+      { path: '/tenants/:id/edit', element: <TenantFormPage mode="edit" /> },
+      { path: '/organization/members', element: <OrganizationMembersPage /> },
+      { path: '/rbac', element: <RbacPage /> },
+      { path: '/leases', element: <LeasesPage /> },
+      { path: '/payments', element: <PaymentsPage /> },
+      { path: '/maintenance', element: <MaintenancePage /> },
+    ],
   },
   {
     path: '/forbidden',

@@ -70,11 +70,16 @@ export function buildKpis(input: {
   const { propertyStats, unitStats, tenantStats, leaseStats, paymentStats, maintenanceStats } =
     input
 
-  const occupied = unitStats.byStatus.occupied ?? 0
-  const vacant =
-    (unitStats.byStatus.available ?? 0) +
-    (unitStats.byStatus.reserved ?? 0) +
-    (unitStats.byStatus.inactive ?? 0)
+  const byStatus = unitStats.byStatus ?? {
+    available: 0,
+    occupied: 0,
+    reserved: 0,
+    underMaintenance: 0,
+    inactive: 0,
+  }
+
+  const occupied = byStatus.occupied ?? 0
+  const vacant = (byStatus.available ?? 0) + (byStatus.reserved ?? 0) + (byStatus.inactive ?? 0)
 
   return {
     totalProperties: propertyStats.total ?? 0,
@@ -93,7 +98,14 @@ export function buildKpis(input: {
 }
 
 export function buildOccupancyChart(unitStats: UnitStatsApi): ChartDataPoint[] {
-  const occupied = unitStats.byStatus.occupied ?? 0
+  const byStatus = unitStats.byStatus ?? {
+    available: 0,
+    occupied: 0,
+    reserved: 0,
+    underMaintenance: 0,
+    inactive: 0,
+  }
+  const occupied = byStatus.occupied ?? 0
   const vacant = Math.max((unitStats.total ?? 0) - occupied, 0)
 
   return [
