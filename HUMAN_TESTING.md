@@ -1,4 +1,4 @@
-# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint 9 (Payment) + Sprint 10 (Maintenance)
+# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint UI-7 + Sprint 9 (Payment) + Sprint 10 (Maintenance)
 
 This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC, Sprint 9 - Payment Domain, Sprint 10 - Maintenance Domain) and Frontend (Sprint UI-1 - React Foundation, Sprint UI-3 - Property, Unit & Tenant Management). Each test includes request examples, expected responses, and validation notes.
 
@@ -148,6 +148,7 @@ The frontend will be available at `http://localhost:5173`
 - **Validation:**
   - ✓ Occupancy pie chart shows occupied vs vacant units
   - ✓ Monthly revenue bar chart shows last 6 months of paid revenue
+  - ✓ Clicking the monthly revenue chart navigates to `/payments?status=Paid`
   - ✓ Payment status donut chart shows paid, pending, overdue, refunded
   - ✓ Maintenance status horizontal bar chart shows workflow counts
   - ✓ Charts include screen-reader summaries (`aria-label`)
@@ -176,6 +177,54 @@ The frontend will be available at `http://localhost:5173`
   - ✓ Logout button is present
   - ✓ Links highlight current page
   - ✓ Sidebar is responsive (collapses on mobile)
+
+### Section 0.7: Payment Workspace (Sprint UI-7)
+
+#### Test 0.7.1: Payment List
+- **URL:** `http://localhost:5173/payments`
+- **Prerequisites:** Logged in with `payment:view` permission
+- **Validation:**
+  - ✓ Summary cards show total collected, outstanding, pending, and overdue counts
+  - ✓ Payment table loads with server-side pagination
+  - ✓ Search filters by payment number and reference (API-supported fields)
+  - ✓ Filters work for status, method, type, property, unit, tenant, lease, and date range
+  - ✓ Sorting changes payment order
+  - ✓ Receipt number and amount range filters apply to visible results
+  - ✓ Bulk select enables export, print receipts, mark paid, and delete (RBAC-gated)
+  - ✓ Empty and error states display correctly
+
+#### Test 0.7.2: Record Payment
+- **URL:** `http://localhost:5173/payments/create`
+- **Prerequisites:** `payment:create` permission and at least one lease
+- **Steps:**
+  1. Select a lease (property, unit, tenant auto-display)
+  2. Enter amount, dates, fees, and notes
+  3. Submit form
+- **Validation:**
+  - ✓ Net amount and outstanding balance calculate automatically
+  - ✓ Payment is created and user is redirected to detail page
+  - ✓ Toast confirms success
+
+#### Test 0.7.3: Payment Details & Workflows
+- **URL:** `http://localhost:5173/payments/:id`
+- **Validation:**
+  - ✓ Details tab shows payment, tenant, lease, property, unit, amounts, and metadata
+  - ✓ Balance summary shows total due, paid, and remaining
+  - ✓ Timeline shows created, updated, partial, paid, refund, and receipt events
+  - ✓ Payment history lists other payments for the same lease
+  - ✓ Mark Paid dialog validates amount
+  - ✓ Partial payment dialog records incremental payments
+  - ✓ Refund dialog requires amount and reason
+  - ✓ Generate Receipt creates receipt number; preview and print work
+  - ✓ Edit and delete actions respect RBAC and payment status rules
+
+#### Test 0.7.4: Dashboard Payment Navigation
+- **Steps:**
+  1. From dashboard, click **Outstanding Payments** KPI
+  2. Return to dashboard, click **Monthly Revenue** chart
+- **Validation:**
+  - ✓ Outstanding KPI opens `/payments?outstanding=true`
+  - ✓ Revenue chart opens `/payments?status=Paid`
 
 #### Test 0.6.3: Profile Page
 - **URL:** `http://localhost:5173/profile` (when logged in)

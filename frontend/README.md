@@ -215,6 +215,17 @@ await authService.logout()
 - Responsive layout (desktop grid, tablet, mobile stacked)
 - Accessible charts with ARIA labels and keyboard-navigable KPI cards
 
+### ✅ Payment Workspace (Sprint UI-7)
+
+- Payment list with server-side pagination, search, filters, sorting, and bulk actions
+- Payment detail page with balance summary, timeline, lease payment history, and receipt preview
+- Record / edit payment forms with lease selector and automatic net/outstanding calculations
+- Mark paid, partial payment, and refund workflows with confirmation dialogs
+- Printable receipt view (lazy-loaded) with company branding and QR placeholder
+- RBAC-gated create, edit, delete, refund, mark paid, export, and receipt actions
+- React Query hooks with caching, prefetch on row hover, and query invalidation
+- Dashboard integration: Outstanding Payments KPI → filtered list; Revenue chart → paid payments
+
 ### ✅ Pages
 
 - Home page (public landing)
@@ -240,7 +251,8 @@ await authService.logout()
 
 - Vitest configuration
 - React Testing Library setup
-- Component test examples
+- Component test examples (property, tenant, unit, payment)
+- Payment workspace tests: utils (9), list (3), detail integration (1)
 - Utility function tests
 - Coverage reporting
 
@@ -326,7 +338,7 @@ npm run test:coverage
 - ✅ Organization Team Members page (`/organization/members`)
 - ✅ Roles & Permissions page (`/rbac`)
 - ✅ Leases management page (`/leases`)
-- ✅ Payments tracking page (`/payments`)
+- ✅ Payments workspace (`/payments`, `/payments/create`, `/payments/:id`, `/payments/:id/edit`)
 - ✅ Maintenance requests page (`/maintenance`)
 - ✅ Enhanced TopNav with user profile dropdown
 - ✅ Improved Sidebar with complete navigation
