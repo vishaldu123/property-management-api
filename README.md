@@ -26,10 +26,11 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - ✅ Sprint UI-4: Enterprise Admin Application (Authentication Fix, Admin Layout, Team Management, RBAC, Resources Dashboard)
 - ✅ Sprint QA-2: API Contract Alignment (Frontend `{ success, message, data }` envelope unwrapping, auth flow fixes)
 - ✅ Sprint UI-5: Enterprise Executive Dashboard (KPI cards, Recharts analytics, activity feed, widgets, RBAC quick actions)
+- ✅ Sprint UI-7: Enterprise Payment Workspace (payment list, details, CRUD, partial payments, refunds, receipts, RBAC)
 
 **Upcoming:**
 - Sprint UI-6: Settings & Profile Management UI
-- Sprint UI-7: Reports & Analytics UI
+- Sprint UI-8: Reports & Analytics UI
 
 ## Key Features
 

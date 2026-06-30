@@ -32,8 +32,16 @@ export {
   paymentService,
   type Payment,
   type PaymentStatistics,
-  type PaymentListResult,
   type ListPaymentsParams,
+  type CreatePaymentRequest,
+  type UpdatePaymentRequest,
+  type MarkAsPaidRequest,
+  type RefundPaymentRequest,
+  type GenerateReceiptResponse,
+  type LeasePaymentStatistics,
+  type PaymentStatus,
+  type PaymentMethod,
+  type PaymentType,
 } from './payment.service'
 export {
   maintenanceService,

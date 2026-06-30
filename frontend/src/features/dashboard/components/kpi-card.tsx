@@ -78,7 +78,7 @@ export const KPI_CARDS: KpiCardConfig[] = [
     key: 'outstandingPayments',
     label: 'Outstanding Payments',
     description: 'Unpaid balance',
-    href: '/payments',
+    href: '/payments?outstanding=true',
     permission: 'payment:view',
     format: 'currency',
     icon: BanknotesIcon,
