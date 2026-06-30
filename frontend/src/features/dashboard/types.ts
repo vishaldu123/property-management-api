@@ -59,6 +59,7 @@ export interface DashboardData {
   charts: DashboardCharts
   activity: ActivityItem[]
   widgets: DashboardWidgets
+  failedRequests: string[]
 }
 
 export const DASHBOARD_REFRESH_INTERVAL_MS = 60_000
