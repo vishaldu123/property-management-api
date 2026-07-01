@@ -1,4 +1,4 @@
-# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint UI-7 + Sprint 9 (Payment) + Sprint 10 (Maintenance)
+# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint UI-7 + Sprint UI-8 + Sprint 9 (Payment) + Sprint 10 (Maintenance)
 
 This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC, Sprint 9 - Payment Domain, Sprint 10 - Maintenance Domain) and Frontend (Sprint UI-1 - React Foundation, Sprint UI-3 - Property, Unit & Tenant Management). Each test includes request examples, expected responses, and validation notes.
 
@@ -151,6 +151,7 @@ The frontend will be available at `http://localhost:5173`
   - ✓ Clicking the monthly revenue chart navigates to `/payments?status=Paid`
   - ✓ Payment status donut chart shows paid, pending, overdue, refunded
   - ✓ Maintenance status horizontal bar chart shows workflow counts
+  - ✓ Clicking a maintenance status bar navigates to filtered `/maintenance?status=...`
   - ✓ Charts include screen-reader summaries (`aria-label`)
 
 #### Test 0.6.1b: Dashboard Activity & Widgets
@@ -225,6 +226,46 @@ The frontend will be available at `http://localhost:5173`
 - **Validation:**
   - ✓ Outstanding KPI opens `/payments?outstanding=true`
   - ✓ Revenue chart opens `/payments?status=Paid`
+
+### Section 0.8: Maintenance Workspace (Sprint UI-8)
+
+#### Test 0.8.1: Maintenance List
+- **URL:** `http://localhost:5173/maintenance`
+- **Prerequisites:** Logged in with `maintenance:view` permission
+- **Validation:**
+  - ✓ Summary cards show open, in progress, completed, and total actual cost
+  - ✓ Table loads with server-side pagination
+  - ✓ Search filters by request number and title
+  - ✓ Filters work for status, priority, category, technician, property, unit, tenant, and date range
+  - ✓ Vendor and tenant filters apply to visible results
+  - ✓ Bulk assign, close, and export actions are RBAC-gated
+  - ✓ Empty and error states display correctly
+
+#### Test 0.8.2: Create Maintenance Request
+- **URL:** `http://localhost:5173/maintenance/create`
+- **Prerequisites:** `maintenance:create` permission
+- **Validation:**
+  - ✓ Form validates required fields
+  - ✓ Property, unit, and tenant selectors work
+  - ✓ Request is created and user is redirected to detail page
+
+#### Test 0.8.3: Maintenance Details & Workflow
+- **URL:** `http://localhost:5173/maintenance/:id`
+- **Validation:**
+  - ✓ Details show request metadata, costs, dates, and audit fields
+  - ✓ Cost tracking card shows estimated, actual, and variance
+  - ✓ Timeline shows lifecycle events
+  - ✓ Assign technician dialog lists org members
+  - ✓ Status buttons only show valid transitions
+  - ✓ Delete and restore work with confirmation
+
+#### Test 0.8.4: Dashboard Maintenance Navigation
+- **Steps:**
+  1. Click **Open Maintenance** KPI on dashboard
+  2. Click a bar on the **Maintenance Status** chart
+- **Validation:**
+  - ✓ Open Maintenance KPI opens `/maintenance?open=true`
+  - ✓ Chart bar opens `/maintenance?status=<status>`
 
 #### Test 0.6.3: Profile Page
 - **URL:** `http://localhost:5173/profile` (when logged in)

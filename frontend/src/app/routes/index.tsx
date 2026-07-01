@@ -12,7 +12,6 @@ import {
   OrganizationMembersPage,
   RbacPage,
   LeasesPage,
-  MaintenancePage,
   NotFoundPage,
   ForbiddenPage,
 } from '@/pages'
@@ -29,6 +28,9 @@ import {
   PaymentListPage,
   PaymentDetailPage,
   PaymentFormPage,
+  MaintenanceListPage,
+  MaintenanceDetailPage,
+  MaintenanceFormPage,
 } from '@/features'
 import { ProtectedRoute } from './protected-route'
 import { AppLayout } from './app-layout'
@@ -103,7 +105,10 @@ const router = createBrowserRouter([
       { path: '/payments/create', element: <PaymentFormPage mode="create" /> },
       { path: '/payments/:id', element: <PaymentDetailPage /> },
       { path: '/payments/:id/edit', element: <PaymentFormPage mode="edit" /> },
-      { path: '/maintenance', element: <MaintenancePage /> },
+      { path: '/maintenance', element: <MaintenanceListPage /> },
+      { path: '/maintenance/create', element: <MaintenanceFormPage mode="create" /> },
+      { path: '/maintenance/:id', element: <MaintenanceDetailPage /> },
+      { path: '/maintenance/:id/edit', element: <MaintenanceFormPage mode="edit" /> },
     ],
   },
   {

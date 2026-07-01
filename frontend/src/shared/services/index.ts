@@ -48,4 +48,9 @@ export {
   type MaintenanceRequest,
   type MaintenanceStatistics,
   type ListMaintenanceParams,
+  type CreateMaintenanceRequest,
+  type UpdateMaintenanceRequest,
+  type MaintenanceStatus,
+  type MaintenancePriority,
+  type MaintenanceCategory,
 } from './maintenance.service'

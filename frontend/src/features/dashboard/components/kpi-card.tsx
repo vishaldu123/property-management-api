@@ -87,7 +87,7 @@ export const KPI_CARDS: KpiCardConfig[] = [
     key: 'openMaintenanceRequests',
     label: 'Open Maintenance',
     description: 'Open service requests',
-    href: '/maintenance',
+    href: '/maintenance?open=true',
     permission: 'maintenance:view',
     icon: WrenchScrewdriverIcon,
   },

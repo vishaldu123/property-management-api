@@ -226,6 +226,17 @@ await authService.logout()
 - React Query hooks with caching, prefetch on row hover, and query invalidation
 - Dashboard integration: Outstanding Payments KPI → filtered list; Revenue chart → paid payments
 
+### ✅ Maintenance Workspace (Sprint UI-8)
+
+- Maintenance list with server-side pagination, search, filters, sorting, and bulk actions
+- Request detail page with cost tracking, timeline, and audit information
+- Create / edit forms with property, unit, tenant selectors
+- Technician assignment dialog with org member lookup
+- Full status workflow (assign, schedule, start, pause, complete, cancel, reopen) with transition validation
+- RBAC-gated create, edit, assign, delete, restore, and status actions
+- React Query hooks with caching and prefetch on row hover
+- Dashboard integration: Open Maintenance KPI → open requests; Status chart → filtered list
+
 ### ✅ Pages
 
 - Home page (public landing)
@@ -251,8 +262,9 @@ await authService.logout()
 
 - Vitest configuration
 - React Testing Library setup
-- Component test examples (property, tenant, unit, payment)
+- Component test examples (property, tenant, unit, payment, maintenance)
 - Payment workspace tests: utils (9), list (3), detail integration (1)
+- Maintenance workspace tests: utils (7), list (3), detail integration (1)
 - Utility function tests
 - Coverage reporting
 
@@ -339,6 +351,7 @@ npm run test:coverage
 - ✅ Roles & Permissions page (`/rbac`)
 - ✅ Leases management page (`/leases`)
 - ✅ Payments workspace (`/payments`, `/payments/create`, `/payments/:id`, `/payments/:id/edit`)
+- ✅ Maintenance workspace (`/maintenance`, `/maintenance/create`, `/maintenance/:id`, `/maintenance/:id/edit`)
 - ✅ Maintenance requests page (`/maintenance`)
 - ✅ Enhanced TopNav with user profile dropdown
 - ✅ Improved Sidebar with complete navigation
