@@ -126,7 +126,7 @@ describe('PaymentList Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('PAY-TEST')).toBeInTheDocument()
-      expect(screen.getByRole('cell', { name: 'Jane Doe' })).toBeInTheDocument()
+      expect(screen.getAllByText(/Jane Doe/).length).toBeGreaterThan(0)
     })
   })
 

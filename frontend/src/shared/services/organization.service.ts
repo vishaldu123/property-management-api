@@ -35,4 +35,33 @@ export const organizationService = {
   setCurrentOrganization: (organizationId: string): void => {
     localStorage.setItem('currentOrganizationId', organizationId)
   },
+
+  listMembers: async (
+    organizationId: string,
+    params: { page?: number; limit?: number; search?: string } = {}
+  ): Promise<
+    PaginatedResponse<{
+      id: string
+      userId: string
+      organizationId: string
+      role: string
+      user?: { id: string; name: string; email: string }
+    }>
+  > => {
+    const searchParams = new URLSearchParams()
+    if (params.page) searchParams.append('page', params.page.toString())
+    if (params.limit) searchParams.append('limit', params.limit.toString())
+    if (params.search) searchParams.append('search', params.search)
+
+    const response = await apiClient.get<
+      PaginatedResponse<{
+        id: string
+        userId: string
+        organizationId: string
+        role: string
+        user?: { id: string; name: string; email: string }
+      }>
+    >(`/organizations/${organizationId}/members?${searchParams.toString()}`)
+    return response.data
+  },
 }
