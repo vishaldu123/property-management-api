@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Input } from '@/shared/components'
 import { RoleGate } from '@/shared/components'
-import { useAuth } from '@/shared/hooks'
+import { useRbac } from '@/shared/hooks'
 import { AdminLayout, PlaceholderNotice } from './admin-layout'
 import type { AuditLogEntry } from '../types'
 
@@ -16,8 +16,8 @@ const PLACEHOLDER_LOGS: AuditLogEntry[] = [
 ]
 
 export const AuditLogPage: React.FC = () => {
-  const { user } = useAuth()
-  const userRoles = user?.roles?.map(r => r.role?.name).filter(Boolean) as string[]
+  const { getUserRoleIdentifiers } = useRbac()
+  const userRoles = getUserRoleIdentifiers()
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {

@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { propertyService } from '@/shared/services'
 import { toastService } from '@/shared/services'
+import { invalidateDashboard } from '@/features/dashboard'
 import { PropertyForm, PropertyFormData } from './property-form'
 import { Loading } from '@/shared/components/ui/loading'
 import { ErrorState } from '@/shared/components/ui/error-state'
@@ -13,6 +14,7 @@ interface PropertyFormPageProps {
 
 export const PropertyFormPage: React.FC<PropertyFormPageProps> = ({ mode }) => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { id } = useParams<{ id: string }>()
 
   const {
@@ -29,6 +31,7 @@ export const PropertyFormPage: React.FC<PropertyFormPageProps> = ({ mode }) => {
   const createMutation = useMutation({
     mutationFn: (data: PropertyFormData) => propertyService.createProperty(data),
     onSuccess: () => {
+      void invalidateDashboard(queryClient)
       toastService.success('Property created successfully')
       navigate('/properties')
     },
@@ -40,6 +43,7 @@ export const PropertyFormPage: React.FC<PropertyFormPageProps> = ({ mode }) => {
   const updateMutation = useMutation({
     mutationFn: (data: PropertyFormData) => propertyService.updateProperty(id!, data),
     onSuccess: () => {
+      void invalidateDashboard(queryClient)
       toastService.success('Property updated successfully')
       navigate(`/properties/${id}`)
     },

@@ -98,6 +98,7 @@ export interface Role {
   id: string
   organizationId: string
   name: string
+  key?: string
   description?: string
   permissions: Permission[]
   createdAt: string
@@ -108,6 +109,7 @@ export interface Permission {
   id: string
   organizationId: string
   name: string
+  key?: string
   description?: string
   createdAt: string
   updatedAt: string

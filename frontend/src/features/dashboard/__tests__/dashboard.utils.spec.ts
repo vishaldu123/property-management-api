@@ -7,6 +7,7 @@ import {
   buildMaintenanceStatusChart,
   buildActivityFeed,
   isDashboardEmpty,
+  shouldShowDashboardEmptyState,
   formatCurrency,
   formatRelativeTime,
   getActivityLabel,
@@ -168,6 +169,32 @@ describe('dashboard.utils', () => {
         failedRequests: [],
       })
     ).toBe(true)
+  })
+
+  it('shouldShowDashboardEmptyState is false when requests failed', () => {
+    expect(
+      shouldShowDashboardEmptyState({
+        kpis: {
+          totalProperties: 0,
+          totalUnits: 0,
+          occupiedUnits: 0,
+          vacantUnits: 0,
+          activeTenants: 0,
+          activeLeases: 0,
+          outstandingPayments: 0,
+          openMaintenanceRequests: 0,
+        },
+        charts: { occupancy: [], monthlyRevenue: [], paymentStatus: [], maintenanceStatus: [] },
+        activity: [],
+        widgets: {
+          upcomingLeaseExpirations: [],
+          recentPayments: [],
+          openMaintenanceRequests: [],
+          recentTenants: [],
+        },
+        failedRequests: ['property-stats'],
+      })
+    ).toBe(false)
   })
 
   it('formatCurrency formats USD values', () => {

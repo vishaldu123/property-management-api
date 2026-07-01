@@ -16,6 +16,7 @@ const tenant_routes_1 = __importDefault(require("./routes/tenant.routes"));
 const lease_routes_1 = __importDefault(require("./routes/lease.routes"));
 const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
 const maintenance_routes_1 = __importDefault(require("./routes/maintenance.routes"));
+const dev_tools_routes_1 = __importDefault(require("./routes/dev-tools.routes"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const helmet_middleware_1 = require("./middleware/helmet.middleware");
 const cors_middleware_1 = require("./middleware/cors.middleware");
@@ -74,6 +75,7 @@ apiV1Router.use('/tenants', tenant_routes_1.default);
 apiV1Router.use('/leases', lease_routes_1.default);
 apiV1Router.use('/payments', payment_routes_1.default);
 apiV1Router.use('/maintenance', maintenance_routes_1.default);
+apiV1Router.use('/dev', dev_tools_routes_1.default);
 // Mount versioned routes
 app.use('/api/v1', apiV1Router);
 // 404 handler

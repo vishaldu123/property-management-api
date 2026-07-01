@@ -2,6 +2,7 @@ import { permissionRepository } from '../repositories/permission.repository';
 import { roleRepository } from '../repositories/role.repository';
 import { userRoleRepository } from '../repositories/user-role.repository';
 import { organizationRepository } from '../repositories/organization.repository';
+import prisma from '../config/prisma';
 import { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError, ValidationError } from '../utils/errors';
 import logger from '../utils/logger';
 
@@ -491,6 +492,71 @@ export class RBACService {
   }
 
   // ===== SYSTEM ROLES SEEDING =====
+
+  /**
+   * Ensure an organization has RBAC roles and the user has an appropriate role assigned.
+   * Repairs legacy orgs created before RBAC bootstrap on registration.
+   */
+  async ensureOrganizationBootstrap(organizationId: string, userId: string): Promise<void> {
+    const roleCount = await roleRepository.countByOrganization(organizationId);
+    let ownerRoleId: string | undefined;
+
+    if (roleCount === 0) {
+      const seeded = await this.seedSystemRoles(organizationId, userId);
+      ownerRoleId = seeded.roles.get('organization_owner');
+    } else {
+      const ownerRole = await roleRepository.findByOrganizationAndKey(
+        organizationId,
+        'organization_owner'
+      );
+      ownerRoleId = ownerRole?.id;
+    }
+
+    const existingUserRoles = await userRoleRepository.getUserRoles(organizationId, userId);
+    if (existingUserRoles.length > 0) {
+      return;
+    }
+
+    const membership = await prisma.organizationUser.findFirst({
+      where: {
+        organizationId,
+        userId,
+        deletedAt: null,
+      },
+    });
+    let roleKey = 'staff';
+    if (membership?.role === 'OWNER' || membership?.isOwner) {
+      roleKey = 'organization_owner';
+    } else if (membership?.role === 'ADMIN') {
+      roleKey = 'organization_admin';
+    }
+
+    let roleId = roleKey === 'organization_owner' ? ownerRoleId : undefined;
+    if (!roleId) {
+      const role = await roleRepository.findByOrganizationAndKey(organizationId, roleKey);
+      roleId = role?.id;
+    }
+
+    if (!roleId) {
+      logger.warn('Unable to assign bootstrap role — role not found', {
+        organizationId,
+        userId,
+        roleKey,
+      });
+      return;
+    }
+
+    const hasDuplicate = await userRoleRepository.hasDuplicate(organizationId, userId, roleId);
+    if (!hasDuplicate) {
+      await userRoleRepository.assignRole({
+        organizationId,
+        userId,
+        roleId,
+        assignedBy: userId,
+      });
+      logger.info('Assigned bootstrap RBAC role to user', { organizationId, userId, roleKey });
+    }
+  }
 
   /**
    * Seed default system roles and permissions

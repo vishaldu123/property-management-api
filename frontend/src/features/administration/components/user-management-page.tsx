@@ -22,10 +22,10 @@ import {
 import { formatMemberName, getStatusBadgeVariant } from '../utils/administration.utils'
 
 export const UserManagementPage: React.FC = () => {
-  const { currentOrganization, user } = useAuth()
-  const { canManageMembers } = useRbac()
+  const { currentOrganization } = useAuth()
+  const { canManageMembers, getUserRoleIdentifiers } = useRbac()
   const orgId = currentOrganization?.id
-  const userRoles = user?.roles?.map(r => r.role?.name).filter(Boolean) as string[]
+  const userRoles = getUserRoleIdentifiers()
 
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')

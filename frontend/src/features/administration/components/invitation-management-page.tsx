@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@/shared/components'
 import { RoleGate } from '@/shared/components'
-import { useAuth } from '@/shared/hooks'
+import { useAuth, useRbac } from '@/shared/hooks'
 import { AdminLayout, PlaceholderNotice } from './admin-layout'
 import { useInviteMember } from '../hooks/use-administration'
 
 export const InvitationManagementPage: React.FC = () => {
-  const { currentOrganization, user } = useAuth()
+  const { currentOrganization } = useAuth()
+  const { getUserRoleIdentifiers } = useRbac()
   const orgId = currentOrganization?.id
-  const userRoles = user?.roles?.map(r => r.role?.name).filter(Boolean) as string[]
+  const userRoles = getUserRoleIdentifiers()
   const inviteMember = useInviteMember(orgId)
 
   const [email, setEmail] = useState('')

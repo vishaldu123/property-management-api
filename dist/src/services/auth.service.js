@@ -15,10 +15,94 @@ const user_repository_1 = require("../repositories/user.repository");
 const refresh_token_repository_1 = require("../repositories/refresh-token.repository");
 const password_reset_token_repository_1 = require("../repositories/password-reset-token.repository");
 const email_service_1 = require("./email.service");
+const rbac_service_1 = require("./rbac.service");
 const prisma_1 = __importDefault(require("../config/prisma"));
 const environment_1 = require("../config/environment");
 const logger_1 = __importDefault(require("../utils/logger"));
 const errors_1 = require("../utils/errors");
+function userRelationsInclude(organizationId) {
+    return {
+        userRoles: {
+            where: organizationId
+                ? { organizationId, deletedAt: null }
+                : { deletedAt: null },
+            include: {
+                role: {
+                    include: {
+                        permissions: {
+                            include: {
+                                permission: true,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        memberships: {
+            where: { deletedAt: null },
+            include: {
+                organization: true,
+            },
+        },
+    };
+}
+function transformAuthUser(user) {
+    return {
+        id: user.id,
+        email: user.email,
+        firstName: user.name.split(' ')[0],
+        lastName: user.name.split(' ').slice(1).join(' ') || '',
+        displayName: user.name,
+        avatar: undefined,
+        roles: user.userRoles.map(ur => ({
+            id: ur.id,
+            userId: ur.userId,
+            organizationId: ur.organizationId,
+            roleId: ur.roleId,
+            role: ur.role
+                ? {
+                    id: ur.role.id,
+                    organizationId: ur.role.organizationId,
+                    name: ur.role.name,
+                    key: ur.role.key,
+                    description: ur.role.description ?? undefined,
+                    permissions: (ur.role.permissions || []).map(rp => ({
+                        id: rp.permission.id,
+                        organizationId: rp.permission.organizationId,
+                        name: rp.permission.name,
+                        key: rp.permission.key,
+                        description: rp.permission.description ?? undefined,
+                        createdAt: rp.permission.createdAt.toISOString(),
+                        updatedAt: rp.permission.updatedAt.toISOString(),
+                    })),
+                    createdAt: ur.role.createdAt.toISOString(),
+                    updatedAt: ur.role.updatedAt.toISOString(),
+                }
+                : undefined,
+            createdAt: ur.createdAt.toISOString(),
+            updatedAt: ur.updatedAt.toISOString(),
+        })),
+        organizations: user.memberships.map(m => ({
+            id: m.id,
+            userId: m.userId,
+            organizationId: m.organizationId,
+            joinedAt: m.joinedAt.toISOString(),
+            organization: {
+                id: m.organization.id,
+                name: m.organization.name,
+                slug: m.organization.slug,
+                description: m.organization.description ?? undefined,
+                logo: m.organization.logo ?? undefined,
+                favicon: m.organization.favicon ?? undefined,
+                ownerId: m.organization.ownerId ?? m.organization.createdBy ?? '',
+                createdAt: m.organization.createdAt.toISOString(),
+                updatedAt: m.organization.updatedAt.toISOString(),
+            },
+        })),
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+    };
+}
 class AuthService {
     bcryptRounds = 10;
     jwtExpiry = '15m'; // Access token expiry
@@ -72,49 +156,15 @@ class AuthService {
             });
             const refreshToken = await this.generateAndStoreRefreshToken(result.user.id);
             logger_1.default.info('User registered successfully', { userId: result.user.id, organizationId: result.organization.id });
-            // Get full user data with roles and organizations
+            await rbac_service_1.rbacService.ensureOrganizationBootstrap(result.organization.id, result.user.id);
             const fullUser = await prisma_1.default.user.findUnique({
                 where: { id: result.user.id },
-                include: {
-                    userRoles: {
-                        include: {
-                            role: true,
-                        },
-                    },
-                    memberships: {
-                        include: {
-                            organization: true,
-                        },
-                    },
-                },
+                include: userRelationsInclude(result.organization.id),
             });
-            // Transform user data to match frontend User interface
-            const transformedUser = {
-                id: fullUser.id,
-                email: fullUser.email,
-                firstName: fullUser.name.split(' ')[0],
-                lastName: fullUser.name.split(' ').slice(1).join(' ') || '',
-                displayName: fullUser.name,
-                avatar: undefined,
-                roles: fullUser.userRoles.map((ur) => ({
-                    id: ur.id,
-                    userId: ur.userId,
-                    organizationId: ur.organizationId,
-                    roleId: ur.roleId,
-                    role: ur.role,
-                    createdAt: ur.createdAt.toISOString(),
-                    updatedAt: ur.updatedAt.toISOString(),
-                })),
-                organizations: fullUser.memberships.map((m) => ({
-                    id: m.id,
-                    userId: m.userId,
-                    organizationId: m.organizationId,
-                    joinedAt: m.joinedAt.toISOString(),
-                    organization: m.organization,
-                })),
-                createdAt: fullUser.createdAt.toISOString(),
-                updatedAt: fullUser.updatedAt.toISOString(),
-            };
+            if (!fullUser) {
+                throw new errors_1.NotFoundError('User not found');
+            }
+            const transformedUser = transformAuthUser(fullUser);
             return {
                 user: transformedUser,
                 accessToken,
@@ -163,39 +213,21 @@ class AuthService {
         }
         // Generate tokens
         const membership = user.memberships[0];
+        await rbac_service_1.rbacService.ensureOrganizationBootstrap(membership.organizationId, user.id);
+        const refreshedUser = await prisma_1.default.user.findUnique({
+            where: { id: user.id },
+            include: userRelationsInclude(membership.organizationId),
+        });
+        if (!refreshedUser) {
+            throw new errors_1.UnauthorizedError('Invalid credentials');
+        }
         const accessToken = this.generateAccessToken({
             userId: user.id,
             organizationId: membership.organizationId,
         });
         const refreshToken = await this.generateAndStoreRefreshToken(user.id);
         logger_1.default.info('User logged in successfully', { userId: user.id });
-        // Transform user data to match frontend User interface
-        const transformedUser = {
-            id: user.id,
-            email: user.email,
-            firstName: user.name.split(' ')[0],
-            lastName: user.name.split(' ').slice(1).join(' ') || '',
-            displayName: user.name,
-            avatar: undefined,
-            roles: user.userRoles.map((ur) => ({
-                id: ur.id,
-                userId: ur.userId,
-                organizationId: ur.organizationId,
-                roleId: ur.roleId,
-                role: ur.role,
-                createdAt: ur.createdAt.toISOString(),
-                updatedAt: ur.updatedAt.toISOString(),
-            })),
-            organizations: user.memberships.map((m) => ({
-                id: m.id,
-                userId: m.userId,
-                organizationId: m.organizationId,
-                joinedAt: m.joinedAt.toISOString(),
-                organization: m.organization,
-            })),
-            createdAt: user.createdAt.toISOString(),
-            updatedAt: user.updatedAt.toISOString(),
-        };
+        const transformedUser = transformAuthUser(refreshedUser);
         return {
             user: transformedUser,
             accessToken,
@@ -331,54 +363,17 @@ class AuthService {
     }
     async getCurrentUser(userId, organizationId) {
         logger_1.default.debug('Get current user', { userId });
+        await rbac_service_1.rbacService.ensureOrganizationBootstrap(organizationId, userId);
         const user = await prisma_1.default.user.findUnique({
             where: { id: userId },
-            include: {
-                userRoles: {
-                    include: {
-                        role: true,
-                    },
-                },
-                memberships: {
-                    include: {
-                        organization: true,
-                    },
-                },
-            },
+            include: userRelationsInclude(organizationId),
         });
         if (!user) {
             logger_1.default.warn('User not found', { userId });
             throw new errors_1.NotFoundError('User not found');
         }
-        // Transform user data to match frontend User interface
-        const transformedUser = {
-            id: user.id,
-            email: user.email,
-            firstName: user.name.split(' ')[0],
-            lastName: user.name.split(' ').slice(1).join(' ') || '',
-            displayName: user.name,
-            avatar: undefined,
-            roles: user.userRoles.map((ur) => ({
-                id: ur.id,
-                userId: ur.userId,
-                organizationId: ur.organizationId,
-                roleId: ur.roleId,
-                role: ur.role,
-                createdAt: ur.createdAt.toISOString(),
-                updatedAt: ur.updatedAt.toISOString(),
-            })),
-            organizations: user.memberships.map((m) => ({
-                id: m.id,
-                userId: m.userId,
-                organizationId: m.organizationId,
-                joinedAt: m.joinedAt.toISOString(),
-                organization: m.organization,
-            })),
-            createdAt: user.createdAt.toISOString(),
-            updatedAt: user.updatedAt.toISOString(),
-        };
         return {
-            user: transformedUser,
+            user: transformAuthUser(user),
         };
     }
     generateAccessToken(payload) {

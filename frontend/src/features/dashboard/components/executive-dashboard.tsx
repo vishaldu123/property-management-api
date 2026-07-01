@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { Alert, AlertDescription, Button, EmptyState } from '@/shared/components'
 import { useAuth, usePermissionGate } from '@/shared/hooks'
@@ -16,12 +17,17 @@ import {
   UpcomingLeaseExpirations,
 } from './widgets/dashboard-widgets'
 import { QuickActions } from './quick-actions'
-import { isDashboardEmpty } from '../utils/dashboard.utils'
+import { shouldShowDashboardEmptyState } from '../utils/dashboard.utils'
+import { isDevToolsEnabled } from '@/features/administration/utils/dev-tools.utils'
 
 export const ExecutiveDashboard: React.FC = () => {
+  const navigate = useNavigate()
   const { user, currentOrganization, isLoading: authLoading } = useAuth()
   const { canPerform } = usePermissionGate()
-  const { data, isLoading, isFetching, isError, refresh } = useDashboard(!authLoading)
+  const { data, isLoading, isFetching, isError, refresh } = useDashboard(
+    !authLoading,
+    currentOrganization?.id
+  )
 
   const hasPartialFailures = (data?.failedRequests.length ?? 0) > 0
 
@@ -46,7 +52,8 @@ export const ExecutiveDashboard: React.FC = () => {
     )
   }
 
-  const dashboardEmpty = data ? isDashboardEmpty(data) : false
+  const dashboardEmpty = data ? shouldShowDashboardEmptyState(data) : false
+  const showDevToolsLink = isDevToolsEnabled()
 
   return (
     <div className="space-y-6">
@@ -111,7 +118,29 @@ export const ExecutiveDashboard: React.FC = () => {
       {!isLoading && !isError && dashboardEmpty && (
         <EmptyState
           title="Your dashboard is empty"
-          description="Get started by creating your first property, unit, or tenant using the quick actions below."
+          description="Create your first property, unit, or tenant to start tracking occupancy, revenue, and activity."
+          action={
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {canPerform('property:create') && (
+                <Button onClick={() => navigate('/properties/create')}>Create property</Button>
+              )}
+              {canPerform('unit:create') && (
+                <Button variant="outline" onClick={() => navigate('/units/create')}>
+                  Create unit
+                </Button>
+              )}
+              {canPerform('tenant:create') && (
+                <Button variant="outline" onClick={() => navigate('/tenants/create')}>
+                  Create tenant
+                </Button>
+              )}
+              {showDevToolsLink && (
+                <Button variant="secondary" onClick={() => navigate('/admin/demo-data')}>
+                  Seed demo data
+                </Button>
+              )}
+            </div>
+          }
         />
       )}
 

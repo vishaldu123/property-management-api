@@ -279,6 +279,14 @@ export function isDashboardEmpty(data: DashboardData): boolean {
   )
 }
 
+/** Avoid a false empty state when some API calls failed and returned zero fallbacks. */
+export function shouldShowDashboardEmptyState(data: DashboardData): boolean {
+  if (data.failedRequests.length > 0) {
+    return false
+  }
+  return isDashboardEmpty(data)
+}
+
 export function formatCurrency(amount: number, currency = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

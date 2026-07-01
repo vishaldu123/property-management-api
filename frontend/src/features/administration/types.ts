@@ -75,3 +75,12 @@ export interface BrandingFormValues {
   accentColor: string
   theme: string
 }
+
+export interface DevToolsDataCounts {
+  properties: number
+  units: number
+  tenants: number
+  leases: number
+  payments: number
+  maintenanceRequests: number
+}

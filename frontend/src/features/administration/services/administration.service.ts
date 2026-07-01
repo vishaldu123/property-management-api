@@ -1,6 +1,11 @@
 import { apiClient } from '@/shared/services/api-client'
 import { PaginatedResponse } from '@/types'
-import type { ListMembersParams, OrganizationMember, OrganizationInvitation } from '../types'
+import type {
+  ListMembersParams,
+  OrganizationMember,
+  OrganizationInvitation,
+  DevToolsDataCounts,
+} from '../types'
 
 export const membershipService = {
   listMembers: async (
@@ -101,5 +106,22 @@ export const healthService = {
     }
     const json = (await response.json()) as { data?: HealthStatus } & HealthStatus
     return json.data ?? json
+  },
+}
+
+export const devToolsService = {
+  getDataSummary: async (): Promise<DevToolsDataCounts> => {
+    const response = await apiClient.get<DevToolsDataCounts>('/dev/data-summary')
+    return response.data
+  },
+
+  seedDemoData: async (force = false): Promise<DevToolsDataCounts> => {
+    const response = await apiClient.post<DevToolsDataCounts>('/dev/seed', { force })
+    return response.data
+  },
+
+  resetData: async (): Promise<DevToolsDataCounts> => {
+    const response = await apiClient.post<DevToolsDataCounts>('/dev/reset', {})
+    return response.data
   },
 }

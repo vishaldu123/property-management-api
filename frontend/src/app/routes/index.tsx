@@ -84,6 +84,7 @@ const NotificationPreferencesPage = named(() => import('@/features'), 'Notificat
 const SessionManagementPage = named(() => import('@/features'), 'SessionManagementPage')
 const AuditLogPage = named(() => import('@/features'), 'AuditLogPage')
 const AboutPage = named(() => import('@/features'), 'AboutPage')
+const DemoDataPage = named(() => import('@/features'), 'DemoDataPage')
 
 const RouteFallback: React.FC = () => (
   <div className="flex items-center justify-center h-screen" role="status" aria-live="polite">
@@ -178,6 +179,7 @@ const router = createBrowserRouter([
       { path: '/admin/appearance', element: suspense(<AppearanceSettingsPage />) },
       { path: '/admin/notifications', element: suspense(<NotificationPreferencesPage />) },
       { path: '/admin/audit', element: suspense(<AuditLogPage />) },
+      { path: '/admin/demo-data', element: suspense(<DemoDataPage />) },
       { path: '/admin/about', element: suspense(<AboutPage />) },
     ],
   },

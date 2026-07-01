@@ -1,5 +1,6 @@
 import { useAuth } from './use-auth'
 import { usePermissionGate } from './use-permission-gate'
+import { getRoleIdentifiers, getRoleNames as getRoleDisplayNames } from '@/shared/utils/rbac'
 
 /**
  * Hook for RBAC checks
@@ -10,17 +11,22 @@ export const useRbac = () => {
   const { canPerform, canPerformAny } = usePermissionGate()
 
   const getRoleNames = (): string[] => {
-    if (!user) return []
-    return user.roles?.map(r => r.role?.name).filter(Boolean) as string[]
+    if (!user?.roles) return []
+    return getRoleDisplayNames(user.roles)
   }
 
-  const hasRole = (roleName: string): boolean => {
-    return getRoleNames().includes(roleName)
+  const getUserRoleIdentifiers = (): string[] => {
+    if (!user?.roles) return []
+    return getRoleIdentifiers(user.roles)
   }
 
-  const hasAnyRole = (roleNames: string[]): boolean => {
-    const userRoles = getRoleNames()
-    return roleNames.some(role => userRoles.includes(role))
+  const hasRole = (roleIdentifier: string): boolean => {
+    return getUserRoleIdentifiers().includes(roleIdentifier)
+  }
+
+  const hasAnyRole = (roleIdentifiers: string[]): boolean => {
+    const identifiers = getUserRoleIdentifiers()
+    return roleIdentifiers.some(role => identifiers.includes(role))
   }
 
   const canManageMembers = (): boolean => {
@@ -44,6 +50,7 @@ export const useRbac = () => {
   return {
     user,
     getRoleNames,
+    getUserRoleIdentifiers,
     hasRole,
     hasAnyRole,
     canPerform,
