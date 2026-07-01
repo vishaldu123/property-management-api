@@ -16,7 +16,7 @@ export const usePermissionGate = () => {
     user.roles?.forEach(userRole => {
       if (userRole.role?.permissions) {
         userRole.role.permissions.forEach(permission => {
-          permissionSet.add(permission.name)
+          permissionSet.add(permission.key || permission.name)
         })
       }
     })

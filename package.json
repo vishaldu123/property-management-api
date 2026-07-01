@@ -12,6 +12,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "start": "node dist/server.js",
+    "seed:role-users": "ts-node scripts/seed-role-test-users.ts",
     "postinstall": "prisma generate"
   },
   "keywords": [],

@@ -7,6 +7,7 @@ import {
   useOrganizationSettings,
   useUpdateOrganization,
   useUpdateOrganizationSettings,
+  useRbac,
 } from '@/shared/hooks'
 import { AdminLayout } from './admin-layout'
 import { CURRENCIES, LANGUAGES, TIMEZONES } from '../constants'
@@ -18,7 +19,8 @@ const selectClass = cn(
 )
 
 export const OrganizationSettingsPage: React.FC = () => {
-  const { currentOrganization, user } = useAuth()
+  const { currentOrganization } = useAuth()
+  const { getUserRoleIdentifiers } = useRbac()
   const orgId = currentOrganization?.id
   const { data: organization, isLoading: orgLoading } = useOrganization(orgId)
   const { data: settings, isLoading: settingsLoading } = useOrganizationSettings(orgId)
@@ -51,7 +53,7 @@ export const OrganizationSettingsPage: React.FC = () => {
     }
   }, [organization, settings])
 
-  const userRoles = user?.roles?.map(r => r.role?.name).filter(Boolean) as string[]
+  const userRoles = getUserRoleIdentifiers()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

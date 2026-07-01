@@ -74,6 +74,14 @@ export const ADMIN_SECTIONS = [
     adminOnly: true,
   },
   {
+    id: 'demo-data',
+    title: 'Demo Data',
+    description: 'Seed sample portfolio data or reset your organization',
+    href: '/admin/demo-data',
+    adminOnly: true,
+    devOnly: true,
+  },
+  {
     id: 'about',
     title: 'About / System Information',
     description: 'Version, environment, and build details',

@@ -1226,3 +1226,20 @@ For questions, bugs, or feature requests, please create an issue or contact the 
 ## License
 
 ISC
+Role	Email
+Super Admin
+vishal.du123+super_admin@gmail.com
+Organization Owner
+vishal.du123+organization_owner@gmail.com
+Organization Admin
+vishal.du123+organization_admin@gmail.com
+Property Manager
+vishal.du123+property_manager@gmail.com
+Accountant
+vishal.du123+accountant@gmail.com
+Maintenance Manager
+vishal.du123+maintenance_manager@gmail.com
+Staff
+vishal.du123+staff@gmail.com
+Read Only
+vishal.du123+read_only@gmail.com

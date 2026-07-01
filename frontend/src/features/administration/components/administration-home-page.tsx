@@ -4,14 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { useRbac } from '@/shared/hooks'
 import { ADMIN_SECTIONS } from '../constants'
 import { Cog6ToothIcon } from '@heroicons/react/24/outline'
+import { isDevToolsEnabled } from '../utils/dev-tools.utils'
 
 export const AdministrationHomePage: React.FC = () => {
   const { canManageMembers, canManageRbac } = useRbac()
   const isAdmin = canManageMembers() || canManageRbac()
+  const showDevTools = isDevToolsEnabled()
 
   const sections = useMemo(
-    () => ADMIN_SECTIONS.filter(section => !section.adminOnly || isAdmin),
-    [isAdmin]
+    () =>
+      ADMIN_SECTIONS.filter(
+        section =>
+          (!section.adminOnly || isAdmin) &&
+          (!('devOnly' in section && section.devOnly) || showDevTools)
+      ),
+    [isAdmin, showDevTools]
   )
 
   return (

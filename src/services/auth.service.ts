@@ -11,6 +11,7 @@ import { organizationRepository } from '../repositories/organization.repository'
 import { refreshTokenRepository } from '../repositories/refresh-token.repository';
 import { passwordResetTokenRepository } from '../repositories/password-reset-token.repository';
 import { emailService } from './email.service';
+import { rbacService } from './rbac.service';
 import prisma from '../config/prisma';
 import { config } from '../config/environment';
 import logger from '../utils/logger';
@@ -92,6 +93,143 @@ interface CurrentUserResponse {
   };
 }
 
+function userRelationsInclude(organizationId?: string) {
+  return {
+    userRoles: {
+      where: organizationId
+        ? { organizationId, deletedAt: null }
+        : { deletedAt: null },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              include: {
+                permission: true,
+              },
+            },
+          },
+        },
+      },
+    },
+    memberships: {
+      where: { deletedAt: null },
+      include: {
+        organization: true,
+      },
+    },
+  };
+}
+
+function transformAuthUser(user: {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userRoles: Array<{
+    id: string;
+    userId: string;
+    organizationId: string;
+    roleId: string;
+    createdAt: Date;
+    updatedAt: Date;
+    role?: {
+      id: string;
+      organizationId: string;
+      name: string;
+      key: string;
+      description?: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+      permissions?: Array<{
+        permission: {
+          id: string;
+          organizationId: string;
+          name: string;
+          key: string;
+          description?: string | null;
+          createdAt: Date;
+          updatedAt: Date;
+        };
+      }>;
+    } | null;
+  }>;
+  memberships: Array<{
+    id: string;
+    userId: string;
+    organizationId: string;
+    joinedAt: Date;
+    organization: {
+      id: string;
+      name: string;
+      slug: string;
+      description?: string | null;
+      logo?: string | null;
+      favicon?: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+      ownerId?: string | null;
+      createdBy?: string | null;
+    };
+  }>;
+}) {
+  return {
+    id: user.id,
+    email: user.email,
+    firstName: user.name.split(' ')[0],
+    lastName: user.name.split(' ').slice(1).join(' ') || '',
+    displayName: user.name,
+    avatar: undefined,
+    roles: user.userRoles.map(ur => ({
+      id: ur.id,
+      userId: ur.userId,
+      organizationId: ur.organizationId,
+      roleId: ur.roleId,
+      role: ur.role
+        ? {
+            id: ur.role.id,
+            organizationId: ur.role.organizationId,
+            name: ur.role.name,
+            key: ur.role.key,
+            description: ur.role.description ?? undefined,
+            permissions: (ur.role.permissions || []).map(rp => ({
+              id: rp.permission.id,
+              organizationId: rp.permission.organizationId,
+              name: rp.permission.name,
+              key: rp.permission.key,
+              description: rp.permission.description ?? undefined,
+              createdAt: rp.permission.createdAt.toISOString(),
+              updatedAt: rp.permission.updatedAt.toISOString(),
+            })),
+            createdAt: ur.role.createdAt.toISOString(),
+            updatedAt: ur.role.updatedAt.toISOString(),
+          }
+        : undefined,
+      createdAt: ur.createdAt.toISOString(),
+      updatedAt: ur.updatedAt.toISOString(),
+    })),
+    organizations: user.memberships.map(m => ({
+      id: m.id,
+      userId: m.userId,
+      organizationId: m.organizationId,
+      joinedAt: m.joinedAt.toISOString(),
+      organization: {
+        id: m.organization.id,
+        name: m.organization.name,
+        slug: m.organization.slug,
+        description: m.organization.description ?? undefined,
+        logo: m.organization.logo ?? undefined,
+        favicon: m.organization.favicon ?? undefined,
+        ownerId: m.organization.ownerId ?? m.organization.createdBy ?? '',
+        createdAt: m.organization.createdAt.toISOString(),
+        updatedAt: m.organization.updatedAt.toISOString(),
+      },
+    })),
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
+  };
+}
+
 export class AuthService {
   private bcryptRounds = 10;
   private jwtExpiry = '15m'; // Access token expiry
@@ -158,50 +296,18 @@ export class AuthService {
 
       logger.info('User registered successfully', { userId: result.user.id, organizationId: result.organization.id });
 
-      // Get full user data with roles and organizations
+      await rbacService.ensureOrganizationBootstrap(result.organization.id, result.user.id);
+
       const fullUser = await prisma.user.findUnique({
         where: { id: result.user.id },
-        include: {
-          userRoles: {
-            include: {
-              role: true,
-            },
-          },
-          memberships: {
-            include: {
-              organization: true,
-            },
-          },
-        },
+        include: userRelationsInclude(result.organization.id),
       });
 
-      // Transform user data to match frontend User interface
-      const transformedUser = {
-        id: fullUser!.id,
-        email: fullUser!.email,
-        firstName: fullUser!.name.split(' ')[0],
-        lastName: fullUser!.name.split(' ').slice(1).join(' ') || '',
-        displayName: fullUser!.name,
-        avatar: undefined,
-        roles: fullUser!.userRoles.map((ur: any) => ({
-          id: ur.id,
-          userId: ur.userId,
-          organizationId: ur.organizationId,
-          roleId: ur.roleId,
-          role: ur.role,
-          createdAt: ur.createdAt.toISOString(),
-          updatedAt: ur.updatedAt.toISOString(),
-        })),
-        organizations: fullUser!.memberships.map((m: any) => ({
-          id: m.id,
-          userId: m.userId,
-          organizationId: m.organizationId,
-          joinedAt: m.joinedAt.toISOString(),
-          organization: m.organization,
-        })),
-        createdAt: fullUser!.createdAt.toISOString(),
-        updatedAt: fullUser!.updatedAt.toISOString(),
-      };
+      if (!fullUser) {
+        throw new NotFoundError('User not found');
+      }
+
+      const transformedUser = transformAuthUser(fullUser);
 
       return {
         user: transformedUser,
@@ -257,6 +363,17 @@ export class AuthService {
 
     // Generate tokens
     const membership = user.memberships[0];
+    await rbacService.ensureOrganizationBootstrap(membership.organizationId, user.id);
+
+    const refreshedUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: userRelationsInclude(membership.organizationId),
+    });
+
+    if (!refreshedUser) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
     const accessToken = this.generateAccessToken({
       userId: user.id,
       organizationId: membership.organizationId,
@@ -266,33 +383,7 @@ export class AuthService {
 
     logger.info('User logged in successfully', { userId: user.id });
 
-    // Transform user data to match frontend User interface
-    const transformedUser = {
-      id: user.id,
-      email: user.email,
-      firstName: user.name.split(' ')[0],
-      lastName: user.name.split(' ').slice(1).join(' ') || '',
-      displayName: user.name,
-      avatar: undefined,
-      roles: user.userRoles.map((ur: any) => ({
-        id: ur.id,
-        userId: ur.userId,
-        organizationId: ur.organizationId,
-        roleId: ur.roleId,
-        role: ur.role,
-        createdAt: ur.createdAt.toISOString(),
-        updatedAt: ur.updatedAt.toISOString(),
-      })),
-      organizations: user.memberships.map((m: any) => ({
-        id: m.id,
-        userId: m.userId,
-        organizationId: m.organizationId,
-        joinedAt: m.joinedAt.toISOString(),
-        organization: m.organization,
-      })),
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
-    };
+    const transformedUser = transformAuthUser(refreshedUser);
 
     return {
       user: transformedUser,
@@ -465,20 +556,11 @@ export class AuthService {
   async getCurrentUser(userId: string, organizationId: string): Promise<{ user: any }> {
     logger.debug('Get current user', { userId });
 
+    await rbacService.ensureOrganizationBootstrap(organizationId, userId);
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        userRoles: {
-          include: {
-            role: true,
-          },
-        },
-        memberships: {
-          include: {
-            organization: true,
-          },
-        },
-      },
+      include: userRelationsInclude(organizationId),
     });
 
     if (!user) {
@@ -486,36 +568,8 @@ export class AuthService {
       throw new NotFoundError('User not found');
     }
 
-    // Transform user data to match frontend User interface
-    const transformedUser = {
-      id: user.id,
-      email: user.email,
-      firstName: user.name.split(' ')[0],
-      lastName: user.name.split(' ').slice(1).join(' ') || '',
-      displayName: user.name,
-      avatar: undefined,
-      roles: user.userRoles.map((ur: any) => ({
-        id: ur.id,
-        userId: ur.userId,
-        organizationId: ur.organizationId,
-        roleId: ur.roleId,
-        role: ur.role,
-        createdAt: ur.createdAt.toISOString(),
-        updatedAt: ur.updatedAt.toISOString(),
-      })),
-      organizations: user.memberships.map((m: any) => ({
-        id: m.id,
-        userId: m.userId,
-        organizationId: m.organizationId,
-        joinedAt: m.joinedAt.toISOString(),
-        organization: m.organization,
-      })),
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
-    };
-
     return {
-      user: transformedUser,
+      user: transformAuthUser(user),
     };
   }
 

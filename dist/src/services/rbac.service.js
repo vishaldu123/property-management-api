@@ -8,6 +8,7 @@ const permission_repository_1 = require("../repositories/permission.repository")
 const role_repository_1 = require("../repositories/role.repository");
 const user_role_repository_1 = require("../repositories/user-role.repository");
 const organization_repository_1 = require("../repositories/organization.repository");
+const prisma_1 = __importDefault(require("../config/prisma"));
 const errors_1 = require("../utils/errors");
 const logger_1 = __importDefault(require("../utils/logger"));
 /**
@@ -369,6 +370,63 @@ class RBACService {
         return user_role_repository_1.userRoleRepository.getUserPermissions(organizationId, userId);
     }
     // ===== SYSTEM ROLES SEEDING =====
+    /**
+     * Ensure an organization has RBAC roles and the user has an appropriate role assigned.
+     * Repairs legacy orgs created before RBAC bootstrap on registration.
+     */
+    async ensureOrganizationBootstrap(organizationId, userId) {
+        const roleCount = await role_repository_1.roleRepository.countByOrganization(organizationId);
+        let ownerRoleId;
+        if (roleCount === 0) {
+            const seeded = await this.seedSystemRoles(organizationId, userId);
+            ownerRoleId = seeded.roles.get('organization_owner');
+        }
+        else {
+            const ownerRole = await role_repository_1.roleRepository.findByOrganizationAndKey(organizationId, 'organization_owner');
+            ownerRoleId = ownerRole?.id;
+        }
+        const existingUserRoles = await user_role_repository_1.userRoleRepository.getUserRoles(organizationId, userId);
+        if (existingUserRoles.length > 0) {
+            return;
+        }
+        const membership = await prisma_1.default.organizationUser.findFirst({
+            where: {
+                organizationId,
+                userId,
+                deletedAt: null,
+            },
+        });
+        let roleKey = 'staff';
+        if (membership?.role === 'OWNER' || membership?.isOwner) {
+            roleKey = 'organization_owner';
+        }
+        else if (membership?.role === 'ADMIN') {
+            roleKey = 'organization_admin';
+        }
+        let roleId = roleKey === 'organization_owner' ? ownerRoleId : undefined;
+        if (!roleId) {
+            const role = await role_repository_1.roleRepository.findByOrganizationAndKey(organizationId, roleKey);
+            roleId = role?.id;
+        }
+        if (!roleId) {
+            logger_1.default.warn('Unable to assign bootstrap role — role not found', {
+                organizationId,
+                userId,
+                roleKey,
+            });
+            return;
+        }
+        const hasDuplicate = await user_role_repository_1.userRoleRepository.hasDuplicate(organizationId, userId, roleId);
+        if (!hasDuplicate) {
+            await user_role_repository_1.userRoleRepository.assignRole({
+                organizationId,
+                userId,
+                roleId,
+                assignedBy: userId,
+            });
+            logger_1.default.info('Assigned bootstrap RBAC role to user', { organizationId, userId, roleKey });
+        }
+    }
     /**
      * Seed default system roles and permissions
      */

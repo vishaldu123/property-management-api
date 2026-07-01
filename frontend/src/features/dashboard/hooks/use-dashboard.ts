@@ -1,31 +1,31 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect } from 'react'
+import { useQuery, type QueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { fetchDashboardData } from '../services/dashboard.service'
 import { DASHBOARD_REFRESH_INTERVAL_MS } from '../types'
 
 export const DASHBOARD_QUERY_KEY = ['dashboard'] as const
 
-export function useDashboard(enabled = true) {
-  const queryClient = useQueryClient()
+export function dashboardQueryKey(organizationId?: string | null) {
+  return organizationId ? ([...DASHBOARD_QUERY_KEY, organizationId] as const) : DASHBOARD_QUERY_KEY
+}
+
+/** Invalidate cached dashboard metrics after create/update/delete mutations. */
+export function invalidateDashboard(queryClient: QueryClient) {
+  return queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY })
+}
+
+export function useDashboard(enabled = true, organizationId?: string | null) {
+  const queryKey = dashboardQueryKey(organizationId)
 
   const query = useQuery({
-    queryKey: DASHBOARD_QUERY_KEY,
+    queryKey,
     queryFn: fetchDashboardData,
-    enabled,
+    enabled: enabled && Boolean(organizationId),
     refetchInterval: DASHBOARD_REFRESH_INTERVAL_MS,
+    refetchOnMount: 'always',
     staleTime: 30_000,
     retry: 1,
   })
-
-  useEffect(() => {
-    if (enabled) {
-      void queryClient.prefetchQuery({
-        queryKey: DASHBOARD_QUERY_KEY,
-        queryFn: fetchDashboardData,
-        staleTime: 30_000,
-      })
-    }
-  }, [enabled, queryClient])
 
   const refresh = useCallback(() => {
     return query.refetch()

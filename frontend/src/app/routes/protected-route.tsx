@@ -1,6 +1,6 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
-import { useAuth } from '@/shared/hooks'
+import { useAuth, useRbac } from '@/shared/hooks'
 import { Loading } from '@/shared/components/ui'
 
 interface ProtectedRouteProps {
@@ -9,7 +9,8 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles }) => {
-  const { isAuthenticated, isLoading, user } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
+  const { getUserRoleIdentifiers } = useRbac()
 
   if (isLoading) {
     return (
@@ -25,7 +26,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   }
 
   if (requiredRoles && requiredRoles.length > 0) {
-    const userRoles = user?.roles.map(r => r.role?.name).filter(Boolean) || []
+    const userRoles = getUserRoleIdentifiers()
     const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role))
 
     if (!hasRequiredRole) {

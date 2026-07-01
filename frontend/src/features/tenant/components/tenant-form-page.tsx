@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tenantService } from '@/shared/services'
 import { toastService } from '@/shared/services'
+import { invalidateDashboard } from '@/features/dashboard'
 import { TenantForm, TenantFormData } from './tenant-form'
 import { Loading } from '@/shared/components/ui/loading'
 import { ErrorState } from '@/shared/components/ui/error-state'
@@ -13,6 +14,7 @@ interface TenantFormPageProps {
 
 export const TenantFormPage: React.FC<TenantFormPageProps> = ({ mode }) => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { id } = useParams<{ id: string }>()
 
   const {
@@ -29,6 +31,7 @@ export const TenantFormPage: React.FC<TenantFormPageProps> = ({ mode }) => {
   const createMutation = useMutation({
     mutationFn: (data: TenantFormData) => tenantService.createTenant(data),
     onSuccess: () => {
+      void invalidateDashboard(queryClient)
       toastService.success('Tenant created successfully')
       navigate('/tenants')
     },
@@ -40,6 +43,7 @@ export const TenantFormPage: React.FC<TenantFormPageProps> = ({ mode }) => {
   const updateMutation = useMutation({
     mutationFn: (data: TenantFormData) => tenantService.updateTenant(id!, data),
     onSuccess: () => {
+      void invalidateDashboard(queryClient)
       toastService.success('Tenant updated successfully')
       navigate(`/tenants/${id}`)
     },

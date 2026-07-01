@@ -1,14 +1,21 @@
 import React, { useState } from 'react'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Label } from '@/shared/components'
 import { RoleGate } from '@/shared/components'
-import { useAuth, useRoles, useAssignRoleToUser, useRemoveRoleFromUser } from '@/shared/hooks'
+import {
+  useAuth,
+  useRoles,
+  useAssignRoleToUser,
+  useRemoveRoleFromUser,
+  useRbac,
+} from '@/shared/hooks'
 import { AdminLayout } from './admin-layout'
 import { useMembersList } from '../hooks/use-administration'
 
 export const RoleAssignmentPage: React.FC = () => {
-  const { currentOrganization, user } = useAuth()
+  const { currentOrganization } = useAuth()
+  const { getUserRoleIdentifiers } = useRbac()
   const orgId = currentOrganization?.id
-  const userRoles = user?.roles?.map(r => r.role?.name).filter(Boolean) as string[]
+  const userRoles = getUserRoleIdentifiers()
 
   const [selectedUserId, setSelectedUserId] = useState('')
   const [selectedRoleId, setSelectedRoleId] = useState('')

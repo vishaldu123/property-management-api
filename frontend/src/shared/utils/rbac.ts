@@ -1,10 +1,10 @@
 import { Permission, UserRole } from '@/types'
 
 /**
- * Check if a user has a specific permission
+ * Check if a user has a specific permission (by key or legacy display name).
  */
-export const hasPermission = (userPermissions: Permission[], permissionName: string): boolean => {
-  return userPermissions.some(p => p.name === permissionName)
+export const hasPermission = (userPermissions: Permission[], permission: string): boolean => {
+  return userPermissions.some(p => p.key === permission || p.name === permission)
 }
 
 /**
@@ -25,34 +25,52 @@ export const hasAllPermissions = (
 }
 
 /**
- * Get permission names from a list of permissions
+ * Get permission identifiers from a list of permissions (keys preferred).
  */
 export const getPermissionNames = (permissions: Permission[]): string[] => {
-  return permissions.map(p => p.name)
+  return permissions.flatMap(p =>
+    [p.key, p.name].filter((value): value is string => Boolean(value))
+  )
 }
 
 /**
- * Check if a user has a specific role
+ * Role identifiers for RBAC checks (prefers role key, falls back to display name).
  */
-export const hasRole = (userRoles: UserRole[], roleName: string): boolean => {
-  return userRoles.some(r => r.role?.name === roleName)
+export const getRoleIdentifiers = (userRoles: UserRole[]): string[] => {
+  return userRoles
+    .flatMap(r => [r.role?.key, r.role?.name])
+    .filter((value): value is string => Boolean(value))
 }
 
 /**
- * Get role names from user roles
+ * Check if a user has a specific role by key or display name.
+ */
+export const hasRole = (userRoles: UserRole[], roleIdentifier: string): boolean => {
+  return getRoleIdentifiers(userRoles).includes(roleIdentifier)
+}
+
+/**
+ * Get role display names from user roles.
  */
 export const getRoleNames = (userRoles: UserRole[]): string[] => {
   return userRoles.map(r => r.role?.name).filter((name): name is string => !!name)
 }
 
+const ADMIN_ROLE_IDENTIFIERS = [
+  'super_admin',
+  'organization_admin',
+  'organization_owner',
+  'Super Admin',
+  'Organization Admin',
+  'Organization Owner',
+]
+
 /**
- * Check if user is admin (has any admin-like role)
+ * Check if user is admin (has any admin-like role).
  */
 export const isAdmin = (userRoles: UserRole[]): boolean => {
-  const roleNames = getRoleNames(userRoles)
-  return roleNames.some(name =>
-    ['super_admin', 'organization_admin', 'organization_owner'].includes(name)
-  )
+  const identifiers = getRoleIdentifiers(userRoles)
+  return ADMIN_ROLE_IDENTIFIERS.some(role => identifiers.includes(role))
 }
 
 /**
@@ -63,12 +81,13 @@ export const isOwner = (userRoles: UserRole[]): boolean => {
 }
 
 /**
- * Map permission names to boolean values
+ * Map permission identifiers to boolean values
  */
 export const mapPermissions = (permissions: Permission[]): Record<string, boolean> => {
   return permissions.reduce(
     (acc, p) => {
-      acc[p.name] = true
+      const identifier = p.key || p.name
+      acc[identifier] = true
       return acc
     },
     {} as Record<string, boolean>
@@ -82,5 +101,5 @@ export const filterPermissionsByPrefix = (
   permissions: Permission[],
   prefix: string
 ): Permission[] => {
-  return permissions.filter(p => p.name.startsWith(prefix))
+  return permissions.filter(p => (p.key || p.name).startsWith(prefix))
 }

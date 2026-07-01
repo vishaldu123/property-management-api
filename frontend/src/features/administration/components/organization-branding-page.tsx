@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@/shared/components'
 import { RoleGate } from '@/shared/components'
-import { useAuth, useOrganizationBranding, useUpdateOrganizationBranding } from '@/shared/hooks'
+import {
+  useAuth,
+  useOrganizationBranding,
+  useUpdateOrganizationBranding,
+  useRbac,
+} from '@/shared/hooks'
 import { AdminLayout } from './admin-layout'
 
 export const OrganizationBrandingPage: React.FC = () => {
-  const { currentOrganization, user } = useAuth()
+  const { currentOrganization } = useAuth()
+  const { getUserRoleIdentifiers } = useRbac()
   const orgId = currentOrganization?.id
   const { data: branding, isLoading } = useOrganizationBranding(orgId)
   const updateBranding = useUpdateOrganizationBranding()
-  const userRoles = user?.roles?.map(r => r.role?.name).filter(Boolean) as string[]
+  const userRoles = getUserRoleIdentifiers()
 
   const [form, setForm] = useState({
     logoUrl: '',

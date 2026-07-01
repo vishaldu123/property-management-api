@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { unitService } from '@/shared/services'
 import { toastService } from '@/shared/services'
+import { invalidateDashboard } from '@/features/dashboard'
 import { UnitForm, UnitFormData } from './unit-form'
 import { Loading } from '@/shared/components/ui/loading'
 import { ErrorState } from '@/shared/components/ui/error-state'
@@ -13,6 +14,7 @@ interface UnitFormPageProps {
 
 export const UnitFormPage: React.FC<UnitFormPageProps> = ({ mode }) => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { id } = useParams<{ id: string }>()
 
   const {
@@ -29,6 +31,7 @@ export const UnitFormPage: React.FC<UnitFormPageProps> = ({ mode }) => {
   const createMutation = useMutation({
     mutationFn: (data: UnitFormData) => unitService.createUnit(data),
     onSuccess: () => {
+      void invalidateDashboard(queryClient)
       toastService.success('Unit created successfully')
       navigate('/units')
     },
@@ -40,6 +43,7 @@ export const UnitFormPage: React.FC<UnitFormPageProps> = ({ mode }) => {
   const updateMutation = useMutation({
     mutationFn: (data: UnitFormData) => unitService.updateUnit(id!, data),
     onSuccess: () => {
+      void invalidateDashboard(queryClient)
       toastService.success('Unit updated successfully')
       navigate(`/units/${id}`)
     },
