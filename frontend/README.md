@@ -237,6 +237,17 @@ await authService.logout()
 - React Query hooks with caching and prefetch on row hover
 - Dashboard integration: Open Maintenance KPI → open requests; Status chart → filtered list
 
+### ✅ Reports & Analytics Workspace (Sprint UI-9)
+
+- Reports home with RBAC-gated report cards
+- Occupancy, Revenue, Payment, Lease, Tenant, Maintenance, and Property Performance reports
+- Global filters: organization, property, unit, tenant, lease, date range, status, category, search
+- Saved filter presets persisted in local storage
+- Recharts visualizations: bar, line, area, pie, donut, and stacked bar charts
+- Export toolbar: CSV, Excel/PDF placeholders, and print
+- React Query data layer with memoized report calculations
+- Dashboard integration: KPI cards link to relevant report pages
+
 ### ✅ Pages
 
 - Home page (public landing)
@@ -262,9 +273,10 @@ await authService.logout()
 
 - Vitest configuration
 - React Testing Library setup
-- Component test examples (property, tenant, unit, payment, maintenance)
+- Component test examples (property, tenant, unit, payment, maintenance, reports)
 - Payment workspace tests: utils (9), list (3), detail integration (1)
 - Maintenance workspace tests: utils (7), list (3), detail integration (1)
+- Reports workspace tests: utils (10), filters hook (2), home page (1)
 - Utility function tests
 - Coverage reporting
 

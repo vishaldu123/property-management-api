@@ -1,4 +1,4 @@
-# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint UI-7 + Sprint UI-8 + Sprint 9 (Payment) + Sprint 10 (Maintenance)
+# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint UI-7 + Sprint UI-8 + Sprint UI-9 + Sprint 9 (Payment) + Sprint 10 (Maintenance)
 
 This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC, Sprint 9 - Payment Domain, Sprint 10 - Maintenance Domain) and Frontend (Sprint UI-1 - React Foundation, Sprint UI-3 - Property, Unit & Tenant Management). Each test includes request examples, expected responses, and validation notes.
 
@@ -266,6 +266,63 @@ The frontend will be available at `http://localhost:5173`
 - **Validation:**
   - ✓ Open Maintenance KPI opens `/maintenance?open=true`
   - ✓ Chart bar opens `/maintenance?status=<status>`
+
+### Section 0.9: Reports & Analytics Workspace (Sprint UI-9)
+
+#### Test 0.9.1: Reports Home
+- **URL:** `http://localhost:5173/reports`
+- **Prerequisites:** Logged in with at least one report permission
+- **Validation:**
+  - ✓ Reports home lists all accessible report cards
+  - ✓ Sidebar **Reports** link navigates to `/reports`
+  - ✓ Each card links to the correct report route
+
+#### Test 0.9.2: Global Report Filters
+- **URL:** Any report page (e.g. `/reports/occupancy`)
+- **Validation:**
+  - ✓ Organization field shows current organization (read-only)
+  - ✓ Property, unit, tenant, lease, date range, status, category, and search filters work
+  - ✓ Reset clears all filters
+  - ✓ Save filter preset stores to local storage and can be re-applied
+
+#### Test 0.9.3: Occupancy Report
+- **URL:** `http://localhost:5173/reports/occupancy`
+- **Validation:**
+  - ✓ Metrics show occupancy %, vacancy %, occupied units, vacant units
+  - ✓ Donut and line trend charts render
+  - ✓ CSV export downloads; Excel/PDF show placeholder alert; Print opens print dialog
+
+#### Test 0.9.4: Revenue & Payment Reports
+- **URLs:** `/reports/revenue`, `/reports/payments`
+- **Validation:**
+  - ✓ Revenue metrics include monthly/annual revenue, rent collected, outstanding, late fees, refunds
+  - ✓ Payment metrics show paid, pending, partial, overdue, refunded, cancelled counts
+  - ✓ Bar, area, and line charts render
+
+#### Test 0.9.5: Lease, Tenant, Maintenance Reports
+- **URLs:** `/reports/leases`, `/reports/tenants`, `/reports/maintenance`
+- **Validation:**
+  - ✓ Lease report shows status metrics and upcoming expirations table
+  - ✓ Tenant report shows growth chart and move-in/out history tables
+  - ✓ Maintenance report shows open/completed metrics, category bar chart, and cost area chart
+
+#### Test 0.9.6: Property Performance Report
+- **URL:** `http://localhost:5173/reports/property-performance`
+- **Validation:**
+  - ✓ Top and lowest performing property tables render
+  - ✓ Revenue bar and stacked bar charts render
+  - ✓ ROI column shows placeholder (—)
+
+#### Test 0.9.7: Dashboard Report Navigation
+- **Steps:**
+  1. From dashboard, click each KPI card (Properties, Units, Tenants, Leases, Outstanding Payments, Open Maintenance)
+- **Validation:**
+  - ✓ Total Properties → `/reports/property-performance`
+  - ✓ Total/Occupied/Vacant Units → `/reports/occupancy`
+  - ✓ Active Tenants → `/reports/tenants`
+  - ✓ Active Leases → `/reports/leases`
+  - ✓ Outstanding Payments → `/reports/revenue`
+  - ✓ Open Maintenance → `/reports/maintenance`
 
 #### Test 0.6.3: Profile Page
 - **URL:** `http://localhost:5173/profile` (when logged in)

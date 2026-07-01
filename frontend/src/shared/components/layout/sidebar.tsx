@@ -9,6 +9,7 @@ import {
   DocumentIcon,
   CreditCardIcon,
   WrenchIcon,
+  ChartBarSquareIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '@/utils/cn'
 import { Button } from '@/shared/components/ui'
@@ -49,6 +50,11 @@ const navItems: NavItem[] = [
     label: 'Maintenance',
     href: '/maintenance',
     icon: <WrenchIcon className="w-5 h-5" />,
+  },
+  {
+    label: 'Reports',
+    href: '/reports',
+    icon: <ChartBarSquareIcon className="w-5 h-5" />,
   },
   {
     label: 'Team',
