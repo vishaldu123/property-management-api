@@ -33,12 +33,12 @@ export const TopNav: React.FC = () => {
   }
 
   const handleProfileClick = () => {
-    navigate('/profile')
+    navigate('/admin/profile')
     setUserMenuOpen(false)
   }
 
   const handleSettingsClick = () => {
-    navigate('/settings')
+    navigate('/admin')
     setUserMenuOpen(false)
   }
 

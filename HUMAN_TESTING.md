@@ -1,4 +1,4 @@
-# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint UI-7 + Sprint UI-8 + Sprint UI-9 + Sprint 9 (Payment) + Sprint 10 (Maintenance)
+# Human Testing Guide - Sprint 4 + Sprint UI-1 + Sprint UI-3 + Sprint UI-7 + Sprint UI-8 + Sprint UI-9 + Sprint UI-10 + Sprint 9 (Payment) + Sprint 10 (Maintenance)
 
 This document provides step-by-step manual test cases for the Property Management API (Sprint 4 - Enterprise RBAC, Sprint 9 - Payment Domain, Sprint 10 - Maintenance Domain) and Frontend (Sprint UI-1 - React Foundation, Sprint UI-3 - Property, Unit & Tenant Management). Each test includes request examples, expected responses, and validation notes.
 
@@ -323,6 +323,54 @@ The frontend will be available at `http://localhost:5173`
   - ✓ Active Leases → `/reports/leases`
   - ✓ Outstanding Payments → `/reports/revenue`
   - ✓ Open Maintenance → `/reports/maintenance`
+
+### Section 0.10: Administration & Settings Workspace (Sprint UI-10)
+
+#### Test 0.10.1: Administration Home
+- **URL:** `http://localhost:5173/admin`
+- **Validation:**
+  - ✓ Administration home lists section cards
+  - ✓ Sidebar **Administration** link navigates to `/admin`
+  - ✓ Legacy `/settings` redirects to `/admin`
+  - ✓ Legacy `/profile` redirects to `/admin/profile`
+
+#### Test 0.10.2: Organization Settings & Branding
+- **URLs:** `/admin/organization/settings`, `/admin/organization/branding`
+- **Prerequisites:** `organization_owner` or `organization_admin` role
+- **Validation:**
+  - ✓ Organization name, contact, timezone, currency, language save
+  - ✓ Branding colors and logo URL save with live preview
+  - ✓ Non-admin users see access denied message
+
+#### Test 0.10.3: User & Invitation Management
+- **URLs:** `/admin/users`, `/admin/invitations`
+- **Validation:**
+  - ✓ Member list loads with search and pagination
+  - ✓ Invite user sends invitation
+  - ✓ Suspend, reactivate, and remove actions work for eligible members
+  - ✓ Legacy `/organization/members` redirects to `/admin/users`
+
+#### Test 0.10.4: Role Assignment
+- **URL:** `/admin/roles`
+- **Validation:**
+  - ✓ Roles list shows permission summary
+  - ✓ Assign and remove role actions work
+  - ✓ Legacy `/rbac` redirects to `/admin/roles`
+
+#### Test 0.10.5: Security & Profile
+- **URLs:** `/admin/security`, `/admin/security/password`, `/admin/profile`
+- **Validation:**
+  - ✓ Change password form submits to `/auth/change-password`
+  - ✓ Session page shows current session with sign-out
+  - ✓ Profile page shows user info and local preferences
+
+#### Test 0.10.6: Appearance, Notifications, Audit, About
+- **URLs:** `/admin/appearance`, `/admin/notifications`, `/admin/audit`, `/admin/about`
+- **Validation:**
+  - ✓ Theme, density, sidebar, and language preferences persist locally
+  - ✓ Notification toggles persist locally
+  - ✓ Audit log shows placeholder notice and sample table
+  - ✓ About page shows frontend/backend version and environment
 
 #### Test 0.6.3: Profile Page
 - **URL:** `http://localhost:5173/profile` (when logged in)

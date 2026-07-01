@@ -29,9 +29,10 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - ✅ Sprint UI-7: Enterprise Payment Workspace (payment list, details, CRUD, partial payments, refunds, receipts, RBAC)
 - ✅ Sprint UI-8: Enterprise Maintenance Workspace (request lifecycle, assignment, status workflow, cost tracking, RBAC)
 - ✅ Sprint UI-9: Enterprise Reports & Analytics Workspace (8 report pages, Recharts, filters, exports, dashboard quick links)
+- ✅ Sprint UI-10: Enterprise Administration & Settings Workspace (organization settings, branding, users, security, profile, audit UI)
 
 **Upcoming:**
-- Sprint UI-6: Settings & Profile Management UI
+- Sprint UI-6: Settings & Profile Management UI (superseded by UI-10 for core settings)
 
 ## Key Features
 
