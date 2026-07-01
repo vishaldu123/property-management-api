@@ -31,6 +31,14 @@ import {
   MaintenanceListPage,
   MaintenanceDetailPage,
   MaintenanceFormPage,
+  ReportsHomePage,
+  OccupancyReportPage,
+  RevenueReportPage,
+  PaymentReportPage,
+  LeaseReportPage,
+  TenantReportPage,
+  MaintenanceReportPage,
+  PropertyPerformanceReportPage,
 } from '@/features'
 import { ProtectedRoute } from './protected-route'
 import { AppLayout } from './app-layout'
@@ -109,6 +117,14 @@ const router = createBrowserRouter([
       { path: '/maintenance/create', element: <MaintenanceFormPage mode="create" /> },
       { path: '/maintenance/:id', element: <MaintenanceDetailPage /> },
       { path: '/maintenance/:id/edit', element: <MaintenanceFormPage mode="edit" /> },
+      { path: '/reports', element: <ReportsHomePage /> },
+      { path: '/reports/occupancy', element: <OccupancyReportPage /> },
+      { path: '/reports/revenue', element: <RevenueReportPage /> },
+      { path: '/reports/payments', element: <PaymentReportPage /> },
+      { path: '/reports/leases', element: <LeaseReportPage /> },
+      { path: '/reports/tenants', element: <TenantReportPage /> },
+      { path: '/reports/maintenance', element: <MaintenanceReportPage /> },
+      { path: '/reports/property-performance', element: <PropertyPerformanceReportPage /> },
     ],
   },
   {
