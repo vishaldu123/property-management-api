@@ -28,7 +28,9 @@ export const hasAllPermissions = (
  * Get permission identifiers from a list of permissions (keys preferred).
  */
 export const getPermissionNames = (permissions: Permission[]): string[] => {
-  return permissions.flatMap(p => [p.key, p.name].filter((value): value is string => Boolean(value)))
+  return permissions.flatMap(p =>
+    [p.key, p.name].filter((value): value is string => Boolean(value))
+  )
 }
 
 /**

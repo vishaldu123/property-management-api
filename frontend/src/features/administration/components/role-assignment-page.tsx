@@ -1,7 +1,13 @@
 import React, { useState } from 'react'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Label } from '@/shared/components'
 import { RoleGate } from '@/shared/components'
-import { useAuth, useRoles, useAssignRoleToUser, useRemoveRoleFromUser, useRbac } from '@/shared/hooks'
+import {
+  useAuth,
+  useRoles,
+  useAssignRoleToUser,
+  useRemoveRoleFromUser,
+  useRbac,
+} from '@/shared/hooks'
 import { AdminLayout } from './admin-layout'
 import { useMembersList } from '../hooks/use-administration'
 
