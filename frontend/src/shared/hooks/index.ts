@@ -32,3 +32,4 @@ export {
 export { useToast } from './use-toast'
 export { usePermissionGate } from './use-permission-gate'
 export { useRbac } from './use-rbac-checks'
+export { useOnlineStatus } from './use-online-status'

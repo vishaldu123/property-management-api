@@ -2,6 +2,10 @@ node_modules
 # Keep environment variables out of version control
 .env
 
+# Build output (compiled artifacts should not be committed)
+dist/
+frontend/dist/
+
 /generated/prisma
 
 # Test and lint output files

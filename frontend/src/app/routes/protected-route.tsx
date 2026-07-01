@@ -11,19 +11,16 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles }) => {
   const { isAuthenticated, isLoading, user } = useAuth()
 
-  console.log('[ProtectedRoute] Rendering:', { isLoading, isAuthenticated, hasUser: !!user })
-
   if (isLoading) {
-    console.log('[ProtectedRoute] Showing loading spinner')
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen" role="status" aria-live="polite">
         <Loading size="lg" />
+        <span className="sr-only">Loading your session…</span>
       </div>
     )
   }
 
   if (!isAuthenticated) {
-    console.log('[ProtectedRoute] Redirecting to login - not authenticated')
     return <Navigate to="/login" replace />
   }
 
@@ -32,11 +29,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role))
 
     if (!hasRequiredRole) {
-      console.log('[ProtectedRoute] Redirecting to forbidden - missing required role')
       return <Navigate to="/forbidden" replace />
     }
   }
 
-  console.log('[ProtectedRoute] Rendering protected content')
   return <>{children}</>
 }

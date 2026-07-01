@@ -30,9 +30,30 @@ This repository contains a production-ready Node.js/TypeScript backend for a mul
 - ✅ Sprint UI-8: Enterprise Maintenance Workspace (request lifecycle, assignment, status workflow, cost tracking, RBAC)
 - ✅ Sprint UI-9: Enterprise Reports & Analytics Workspace (8 report pages, Recharts, filters, exports, dashboard quick links)
 - ✅ Sprint UI-10: Enterprise Administration & Settings Workspace (organization settings, branding, users, security, profile, audit UI)
+- ✅ QA-3: Production Hardening & Release Candidate (route-level code splitting, bundle optimization, production-safe logging, accessibility, offline handling, Docker Compose, deployment/architecture/security/contributing docs)
 
 **Upcoming:**
 - Sprint UI-6: Settings & Profile Management UI (superseded by UI-10 for core settings)
+
+### Production Hardening (QA-3)
+
+Version 1.0 release-candidate hardening. See [ARCHITECTURE.md](./ARCHITECTURE.md),
+[DEPLOYMENT.md](./DEPLOYMENT.md), [SECURITY.md](./SECURITY.md), and
+[CONTRIBUTING.md](./CONTRIBUTING.md).
+
+- **Performance**: every route is lazy-loaded (`React.lazy` + `Suspense`); Recharts and
+  other vendors are split into dedicated chunks. The heaviest route chunk dropped from
+  ~506 kB to ~106 kB and the bundle size warning is resolved. Production sourcemaps are
+  disabled. React Query defaults avoid retrying 4xx and disable refetch-on-focus.
+- **Security**: production-safe frontend logger (no debug logs / secrets in production),
+  nginx security headers, documented token-storage trade-offs, CORS allow-list guidance.
+- **Accessibility**: skip-to-content link, focusable main landmark, ARIA live regions on
+  loading and offline states.
+- **UX**: global error boundary, offline banner, consistent Suspense loading fallbacks.
+- **DevOps**: full-stack `docker-compose.yml` (Postgres + API + nginx-served SPA),
+  frontend Dockerfile + nginx config, corrected API health check, CI matrix moved to
+  Node 20.x/22.x.
+- **Docs**: new `ARCHITECTURE.md`, `DEPLOYMENT.md`, `SECURITY.md`, `CONTRIBUTING.md`.
 
 ## Key Features
 

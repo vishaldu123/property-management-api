@@ -3220,6 +3220,65 @@ Complete manual testing guide for the Maintenance Request Management system incl
 
 ---
 
+## Section 0.11 — QA-3 Production Hardening
+
+These checks verify the release-candidate hardening. No new business features were added.
+
+### 0.11.1 Route-level lazy loading
+
+1. Open DevTools → Network, filter to JS, and reload the app while logged out.
+2. **Expected:** only the shell/vendor chunks load initially (not every page).
+3. Navigate to Dashboard, then Reports → Occupancy.
+4. **Expected:** additional JS chunks load on demand as you visit each route; a brief
+   loading spinner (with `Loading page…` for screen readers) may appear during transition.
+
+### 0.11.2 Bundle / build
+
+1. Run `cd frontend && npm run build`.
+2. **Expected:** build succeeds with no "chunks are larger than 500 kB" warning; a
+   `charts-vendor` chunk exists and is only requested on chart routes.
+
+### 0.11.3 Production-safe logging
+
+1. Run the production build/preview (`npm run build && npm run preview`).
+2. Open DevTools console and log in.
+3. **Expected:** no `[AuthProvider]` / `[ProtectedRoute]` / `[LoginPage]` debug logs;
+   only warnings/errors (if any) appear. Debug logs still appear in `npm run dev`.
+
+### 0.11.4 Accessibility — skip link & landmarks
+
+1. Log in, then press `Tab` from the top of the page.
+2. **Expected:** a "Skip to main content" link becomes visible; activating it moves focus
+   to the main content region.
+3. Verify the main content area is reachable and focusable.
+
+### 0.11.5 Offline handling
+
+1. In DevTools → Network, set throttling to **Offline**.
+2. **Expected:** a red banner appears at the top: "You are offline…" (announced by screen
+   readers). Restore the connection and the banner disappears.
+
+### 0.11.6 Error boundary
+
+1. Trigger an unexpected client error (e.g. temporarily throw in a component during dev).
+2. **Expected:** the global error boundary renders an "Application Error" screen with a
+   "Go to Home" action instead of a blank page.
+
+### 0.11.7 Docker Compose (optional)
+
+1. `cp .env.example .env` and set `JWT_SECRET`.
+2. `docker compose up --build`.
+3. **Expected:** `db`, `api`, and `web` start; migrations apply automatically; the SPA is
+   reachable at <http://localhost:8080> and the API health at
+   <http://localhost:5000/health/live>.
+
+### 0.11.8 Regression sweep
+
+Re-verify the core modules still work end-to-end: Authentication, Dashboard, Property,
+Unit, Tenant, Lease, Payment, Maintenance, Reports, Administration.
+
+---
+
 ## Testing Complete
 
 All Maintenance Domain features are now verified. Sprint 10 is ready for production.
@@ -3227,4 +3286,6 @@ All Maintenance Domain features are now verified. Sprint 10 is ready for product
 All Payment Domain features are also verified. Sprint 9 is ready for production.
 
 All Property, Unit, and Tenant management features are also verified. Sprint UI-3 is ready for production.
+
+QA-3 production hardening (performance, security, accessibility, UX, DevOps, docs) is verified. The platform is a Version 1.0 release candidate.
 

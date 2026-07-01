@@ -7,7 +7,10 @@
 
 # Explicitly mark text files
 *.ts text
+*.tsx text
 *.js text
+*.jsx text
+*.css text
 *.json text
 *.md text
 *.yml text
@@ -15,6 +18,8 @@
 *.toml text
 *.env* text
 *.sql text
+*.conf text
+Dockerfile text
 
 # Shell scripts - always LF
 *.sh text eol=lf
