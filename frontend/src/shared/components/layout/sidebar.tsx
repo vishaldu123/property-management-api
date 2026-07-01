@@ -3,8 +3,6 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   Squares2X2Icon,
   Cog6ToothIcon,
-  UsersIcon,
-  KeyIcon,
   BuildingOfficeIcon,
   DocumentIcon,
   CreditCardIcon,
@@ -57,20 +55,8 @@ const navItems: NavItem[] = [
     icon: <ChartBarSquareIcon className="w-5 h-5" />,
   },
   {
-    label: 'Team',
-    href: '/organization/members',
-    icon: <UsersIcon className="w-5 h-5" />,
-    requiredRoles: ['organization_admin', 'organization_owner'],
-  },
-  {
-    label: 'Roles & Permissions',
-    href: '/rbac',
-    icon: <KeyIcon className="w-5 h-5" />,
-    requiredRoles: ['organization_admin', 'organization_owner'],
-  },
-  {
-    label: 'Settings',
-    href: '/settings',
+    label: 'Administration',
+    href: '/admin',
     icon: <Cog6ToothIcon className="w-5 h-5" />,
   },
 ]

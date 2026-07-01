@@ -81,6 +81,14 @@ export const authService = {
     return response.data
   },
 
+  changePassword: async (payload: {
+    currentPassword: string
+    newPassword: string
+    confirmPassword: string
+  }): Promise<void> => {
+    await apiClient.post('/auth/change-password', payload)
+  },
+
   getTokens: (): AuthTokens | null => {
     const accessToken = localStorage.getItem('accessToken')
     const storedRefreshToken = localStorage.getItem('refreshToken')

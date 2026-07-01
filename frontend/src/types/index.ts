@@ -37,6 +37,16 @@ export interface Organization {
   logo?: string
   favicon?: string
   ownerId: string
+  email?: string
+  phone?: string
+  website?: string
+  address?: string
+  city?: string
+  state?: string
+  country?: string
+  postalCode?: string
+  timezone?: string
+  currency?: string
   settings?: OrganizationSettings
   branding?: OrganizationBranding
   preferences?: OrganizationPreferences
@@ -60,10 +70,13 @@ export interface OrganizationSettings {
 export interface OrganizationBranding {
   id: string
   organizationId: string
+  logoUrl?: string | null
+  logoAltText?: string | null
+  faviconUrl?: string | null
   primaryColor: string
   secondaryColor: string
   accentColor: string
-  theme: 'light' | 'dark' | 'auto'
+  theme: 'light' | 'dark' | 'auto' | string
   customCss?: string
   createdAt: string
   updatedAt: string

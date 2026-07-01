@@ -248,6 +248,19 @@ await authService.logout()
 - React Query data layer with memoized report calculations
 - Dashboard integration: KPI cards link to relevant report pages
 
+### ✅ Administration & Settings Workspace (Sprint UI-10)
+
+- Administration home with RBAC-gated section cards
+- Organization settings (name, address, phone, email, website, timezone, currency, language)
+- Organization branding (logo URL, colors, favicon placeholder, preview)
+- User management (members list, invite, suspend, reactivate, remove, search, pagination)
+- Invitation management (send invites; list placeholder until API available)
+- Role assignment (assign/remove roles, permission summary) reusing RBAC APIs
+- Security settings (change password, sessions, MFA/API key placeholders)
+- Profile, appearance, and notification preferences (local storage where backend unavailable)
+- Audit log viewer UI with placeholder data
+- System information page (frontend/backend version, environment, browser)
+
 ### ✅ Pages
 
 - Home page (public landing)
@@ -256,8 +269,8 @@ await authService.logout()
 - Forgot password page
 - Reset password page
 - Dashboard (protected, live executive metrics)
-- Profile page (protected)
-- Settings page (protected)
+- Profile page (protected, redirects to `/admin/profile`)
+- Settings page (protected, redirects to `/admin`)
 - 404 Not Found
 - 403 Forbidden
 
@@ -273,10 +286,11 @@ await authService.logout()
 
 - Vitest configuration
 - React Testing Library setup
-- Component test examples (property, tenant, unit, payment, maintenance, reports)
+- Component test examples (property, tenant, unit, payment, maintenance, reports, administration)
 - Payment workspace tests: utils (9), list (3), detail integration (1)
 - Maintenance workspace tests: utils (7), list (3), detail integration (1)
 - Reports workspace tests: utils (10), filters hook (2), home page (1)
+- Administration workspace tests: utils (5), home page (1), change password integration (1)
 - Utility function tests
 - Coverage reporting
 

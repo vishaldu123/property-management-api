@@ -1,5 +1,5 @@
 import React from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { Navigate, createBrowserRouter, RouterProvider } from 'react-router-dom'
 import {
   HomePage,
   LoginPage,
@@ -7,11 +7,6 @@ import {
   ForgotPasswordPage,
   ResetPasswordPage,
   DashboardPage,
-  ProfilePage,
-  SettingsPage,
-  OrganizationMembersPage,
-  RbacPage,
-  LeasesPage,
   NotFoundPage,
   ForbiddenPage,
 } from '@/pages'
@@ -39,7 +34,22 @@ import {
   TenantReportPage,
   MaintenanceReportPage,
   PropertyPerformanceReportPage,
+  AdministrationHomePage,
+  OrganizationSettingsPage,
+  OrganizationBrandingPage,
+  UserManagementPage,
+  InvitationManagementPage,
+  RoleAssignmentPage,
+  SecuritySettingsPage,
+  ChangePasswordPage,
+  ProfileSettingsPage,
+  AppearanceSettingsPage,
+  NotificationPreferencesPage,
+  SessionManagementPage,
+  AuditLogPage,
+  AboutPage,
 } from '@/features'
+import { LeasesPage } from '@/pages'
 import { ProtectedRoute } from './protected-route'
 import { AppLayout } from './app-layout'
 import { ErrorBoundary } from '../error-boundary'
@@ -92,8 +102,8 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/dashboard', element: <DashboardPage /> },
-      { path: '/profile', element: <ProfilePage /> },
-      { path: '/settings', element: <SettingsPage /> },
+      { path: '/profile', element: <Navigate to="/admin/profile" replace /> },
+      { path: '/settings', element: <Navigate to="/admin" replace /> },
       { path: '/properties', element: <PropertyListPage /> },
       { path: '/properties/create', element: <PropertyFormPage mode="create" /> },
       { path: '/properties/:id', element: <PropertyDetailPage /> },
@@ -106,8 +116,8 @@ const router = createBrowserRouter([
       { path: '/tenants/create', element: <TenantFormPage mode="create" /> },
       { path: '/tenants/:id', element: <TenantDetailPage /> },
       { path: '/tenants/:id/edit', element: <TenantFormPage mode="edit" /> },
-      { path: '/organization/members', element: <OrganizationMembersPage /> },
-      { path: '/rbac', element: <RbacPage /> },
+      { path: '/organization/members', element: <Navigate to="/admin/users" replace /> },
+      { path: '/rbac', element: <Navigate to="/admin/roles" replace /> },
       { path: '/leases', element: <LeasesPage /> },
       { path: '/payments', element: <PaymentListPage /> },
       { path: '/payments/create', element: <PaymentFormPage mode="create" /> },
@@ -125,6 +135,20 @@ const router = createBrowserRouter([
       { path: '/reports/tenants', element: <TenantReportPage /> },
       { path: '/reports/maintenance', element: <MaintenanceReportPage /> },
       { path: '/reports/property-performance', element: <PropertyPerformanceReportPage /> },
+      { path: '/admin', element: <AdministrationHomePage /> },
+      { path: '/admin/organization/settings', element: <OrganizationSettingsPage /> },
+      { path: '/admin/organization/branding', element: <OrganizationBrandingPage /> },
+      { path: '/admin/users', element: <UserManagementPage /> },
+      { path: '/admin/invitations', element: <InvitationManagementPage /> },
+      { path: '/admin/roles', element: <RoleAssignmentPage /> },
+      { path: '/admin/security', element: <SecuritySettingsPage /> },
+      { path: '/admin/security/password', element: <ChangePasswordPage /> },
+      { path: '/admin/security/sessions', element: <SessionManagementPage /> },
+      { path: '/admin/profile', element: <ProfileSettingsPage /> },
+      { path: '/admin/appearance', element: <AppearanceSettingsPage /> },
+      { path: '/admin/notifications', element: <NotificationPreferencesPage /> },
+      { path: '/admin/audit', element: <AuditLogPage /> },
+      { path: '/admin/about', element: <AboutPage /> },
     ],
   },
   {
