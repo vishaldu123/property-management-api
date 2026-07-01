@@ -2,6 +2,7 @@ export * from './ui'
 export * from './form'
 export * from './layout'
 export { ToastContainer } from './toast-container'
+export { OfflineBanner } from './offline-banner'
 export { PermissionGate, RoleGate } from './permission-gate'
 export {
   Skeleton,

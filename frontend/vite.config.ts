@@ -25,7 +25,10 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // Disable public sourcemaps in production artifacts to avoid shipping
+    // original source. Enable locally with `vite build --sourcemap` when debugging.
+    sourcemap: false,
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -40,6 +43,7 @@ export default defineConfig({
           ],
           'query-vendor': ['@tanstack/react-query'],
           'form-vendor': ['react-hook-form', '@hookform/resolvers'],
+          'charts-vendor': ['recharts'],
         },
       },
     },

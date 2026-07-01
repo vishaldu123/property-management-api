@@ -450,6 +450,30 @@ rm -rf dist
 npm run build
 ```
 
+## Production hardening (QA-3)
+
+The frontend was hardened for the Version 1.0 release candidate:
+
+- **Route-level code splitting** — every page is loaded via `React.lazy` inside
+  `Suspense` (`src/app/routes/index.tsx`), so the initial bundle only contains the shell.
+- **Vendor chunking** — React, Radix UI, TanStack Query, forms, and Recharts are split
+  into dedicated chunks in `vite.config.ts`. The heaviest route chunk dropped from
+  ~506 kB to ~106 kB and the chunk-size warning is resolved.
+- **No public sourcemaps** — production builds omit sourcemaps (`sourcemap: false`).
+- **Production-safe logging** — use `@/shared/utils/logger`; debug/info logs are
+  suppressed in production, warnings/errors always emit. No `console.*` in app code.
+- **React Query defaults** — no retry on 4xx, no refetch on window focus, mutations don't
+  retry (`src/app/index.tsx`).
+- **Accessibility** — skip-to-content link and focusable `main` landmark
+  (`dashboard-layout.tsx`), ARIA live regions on loading and offline states.
+- **Offline handling** — `OfflineBanner` + `useOnlineStatus` show an accessible banner
+  when connectivity is lost.
+- **Docker** — `Dockerfile` (nginx multi-stage) and `nginx.conf` (SPA fallback, gzip,
+  caching, security headers) for containerized deployment.
+
+See the root [ARCHITECTURE.md](../ARCHITECTURE.md), [DEPLOYMENT.md](../DEPLOYMENT.md),
+[SECURITY.md](../SECURITY.md), and [CONTRIBUTING.md](../CONTRIBUTING.md).
+
 ## License
 
 ISC
